@@ -15,13 +15,13 @@
 #include <stdlib.h>
 #include <pynq_api.h>
 
-#include "SE_QUBIP/src/common/func.h"
-#include "SE_QUBIP/src/sha3/sha3_shake_hw.h"
+#include "se-qubip/src/common/mmio.h"
+#include "se-qubip/src/sha3/sha3_shake_hw.h"
 
-#define sha3_512_hw		sha3_512_hw_func
-#define sha3_256_hw		sha3_256_hw_func
-#define shake128_hw		shake128_hw_func
-#define shake256_hw		shake256_hw_func
+#define sha3_512_hw			sha3_512_hw_func
+#define sha3_256_hw			sha3_256_hw_func
+#define shake_128_hw		shake128_hw_func
+#define shake_256_hw		shake256_hw_func
 
 // ------- MS2XL_BASEADDR ------- //
 
