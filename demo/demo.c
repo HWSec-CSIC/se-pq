@@ -8,6 +8,7 @@ void main() {
 	createMMIOWindow(&ms2xl_se, 0x43C00000, MS2XL_LENGTH);
 
 	demo_sha3_hw(0, ms2xl_se);
+	demo_sha2_hw(0, ms2xl_se);
 
 	/*
 	demo_aes(128, 0);	// Security level: 128

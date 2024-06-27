@@ -6,20 +6,13 @@
 #include <string.h>
 #include <math.h>
 #include "../common/mmio.h"
+#include "../common/conf.h"
 
 /************************ MS2XL Constant Definitions **********************/
-
-#define MS2XL_LENGTH   0x40
 
 #define LOAD_LENGTH				1
 #define LOAD					2
 #define START					3
-
-#define DATA_IN  0x0		/**< data_in */
-#define ADDRESS  0x8		/**< address */
-#define CONTROL  0x10		/**< control */
-#define DATA_OUT 0x18		/**< data_out */
-#define END_OP   0x20		/**< end_op */
 
 /************************ MS2XL Function Definitions **********************/
 

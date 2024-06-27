@@ -5,6 +5,7 @@
 #include "test_func.h"
 
 void demo_sha3_hw(unsigned int verb, MMIO_WINDOW ms2xl);
+void demo_sha2_hw(unsigned int verb, MMIO_WINDOW ms2xl);
 
 /*
 void demo_rsa(unsigned int bits, unsigned int verb);
