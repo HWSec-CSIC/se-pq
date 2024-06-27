@@ -424,51 +424,6 @@ module fsm_sha3_shake(
 
 endmodule
 
-module input_module_v2#(
-    parameter LENGTH = 1600,
-    parameter D_WIDTH = 64
-    )(
-    input                               clk,
-    input                               rst,
-    input                               load,
-    input                               padding,
-    input   [7:0]                       RATE,
-    input   [D_WIDTH-1:0]               PAD,
-    input   [7:0]                       LEN,
-    input   [D_WIDTH-1:0]               data_in,
-    input   [7:0]                       add,
-    output  [LENGTH-1:0]                P
-    );
-    
-    // --- P generation --- //
-    reg [D_WIDTH-1:0] P_reg [0:(LENGTH/D_WIDTH)-1];
-    genvar i;
-    generate
-        for(i = 0; i < (LENGTH/D_WIDTH); i = i + 1) begin
-        assign P[((i+1)*D_WIDTH - 1):(i*D_WIDTH)] = P_reg[i];
-        end
-    endgenerate
-    
-    wire [7:0] add_len; 
-    wire [7:0] add_rate;
-    assign add_len = LEN / 8;
-    assign add_rate = RATE / 8 - 1;
-    
-    always @(posedge clk) begin
-        if(load) begin
-            if(padding) begin
-                if      (add == add_rate && add != add_len)   P_reg[add] <= (8'h80 << 56) + data_in;
-                else if (add == add_rate && add == add_len)   P_reg[add] <= (8'h80 << 56) + data_in + PAD;
-                else if (add != add_rate && add == add_len)   P_reg[add] <= data_in + PAD;
-                else                                          P_reg[add] <= data_in;
-            end
-            else                                              P_reg[add] <= data_in;            
-        end
-        else                                                  P_reg[add] <= P_reg[add]; 
-    
-    end 
-endmodule
-
 module input_module_v3#(
     parameter LENGTH = 1600,
     parameter D_WIDTH = 64
