@@ -13,17 +13,29 @@ The content of the SE-QUBIP library is depicted in the next container tree:
         .
         ├── bit             # folder to store the bitstream files
         ├── build           # folder to store the shared libraries 
-        └── src             # folder that contains the sources files
+        └── rtl             # folder that contains the RTL sources files
             .
             ├── common      # common files 
             ├── sha3        # SHA3 files 
+            ├── sha2        # SHA2 files 
             └── trng        # TRNG files
+        └── src             # folder that contains the sources files of the library
+            .
+            ├── common      # common files 
+            ├── sha3        # SHA3 files 
+            └── sha2        # SHA2 files
     ├── demo                # folder that contains the demo
     ├── se-qubip.h          # header of the library
     ├── Makefile            # To compile the library
+    ├── SE_QUBIP_1_0.rar    # The IP Module of the Secure Element
     └── README.md  
 
-For now (v1.0) the list of supported algorithms are:
+For now (***v2.0***) the list of supported algorithms are:
+- SHA2:
+    - SHA-256
+    - SHA-384
+    - SHA-512
+    - SHA-512/256
 - SHA3:
     - SHA3-256
     - SHA3-512
