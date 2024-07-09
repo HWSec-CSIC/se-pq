@@ -9,6 +9,7 @@
 #include <sys/time.h>
 
 #include <pynq_api.h>
+#include "../se-qubip.h"
 
 void load_bitstream();
 void show_array(const unsigned char* r, const unsigned int size, const unsigned int mod);

@@ -85,8 +85,8 @@ unsigned long long Wtime() {
   if (!PYNQ_getPLClockFreq(clk_index, clk_frequency)) {
 		printf("\n  Cannot determine clock frequency\n\n");
 	} else {
-	  printf("\n  Running   @ %6.2f MHz.\n", *clk_frequency);
-	  printf("\n  Selecting @ %6.2f MHz.\n", *set_clk_frequency);
+	  printf("\n\n  Running   @ %6.2f MHz.\n", *clk_frequency);
+	  printf("  Selecting @ %6.2f MHz.\n", *set_clk_frequency);
 	    if ( clk_frequency != set_clk_frequency) {
 			int div0 = 1;
 			int * p_div0 = &div0;
@@ -99,7 +99,7 @@ unsigned long long Wtime() {
 		if(!PYNQ_getPLClockFreq(clk_index, clk_frequency)) {
 			printf("\n");
 		} else {
-	 printf("\n  Setting   @ %6.2f MHz.\n", * clk_frequency);
+	 printf("  Setting   @ %6.2f MHz.\n", * clk_frequency);
 		}
 	}
 	return SUCCESS;

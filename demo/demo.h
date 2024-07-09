@@ -6,6 +6,8 @@
 
 void demo_sha3_hw(unsigned int verb, MMIO_WINDOW ms2xl);
 void demo_sha2_hw(unsigned int verb, MMIO_WINDOW ms2xl);
+void demo_eddsa(unsigned int mode, unsigned int verb, MMIO_WINDOW ms2xl);
+void demo_x25519(unsigned int verb, MMIO_WINDOW ms2xl);
 
 /*
 void demo_rsa(unsigned int bits, unsigned int verb);

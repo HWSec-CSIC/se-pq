@@ -6,7 +6,7 @@ void load_bitstream() {
 	int Status;
 	char bitstream_file[80];
 
-	sprintf(bitstream_file, "%s", "../se-qubip/bit/BD_wrapper.bit");
+	sprintf(bitstream_file, "%s", BITSTREAM_FILE);
 
 	FILE* file;
 

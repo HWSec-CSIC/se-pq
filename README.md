@@ -18,19 +18,24 @@ The content of the SE-QUBIP library is depicted in the next container tree:
             ├── common      # common files 
             ├── sha3        # SHA3 files 
             ├── sha2        # SHA2 files 
-            └── trng        # TRNG files
+            ├── trng        # TRNG files
+	    ├── eddsa	    # EdDSA files
+	    └── x25519	    # X25519 files
+	    
         └── src             # folder that contains the sources files of the library
             .
             ├── common      # common files 
             ├── sha3        # SHA3 files 
-            └── sha2        # SHA2 files
+	    ├── sha2        # SHA2 files 
+            ├── eddsa	    # EdDSA files
+	    └── x25519	    # X25519 files
     ├── demo                # folder that contains the demo
     ├── se-qubip.h          # header of the library
     ├── Makefile            # To compile the library
     ├── SE_QUBIP_1_0.rar    # The IP Module of the Secure Element
     └── README.md  
 
-For now (***v2.0***) the list of supported algorithms are:
+For now (***v3.0***) the list of supported algorithms are:
 - SHA2:
     - SHA-256
     - SHA-384
@@ -41,6 +46,10 @@ For now (***v2.0***) the list of supported algorithms are:
     - SHA3-512
     - SHAKE128
     - SHAKE256
+- EDDSA:
+    - EdDSA25519
+- ECDH:
+    - X25519
 
 
 ## Installation
@@ -104,8 +113,18 @@ _Hardware Cryptography Researcher_
 
 _Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
 
+**Pablo Navarro-Torrero** - (navarro@imse-cnm.csic.es)
+
+_Hardware Cryptography Researcher_ 
+
+_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
+
 ## Developers
 
 Eros Camacho-Ruiz
+
+_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
+
+Pablo Navarro-Torrero
 
 _Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
