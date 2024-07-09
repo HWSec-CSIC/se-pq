@@ -19,16 +19,16 @@ The content of the SE-QUBIP library is depicted in the next container tree:
             ├── sha3        # SHA3 files 
             ├── sha2        # SHA2 files 
             ├── trng        # TRNG files
-	        ├── eddsa	    # EdDSA files
-	        └── x25519	    # X25519 files
+	        ├── eddsa       # EdDSA files
+	        └── x25519      # X25519 files
 	    
         └── src             # folder that contains the sources files of the library
             .
             ├── common      # common files 
             ├── sha3        # SHA3 files 
 	        ├── sha2        # SHA2 files 
-            ├── eddsa	    # EdDSA files
-	        └── x25519	    # X25519 files
+            ├── eddsa       # EdDSA files
+	        └── x25519      # X25519 files
     ├── demo                # folder that contains the demo
     ├── se-qubip.h          # header of the library
     ├── Makefile            # To compile the library
