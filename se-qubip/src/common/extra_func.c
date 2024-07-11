@@ -13,13 +13,14 @@ void swapEndianness(unsigned char *data, size_t size)
     }
 }
 
+void seed_rng()
+{
+    srand((unsigned int)time(NULL)); // Initialization, should only be called once.
+}
+
 void gen_priv_key(unsigned char *priv_key, unsigned int priv_len)
 {
-    srand(time(NULL)); // Initialization, should only be called once.
     unsigned int r;    // Returns a pseudo-random integer between 0 and RAND_MAX.
-
-    // priv_key = (unsigned char *) malloc(priv_len);
-
 
     for (int i = 0; i < priv_len / sizeof(int); i++)
     {
@@ -28,7 +29,6 @@ void gen_priv_key(unsigned char *priv_key, unsigned int priv_len)
 
         memcpy(priv_key + i*sizeof(int), &r, sizeof(int));
     }
-
 
     /*
     printf("priv_key = 0x");

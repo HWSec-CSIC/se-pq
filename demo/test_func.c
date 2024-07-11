@@ -1,7 +1,7 @@
 #include "test_func.h"
 
-void load_bitstream() {
-
+void load_bitstream(char* BITSTREAM_FILE)
+{
 	unsigned long long tic = 0, toc;
 	int Status;
 	char bitstream_file[80];

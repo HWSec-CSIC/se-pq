@@ -9,7 +9,7 @@ OPENSSL_DIR = /opt/openssl/
 
 # COMPILER FLAGS
 LDFLAGS_DEMO = -lpthread -lm -lpynq -lcma
-LDFLAGS_DEMO_BUILD = -lpthread -lm -lpynq -lcma -L../se-qubip/build/ -lsequbip
+LDFLAGS_DEMO_BUILD = -lpthread -lm -lpynq -lcma -L../se-qubip/build/ -lsequbip 
 CFLAGS_DEMO =
 
 # SOURCE DIRECTORY
@@ -42,6 +42,7 @@ DEMO_SOURCES =	demo_sha3.c \
 				demo_sha2.c \
 				demo_eddsa.c \
 				demo_x25519.c \
+				test_x25519.c \
 				test_func.c
 DEMO_HEADERS =	demo.h test_func.h
 

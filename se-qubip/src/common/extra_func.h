@@ -5,6 +5,7 @@
 #include <time.h>
 
 void swapEndianness(unsigned char *data, size_t size);
+void seed_rng();
 void gen_priv_key(unsigned char* priv_key, unsigned int priv_len);
 void print_progress_bar(int percentage, float ETA_time);
 

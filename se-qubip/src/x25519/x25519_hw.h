@@ -55,8 +55,10 @@ void x25519_read(unsigned long long address, unsigned long long size, void *data
 
 //-- GENERATE PUBLIC KEY
 void x25519_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, unsigned int *pri_len, unsigned int *pub_len, MMIO_WINDOW ms2xl);
+void x448_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, unsigned int *pri_len, unsigned int *pub_len, MMIO_WINDOW ms2xl);
 
 //-- ECDH X25519 OPERATION
-void x25519_hw(unsigned char *scalar, unsigned char *point_in, unsigned char *point_out, MMIO_WINDOW ms2xl);
+void x25519_ss_gen_hw(unsigned char **shared_secret, unsigned int *shared_secret_len, unsigned char *pub_key, unsigned int pub_len, unsigned char *pri_key, unsigned int pri_len, MMIO_WINDOW ms2xl);
+void x448_ss_gen_hw(unsigned char **shared_secret, unsigned int *shared_secret_len, unsigned char *pub_key, unsigned int pub_len, unsigned char *pri_key, unsigned int pri_len, MMIO_WINDOW ms2xl);
 
 #endif

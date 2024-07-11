@@ -8,19 +8,20 @@ void main() {
 	start_t = timeInMicroseconds();
 	stop_t  = timeInMicroseconds();
 
-	// --- Loading bitstream --- //
-	load_bitstream(0);
+	// --- Load Bitstream --- //
+	load_bitstream(BITSTREAM_QUBIP);
+
+	// --- Open MMIO Window --- //
 	MMIO_WINDOW ms2xl_se;
 	createMMIOWindow(&ms2xl_se, MS2XL_BASEADDR, MS2XL_LENGTH);
 
 	// ---- SHA3 ---- //
-	/*
 	start_t = timeInMicroseconds();
 	demo_sha3_hw(0, ms2xl_se);
 	stop_t = timeInMicroseconds(); printf("\t ET: %.3f s \t %.3f ms \t %ld us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (stop_t - start_t));
 
 
-
+	/*
 	// ---- AES ---- //
 	start_t = timeInMicroseconds();
 	demo_aes(128, 0);	// Security level: 128
@@ -55,21 +56,22 @@ void main() {
 	start_t = timeInMicroseconds();
 	demo_rsa(8192, 0);  // Security level: 200
 	stop_t = timeInMicroseconds(); printf("\t ET: %.3f s \t %.3f ms \t %ld us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (stop_t - start_t));
-
+	*/
+	
 	// ---- EdDSA ---- //
-
 	start_t = timeInMicroseconds();
 	demo_eddsa(25519, 0, ms2xl_se);
 	stop_t = timeInMicroseconds(); printf("\t ET: %.3f s \t %.3f ms \t %ld us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (stop_t - start_t));
 
+	/*
 	// start_t = timeInMicroseconds();
 	// demo_eddsa(448, 0);
 	// stop_t = timeInMicroseconds(); printf("\t ET: %.3f s \t %.3f ms \t %ld us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (stop_t - start_t));
 	*/
+
 	// ---- X25519 ---- //
-	
 	start_t = timeInMicroseconds();
-	demo_x25519(0, ms2xl_se);
+	demo_x25519(25519, 0, ms2xl_se);
 	stop_t = timeInMicroseconds();
 	printf("\t ET: %.3f s \t %.3f ms \t %ld us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (stop_t - start_t));
 
@@ -122,5 +124,6 @@ void main() {
 	*/
 
 	printf("\n\n");
+	// --- Close MMIO Window --- //
 	closeMMIOWindow(&ms2xl_se);
 }

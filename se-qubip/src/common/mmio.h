@@ -50,7 +50,7 @@
 
 /****************************************************************************************/
 
-  int Set_Clk_Freq( unsigned int clk_index, float * clk_frequency, float * set_clk_frequency);
+  int Set_Clk_Freq( unsigned int clk_index, float * clk_frequency, float * set_clk_frequency, int DBG);
 
   unsigned long long Wtime();
 

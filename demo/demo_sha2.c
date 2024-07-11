@@ -27,7 +27,7 @@ void demo_sha2_hw(unsigned int verb, MMIO_WINDOW ms2xl) {
     // unsigned char res_512_224[28]; char2hex(exp_res_512_224, res_512_224);
     unsigned char res_512_256[32]; char2hex(exp_res_512_256, res_512_256);
 
-    input       = calloc(0,32);
+    input       = malloc(32);
     input[0]    = (unsigned char)('\0');
     len_input   = 0;
 
@@ -77,8 +77,8 @@ void demo_sha2_hw(unsigned int verb, MMIO_WINDOW ms2xl) {
     else printf("\n SHA-512 Test: \u274c FAIL");
     free(md);
 
-    /*
     // ---- sha_512_224 ---- //
+    /*
     md = malloc(SHA224_DIGEST_LENGTH);
     sha_512_224(input, len_input, md);
     if (verb >= 1) {
@@ -100,5 +100,5 @@ void demo_sha2_hw(unsigned int verb, MMIO_WINDOW ms2xl) {
     if (!cmpchar(md, res_512_256, SHA256_DIGEST_LENGTH)) printf("\n SHA-512/256 Test: \u2705 VALID");
     else printf("\n SHA-512/256 Test: \u274c FAIL");
     free(md);
-
+    
 }

@@ -25,14 +25,14 @@ void eddsa25519_init(unsigned long long operation, MMIO_WINDOW ms2xl)
     unsigned long long data_in;
 
     //-- General and Interface Reset
-    control = EDDSA_INTF_RST + EDDSA_RST_ON;
+    control = (ADD_EDDSA << 32) + EDDSA_INTF_RST + EDDSA_RST_ON;
     writeMMIO(&ms2xl, &control, CONTROL, AXI_BYTES);
 
     // printf("Press any key to continue...\n");
     // getchar();
 
     // Select Operation Mode
-    control = EDDSA_INTF_LOAD + EDDSA_RST_ON;
+    control = (ADD_EDDSA << 32) + EDDSA_INTF_LOAD + EDDSA_RST_ON;
     address = 0;
     data_in = operation;
 
@@ -40,20 +40,20 @@ void eddsa25519_init(unsigned long long operation, MMIO_WINDOW ms2xl)
     writeMMIO(&ms2xl, &data_in, DATA_IN, AXI_BYTES);
     writeMMIO(&ms2xl, &control, CONTROL, AXI_BYTES);
 
-    control = EDDSA_INTF_OPER + EDDSA_RST_ON;
+    control = (ADD_EDDSA << 32) + EDDSA_INTF_OPER + EDDSA_RST_ON;
     writeMMIO(&ms2xl, &control, CONTROL, AXI_BYTES);
 }
 
 void eddsa25519_start(MMIO_WINDOW ms2xl)
 {
-    unsigned long long control = EDDSA_RST_OFF;
+    unsigned long long control = (ADD_EDDSA << 32) + EDDSA_RST_OFF;
     writeMMIO(&ms2xl, &control, CONTROL, AXI_BYTES);
 }
 
 void eddsa25519_write(unsigned long long address, unsigned long long size,  void *data, unsigned long long reset, MMIO_WINDOW ms2xl)
 {
     unsigned long long addr = address;
-    unsigned long long control = (reset) ? EDDSA_INTF_LOAD + EDDSA_RST_ON : EDDSA_INTF_LOAD + EDDSA_RST_OFF;
+    unsigned long long control = (reset) ? (ADD_EDDSA << 32) + EDDSA_INTF_LOAD + EDDSA_RST_ON : (ADD_EDDSA << 32) + EDDSA_INTF_LOAD + EDDSA_RST_OFF;
 
     writeMMIO(&ms2xl, &addr, ADDRESS, AXI_BYTES);
     writeMMIO(&ms2xl, data, DATA_IN, AXI_BYTES);
@@ -66,13 +66,13 @@ void eddsa25519_write(unsigned long long address, unsigned long long size,  void
         writeMMIO(&ms2xl, data + AXI_BYTES * i, DATA_IN, AXI_BYTES);
     }
 
-    control = (reset) ? EDDSA_INTF_OPER + EDDSA_RST_ON : EDDSA_INTF_OPER + EDDSA_RST_OFF;
+    control = (reset) ? (ADD_EDDSA << 32) + EDDSA_INTF_OPER + EDDSA_RST_ON : (ADD_EDDSA << 32) + EDDSA_INTF_OPER + EDDSA_RST_OFF;
     writeMMIO(&ms2xl, &control, CONTROL, AXI_BYTES);
 }
 
 void eddsa25519_read(unsigned long long address, unsigned long long size, void *data, MMIO_WINDOW ms2xl)
 {
-    unsigned long long control = EDDSA_INTF_READ;
+    unsigned long long control = (ADD_EDDSA << 32) + EDDSA_INTF_READ;
     unsigned long long addr;
 
     writeMMIO(&ms2xl, &control, CONTROL, AXI_BYTES);

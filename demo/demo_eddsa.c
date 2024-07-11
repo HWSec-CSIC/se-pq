@@ -27,17 +27,16 @@ void demo_eddsa(unsigned int mode, unsigned int verb, MMIO_WINDOW ms2xl)
 #if defined(PYNQ)
 	unsigned int clk_index = 0;
 	float clk_frequency;
-	#ifdef PYNQZ2
-	float set_clk_frequency = 70.;
-	#elif ZCU104
-	float set_clk_frequency = 300.;
-	#endif
-    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency);
+	float set_clk_frequency = FREQ_EDDSA;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int) verb);
 #endif
 
     // ---- EDDSA ---- //
     if (mode == 25519)
     {
+        //-- Set the seed for RNG
+        seed_rng();
+
         unsigned char *pub_key;
         unsigned char *pri_key;
         unsigned int pub_len;
@@ -132,7 +131,7 @@ void demo_eddsa(unsigned int mode, unsigned int verb, MMIO_WINDOW ms2xl)
     }
 
 #if defined(PYNQ)
-    set_clk_frequency = 100.;
-    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency);
+    set_clk_frequency = FREQ_TYPICAL;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
 #endif
 }

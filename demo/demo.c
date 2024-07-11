@@ -2,15 +2,16 @@
 #include "demo.h"
 
 void main() {
-	// --- Loading bitstream --- //
-	load_bitstream(0);
+	// --- Open MMIO Window --- //
 	MMIO_WINDOW ms2xl_se;
 	createMMIOWindow(&ms2xl_se, MS2XL_BASEADDR, MS2XL_LENGTH);
 
-	/*
+	// --- Loading Bitstream --- //
+	load_bitstream(BITSTREAM_QUBIP);
 	demo_sha3_hw(0, ms2xl_se);
-	demo_sha2_hw(0, ms2xl_se);
+	// demo_sha2_hw(0, ms2xl_se);
 
+	/*
 	demo_aes(128, 0);	// Security level: 128
 	demo_aes(192, 0);	// Security level: 192
 	demo_aes(256, 0);	// Security level: 256
@@ -20,12 +21,13 @@ void main() {
 	demo_rsa(4096, 0);  // Security level: 152
 	demo_rsa(6144, 0);  // Security level: 176
 	demo_rsa(8192, 0);  // Security level: 200
-
-	demo_eddsa(25519, 3, ms2xl_se);
 	*/
 	
-	demo_x25519(3, ms2xl_se);
+	demo_eddsa(25519, 0, ms2xl_se);
 
+	demo_x25519(25519, 0, ms2xl_se);
+	// test_x25519(3, ms2xl_se);
+	
 	/*
 	demo_eddsa(448, 0);
 
@@ -44,5 +46,6 @@ void main() {
 	*/
 
 	printf("\n\n");
+	// --- Close MMIO Window --- //
 	closeMMIOWindow(&ms2xl_se);
 }

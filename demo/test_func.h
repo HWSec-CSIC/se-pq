@@ -11,7 +11,7 @@
 #include <pynq_api.h>
 #include "../se-qubip.h"
 
-void load_bitstream();
+void load_bitstream(char* BITSTREAM_FILE);
 void show_array(const unsigned char* r, const unsigned int size, const unsigned int mod);
 int cmpchar(unsigned char* in1, unsigned char* in2, unsigned int len);
 void char2hex(unsigned char* in, unsigned char* out);
