@@ -21,21 +21,27 @@
 
 
 module SE_QUBIP #(
-    parameter IMP_SHA3 = 1,
-    parameter IMP_SHA2 = 1
+    parameter IMP_SHA3      = 1,
+    parameter IMP_SHA2      = 1,
+    parameter IMP_EDDSA     = 1,
+    parameter IMP_X25519    = 1,
+    parameter IMP_TRNG      = 1
     )(
-    input                           i_clk,
-    input                           i_rst,
-    input   [63:0]                  i_data_in,
-    input   [63:0]                  i_add,
-    input   [63:0]                  i_control,
-    output  [63:0]                  o_data_out,
-    output                          o_end_op
+    input  wire i_clk,
+    input  wire i_rst,
+    input  wire [63:0] i_data_in,
+    input  wire [63:0] i_add,
+    input  wire [63:0] i_control,
+    output wire [63:0] o_data_out,
+    output wire o_end_op
     );
     
     // --- ADDRESS Definition --- //
-    localparam ADDRESS_SHA2 = 32'h0000_0020;
-    localparam ADDRESS_SHA3 = 32'h0000_0030;
+    localparam ADDRESS_SHA2     = 32'h0000_0020;
+    localparam ADDRESS_SHA3     = 32'h0000_0030;
+    localparam ADDRESS_EDDSA    = 32'h0000_0040;
+    localparam ADDRESS_X25519   = 32'h0000_0050;
+    localparam ADDRESS_TRNG     = 32'h0000_0060;
     
     // --- Signal Definition --- //
     // ------------------------- //
@@ -47,17 +53,29 @@ module SE_QUBIP #(
     // ------------------------- //
     wire sel_sha2;
     wire sel_sha3;
-    assign sel_sha2 = (address_module == ADDRESS_SHA2) ? 1 : 0;
-    assign sel_sha3 = (address_module == ADDRESS_SHA3) ? 1 : 0;
+    wire sel_eddsa;
+    wire sel_x25519;
+    wire sel_trng;
+    assign sel_sha2     = (address_module == ADDRESS_SHA2)      ? 1 : 0;
+    assign sel_sha3     = (address_module == ADDRESS_SHA3)      ? 1 : 0;
+    assign sel_eddsa    = (address_module == ADDRESS_EDDSA)     ? 1 : 0;
+    assign sel_x25519   = (address_module == ADDRESS_X25519)    ? 1 : 0;
+    assign sel_trng     = (address_module == ADDRESS_TRNG)      ? 1 : 0;
     
     // ------------------------- //
     wire [63:0] o_data_out_sha2;
     wire [63:0] o_data_out_sha3;
+    wire [63:0] o_data_out_eddsa;
+    wire [63:0] o_data_out_x25519;
+    wire [63:0] o_data_out_trng;
     reg  [63:0] o_data_out_reg;
     
     always @* begin
                 if(sel_sha2)    o_data_out_reg = o_data_out_sha2;
         else    if(sel_sha3)    o_data_out_reg = o_data_out_sha3;
+        else    if(sel_eddsa)   o_data_out_reg = o_data_out_eddsa;
+        else    if(sel_x25519)  o_data_out_reg = o_data_out_x25519;
+        else    if(sel_trng)    o_data_out_reg = o_data_out_trng;
         else                    o_data_out_reg = 64'hFFFF_FFFF_FFFF_FFFF;
     end
     
@@ -66,11 +84,17 @@ module SE_QUBIP #(
     // ------------------------- //
     wire o_end_op_sha2;
     wire o_end_op_sha3;
+    wire o_end_op_eddsa;
+    wire o_end_op_x25519;
+    wire o_end_op_trng;
     reg  o_end_op_reg;
     
     always @* begin
                 if(sel_sha2)    o_end_op_reg = o_end_op_sha2;
         else    if(sel_sha3)    o_end_op_reg = o_end_op_sha3;
+        else    if(sel_eddsa)   o_end_op_reg = o_end_op_eddsa;
+        else    if(sel_x25519)  o_end_op_reg = o_end_op_x25519;
+        else    if(sel_trng)    o_end_op_reg = o_end_op_trng;
         else                    o_end_op_reg = 1'b1;
     end
     
@@ -138,6 +162,108 @@ module SE_QUBIP #(
                 .i_control(control_module),
                 .o_data_out(o_data_out_sha2),
                 .o_end_op(o_end_op_sha2)
+            );
+        
+        end
+        
+    endgenerate
+    
+    // --- EDDSA25519 DEFINITION --- //
+    generate 
+        if(IMP_EDDSA) begin
+        
+            EdDSA_itf
+            eddsa_xl
+            (
+                .clk(i_clk),
+                .i_rst(i_rst & sel_eddsa),
+                .data_in(i_data_in),
+                .address(i_add),
+                .control(control_module[3:0]),
+                .data_out(o_data_out_eddsa),
+                .end_op(o_end_op_eddsa)
+            );
+            
+        end
+        else begin
+            dummy_module
+            eddsa_xl
+            (
+                .i_clk(i_clk),
+                .i_rst(i_rst & sel_eddsa),
+                .i_data_in(i_data_in),
+                .i_add(i_add),
+                .i_control(control_module),
+                .o_data_out(o_data_out_eddsa),
+                .o_end_op(o_end_op_eddsa)
+            );
+        
+        end
+        
+    endgenerate
+        
+    // --- X25519 DEFINITION --- //
+    generate 
+        if(IMP_X25519) begin
+        
+            X25519_itf
+            x25519_xl
+            (
+                .clk(i_clk),
+                .i_rst(i_rst & sel_x25519),
+                .data_in(i_data_in),
+                .address(i_add),
+                .control(control_module[3:0]),
+                .data_out(o_data_out_x25519),
+                .end_op(o_end_op_x25519)
+            );
+            
+        end
+        else begin
+            dummy_module
+            x25519_xl
+            (
+                .i_clk(i_clk),
+                .i_rst(i_rst & sel_x25519),
+                .i_data_in(i_data_in),
+                .i_add(i_add),
+                .i_control(control_module),
+                .o_data_out(o_data_out_x25519),
+                .o_end_op(o_end_op_x25519)
+            );
+        
+        end
+        
+    endgenerate
+    
+     // --- PUF DEFINITION --- //
+    generate 
+        if(IMP_TRNG) begin
+        
+            puf_itf
+            trng_xl
+            (
+                .clk(i_clk),
+                .i_rst(i_rst & sel_trng),
+                .data_in(i_data_in),
+                .address(i_add),
+                .control(control_module[3:0]),
+                .data_out(o_data_out_trng),
+                .end_op(o_end_op_trng)
+            );
+            
+        end
+        else begin
+            dummy_module
+            puf_xl
+            (
+                .i_clk(i_clk),
+                .i_rst(i_rst & sel_trng),
+                .i_data_in(i_data_in),
+                .i_add(i_add),
+                .i_control(control_module),
+                .o_data_out(o_data_out_trng),
+                .o_end_op(o_end_op_trng)
             );
         
         end

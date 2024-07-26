@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="EdDSA_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="EdDSA_tb" />
+            <top_module name="glbl" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="79160500fs"></ZoomStartTime>
+      <ZoomEndTime time="81880501fs"></ZoomEndTime>
+      <Cursor1Time time="81635500fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="210"></NameColumnWidth>
+      <ValueColumnWidth column_width="101"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="55" />
+   <wvobject fp_name="/EdDSA_tb/sig_pub" type="array">
+      <obj_property name="ElementShortName">sig_pub[511:0]</obj_property>
+      <obj_property name="ObjectShortName">sig_pub[511:0]</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider777">
+      <obj_property name="label">-------------------</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/valid" type="logic">
+      <obj_property name="ElementShortName">valid</obj_property>
+      <obj_property name="ObjectShortName">valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/error" type="logic">
+      <obj_property name="ElementShortName">error</obj_property>
+      <obj_property name="ObjectShortName">error</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider777">
+      <obj_property name="label">-------------------</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/public" type="array">
+      <obj_property name="ElementShortName">public[255:0]</obj_property>
+      <obj_property name="ObjectShortName">public[255:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/private" type="array">
+      <obj_property name="ElementShortName">private[255:0]</obj_property>
+      <obj_property name="ObjectShortName">private[255:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/sig_ver" type="array">
+      <obj_property name="ElementShortName">sig_ver[511:0]</obj_property>
+      <obj_property name="ObjectShortName">sig_ver[511:0]</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider777">
+      <obj_property name="label">-------------------</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/message" type="array">
+      <obj_property name="ElementShortName">message[1023:0]</obj_property>
+      <obj_property name="ObjectShortName">message[1023:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/len_message" type="array">
+      <obj_property name="ElementShortName">len_message[63:0]</obj_property>
+      <obj_property name="ObjectShortName">len_message[63:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider777">
+      <obj_property name="label">-------------------</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/sel" type="array">
+      <obj_property name="ElementShortName">sel[1:0]</obj_property>
+      <obj_property name="ObjectShortName">sel[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/rst" type="logic">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider777">
+      <obj_property name="label">-------------------</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/state" type="array">
+      <obj_property name="ElementShortName">state[2:0]</obj_property>
+      <obj_property name="ObjectShortName">state[2:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/op_counter" type="array">
+      <obj_property name="ElementShortName">op_counter[5:0]</obj_property>
+      <obj_property name="ObjectShortName">op_counter[5:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/hash_op_counter" type="array">
+      <obj_property name="ElementShortName">hash_op_counter[3:0]</obj_property>
+      <obj_property name="ObjectShortName">hash_op_counter[3:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/valid_H" type="logic">
+      <obj_property name="ElementShortName">valid_H</obj_property>
+      <obj_property name="ObjectShortName">valid_H</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider777">
+      <obj_property name="label">-------------------</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/hash" type="array">
+      <obj_property name="ElementShortName">hash[511:0]</obj_property>
+      <obj_property name="ObjectShortName">hash[511:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/init_block" type="logic">
+      <obj_property name="ElementShortName">init_block</obj_property>
+      <obj_property name="ObjectShortName">init_block</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/last_block" type="logic">
+      <obj_property name="ElementShortName">last_block</obj_property>
+      <obj_property name="ObjectShortName">last_block</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider777">
+      <obj_property name="label">-------------------</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/P0" type="array">
+      <obj_property name="ElementShortName">P0[255:0]</obj_property>
+      <obj_property name="ObjectShortName">P0[255:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/Q0" type="array">
+      <obj_property name="ElementShortName">Q0[255:0]</obj_property>
+      <obj_property name="ObjectShortName">Q0[255:0]</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider777">
+      <obj_property name="label">-------------------</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/length" type="array">
+      <obj_property name="ElementShortName">length[63:0]</obj_property>
+      <obj_property name="ObjectShortName">length[63:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/hash_op_counter" type="array">
+      <obj_property name="ElementShortName">hash_op_counter[3:0]</obj_property>
+      <obj_property name="ObjectShortName">hash_op_counter[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/data_in" type="array">
+      <obj_property name="ElementShortName">data_in[63:0]</obj_property>
+      <obj_property name="ObjectShortName">data_in[63:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/w_data_in" type="array">
+      <obj_property name="ElementShortName">w_data_in[1023:0]</obj_property>
+      <obj_property name="ObjectShortName">w_data_in[1023:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/op_counter" type="array">
+      <obj_property name="ElementShortName">op_counter[5:0]</obj_property>
+      <obj_property name="ObjectShortName">op_counter[5:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider777">
+      <obj_property name="label">-------------------</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/P0" type="array">
+      <obj_property name="ElementShortName">P0[255:0]</obj_property>
+      <obj_property name="ObjectShortName">P0[255:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/Q0" type="array">
+      <obj_property name="ElementShortName">Q0[255:0]</obj_property>
+      <obj_property name="ObjectShortName">Q0[255:0]</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider777">
+      <obj_property name="label">-------------------</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/sel_op" type="array">
+      <obj_property name="ElementShortName">sel_op[3:0]</obj_property>
+      <obj_property name="ObjectShortName">sel_op[3:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/remain_blocks" type="array">
+      <obj_property name="ElementShortName">remain_blocks[63:0]</obj_property>
+      <obj_property name="ObjectShortName">remain_blocks[63:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/ACCELERATOR/add_sub_C_1" type="array">
+      <obj_property name="ElementShortName">add_sub_C_1[255:0]</obj_property>
+      <obj_property name="ObjectShortName">add_sub_C_1[255:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/ACCELERATOR/valid" type="logic">
+      <obj_property name="ElementShortName">valid</obj_property>
+      <obj_property name="ObjectShortName">valid</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider777">
+      <obj_property name="label">-------------------</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/valid_H" type="logic">
+      <obj_property name="ElementShortName">valid_H</obj_property>
+      <obj_property name="ObjectShortName">valid_H</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/block_valid" type="array">
+      <obj_property name="ElementShortName">block_valid[1:0]</obj_property>
+      <obj_property name="ObjectShortName">block_valid[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/block_ready" type="logic">
+      <obj_property name="ElementShortName">block_ready</obj_property>
+      <obj_property name="ObjectShortName">block_ready</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider777">
+      <obj_property name="label">-------------------</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/message" type="array">
+      <obj_property name="ElementShortName">message[1023:0]</obj_property>
+      <obj_property name="ObjectShortName">message[1023:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/block_counter" type="array">
+      <obj_property name="ElementShortName">block_counter[63:0]</obj_property>
+      <obj_property name="ObjectShortName">block_counter[63:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/hash_blocks" type="array">
+      <obj_property name="ElementShortName">hash_blocks[63:0]</obj_property>
+      <obj_property name="ObjectShortName">hash_blocks[63:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/remain_blocks" type="array">
+      <obj_property name="ElementShortName">remain_blocks[63:0]</obj_property>
+      <obj_property name="ObjectShortName">remain_blocks[63:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/length_h" type="array">
+      <obj_property name="ElementShortName">length_h[63:0]</obj_property>
+      <obj_property name="ObjectShortName">length_h[63:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider777">
+      <obj_property name="label">-------------------</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/op_counter" type="array">
+      <obj_property name="ElementShortName">op_counter[5:0]</obj_property>
+      <obj_property name="ObjectShortName">op_counter[5:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/DUT/state" type="array">
+      <obj_property name="ElementShortName">state[2:0]</obj_property>
+      <obj_property name="ObjectShortName">state[2:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/EdDSA_tb/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+</wave_config>
