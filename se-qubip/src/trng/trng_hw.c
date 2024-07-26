@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////
 // Company: IMSE-CNM CSIC
 // Engineer: Pau Ortega Castro
-//
+// Engineer: Pablo Navarro Torrero
 // Create Date: 24/07/2024
 // File Name: trng_hw.c
 // Project Name: SE-QUBIP
