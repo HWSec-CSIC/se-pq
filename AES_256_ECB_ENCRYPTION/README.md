@@ -35,4 +35,4 @@
 
 ----------
 
-(*) Use ***changelog.md*** to see the differences from version 1.0 of the SPIRS demonstrator
+
