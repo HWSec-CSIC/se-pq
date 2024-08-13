@@ -1,0 +1,10 @@
+
+
+OPTION psf_version = 2.1;
+
+BEGIN DRIVER ecb_cbc
+	OPTION supported_peripherals = (ecb_cbc);
+	OPTION copyfiles = all;
+	OPTION VERSION = 1.0;
+	OPTION NAME = ecb_cbc;
+END DRIVER
