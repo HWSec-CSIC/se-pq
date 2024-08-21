@@ -32,7 +32,7 @@ MMIO_WINDOW aesWindow;
 /******************************** AES Function Definitions ******************************/
 /****************************************************************************************/
 
-void *AES_256_ECB_ENCRYPT(unsigned  char* key, unsigned  char* ciphertext, unsigned int* ciphertext_len, unsigned  char* plaintext, unsigned int* plaintext_len);
+void AES_256_ECB_ENCRYPT(unsigned  char* key, unsigned  char* ciphertext, unsigned int* ciphertext_len, unsigned  char* plaintext, unsigned int* plaintext_len);
 
 
 /****************************************************************************************/

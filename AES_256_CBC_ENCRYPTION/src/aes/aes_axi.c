@@ -34,7 +34,7 @@ void ulong_array_to_uchar_array(unsigned long* ulong_array, size_t ulong_array_l
     }
 }
 
-void *AES_256_CBC_ENCRYPT(unsigned  char* key,unsigned  char* iv, unsigned  char* ciphertext, unsigned int* ciphertext_len, unsigned  char* plaintext, unsigned int* plaintext_len){
+void AES_256_CBC_ENCRYPT(unsigned  char* key,unsigned  char* iv, unsigned  char* ciphertext, unsigned int* ciphertext_len, unsigned  char* plaintext, unsigned int* plaintext_len){
 
     unsigned int No_of_ciphertext_reg;
     unsigned int No_of_plaintext_reg;
@@ -185,6 +185,6 @@ void *AES_256_CBC_ENCRYPT(unsigned  char* key,unsigned  char* iv, unsigned  char
     
     doneValue = 0;
 
-    return 0;
+    //return 0;
 
 }

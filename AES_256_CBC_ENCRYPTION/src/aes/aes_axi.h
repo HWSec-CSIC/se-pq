@@ -32,7 +32,7 @@ MMIO_WINDOW aesWindow;
 /******************************** RSA Function Definitions ******************************/
 /****************************************************************************************/
 
-void *AES_256_CBC_ENCRYPT(unsigned  char* key,unsigned  char* iv, unsigned  char* ciphertext, unsigned int* ciphertext_len, unsigned  char* plaintext, unsigned int* plaintext_len);
+void AES_256_CBC_ENCRYPT(unsigned  char* key,unsigned  char* iv, unsigned  char* ciphertext, unsigned int* ciphertext_len, unsigned  char* plaintext, unsigned int* plaintext_len);
 
 //unsigned long *AES_DEC(unsigned long *Plaintext, unsigned long *Key, bool KEY_SIZE);
 
