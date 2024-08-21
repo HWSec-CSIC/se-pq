@@ -1,0 +1,190 @@
+/****************************************************************************************/
+/*
+ *  IMSE.CNM_SPIRS_rsa_1024_axi_1.0: rsa_axi.c 
+ *
+ *  Created on: 30/12/2022
+ *      Author: apurba@imse-cnm.csic.es
+ */
+/****************************************************************************************/
+#include <time.h>
+#include "aes_axi.h"
+
+	void convert_char_to_long(const unsigned char *charKey, unsigned long *longKey, size_t length) {
+    for (size_t i = 0; i < length / 4; i++) {
+        longKey[i] = ((unsigned long)charKey[i * 4] << 24) |
+                     ((unsigned long)charKey[i * 4 + 1] << 16) |
+                     ((unsigned long)charKey[i * 4 + 2] << 8) |
+                     (unsigned long)charKey[i * 4 + 3];
+    }
+}
+
+void ulong_array_to_uchar_array(unsigned long* ulong_array, size_t ulong_array_len, unsigned char* uchar_array, size_t uchar_array_len) {
+    size_t ulong_size = sizeof(unsigned long);
+
+    // Ensure the uchar_array has enough space to hold all the bytes
+    if (uchar_array_len < ulong_array_len * ulong_size) {
+        fprintf(stderr, "Unsigned char array size is too small to hold the unsigned long array values\n");
+        return;
+    }
+
+    for (size_t i = 0; i < ulong_array_len; i++) {
+        for (size_t j = 0; j < ulong_size; j++) {
+            uchar_array[i * ulong_size + j] = (ulong_array[i] >> (j * 8)) & 0xFF;
+        }
+    }
+}
+
+void AES_256_CBC_DECRYPT(unsigned  char* key,unsigned  char* iv, unsigned  char* ciphertext, unsigned int* ciphertext_len, unsigned  char* plaintext, unsigned int* plaintext_len){
+
+    unsigned int No_of_ciphertext_reg;
+    unsigned int No_of_plaintext_reg;
+    unsigned int No_of_iv_reg;
+    
+    unsigned int ciphertext_len_value = *ciphertext_len;
+    unsigned int plaintext_len_value = *plaintext_len;
+    
+    No_of_ciphertext_reg = ciphertext_len_value/32;
+    No_of_plaintext_reg = plaintext_len_value/32;
+    No_of_iv_reg = ciphertext_len_value/32;
+    
+    
+    size_t length_key = 32;
+    size_t length = 16;
+    unsigned long keylong[8];
+    
+    unsigned long plaintextlong[4];
+    unsigned long ciphertextlong[4];
+    unsigned long ivlong[4];
+    
+    size_t ulong_array_len = 4;
+    size_t uchar_array_len = 16;
+    
+    convert_char_to_long(plaintext, plaintextlong, length);
+    convert_char_to_long(iv, ivlong, length);
+    convert_char_to_long(key, keylong, length_key);
+    
+    
+    //unsigned long ready = 0;
+    unsigned long doneValue = 0;
+    unsigned long controlWord = AES_CONTROL;
+    unsigned long init = AES_INIT;
+    unsigned long init_zero = 0;
+    unsigned long next = AES_NEXT;
+    unsigned long next_zero = 0;
+    unsigned long reset_zero_control = 0xC;
+    //unsigned long iv[4] ={0x00010203, 0x04050607,0x08090a0b, 0x0c0d0e0f };
+    //unsigned long *iv =0x0c0d0e0f08090a0b0405060700010203; 
+	int nwc = 0;
+	
+	
+	
+	
+   
+    createMMIOWindow(&aesWindow,AESIP_BASEADDRESS,AESIP_REGISTER_SPACE_LEN*64/8);
+    
+    writeMMIO(&aesWindow, &reset_zero_control ,sizeof(unsigned long)*0,sizeof(unsigned long)*1);
+    writeMMIO(&aesWindow,keylong,sizeof(unsigned long)*3,sizeof(unsigned long)*8);
+    writeMMIO(&aesWindow,plaintextlong,sizeof(unsigned long)*11,sizeof(unsigned long)*(No_of_plaintext_reg));
+    writeMMIO(&aesWindow,ivlong,sizeof(unsigned long)*15,sizeof(unsigned long)*4);
+    
+    writeMMIO(&aesWindow, &reset_zero_control ,sizeof(unsigned long)*0,sizeof(unsigned long)*1);
+         for (int t = 0; t < 1000000; t++) {
+		
+		nwc++;
+		if (nwc == 10000) {
+			//printf(" Maximum number of wait cycles reached. Bye ... \n\n");
+			break;
+		}
+	}  
+///reset_n, encdec & keylen   
+    writeMMIO(&aesWindow, &controlWord ,sizeof(unsigned long)*0,sizeof(unsigned long)*1);   
+    
+    
+    writeMMIO(&aesWindow, &next_zero ,sizeof(unsigned long)*2,sizeof(unsigned long)*1);
+    //init
+    writeMMIO(&aesWindow, &init ,sizeof(unsigned long)*1,sizeof(unsigned long)*1);
+
+     for (int t = 0; t < 1000000; t++) {
+		
+		nwc++;
+		if (nwc == 10000) {
+			//printf(" Maximum number of wait cycles reached. Bye ... \n\n");
+			break;
+		}
+	}
+   writeMMIO(&aesWindow, &init_zero ,sizeof(unsigned long)*1,sizeof(unsigned long)*1);		
+
+   
+    //key & message
+
+    
+    
+    for (int t = 0; t < 1000000; t++) {
+		
+		nwc++;
+		if (nwc == 1000000) {
+			//printf(" Maximum number of wait cycles reached. Bye ... \n\n");
+			break;
+		}
+	}
+    
+    //if ready = 1, then start next
+    
+    //readMMIO(&aesWindow,&ready,sizeof(unsigned long)*19,sizeof(unsigned long)*1);
+    
+    writeMMIO(&aesWindow, &next ,sizeof(unsigned long)*2,sizeof(unsigned long)*1);
+    
+
+	
+	    for (int t = 0; t < 1000000; t++) {
+		
+		nwc++;
+		if (nwc == 10000) {
+			//printf(" Maximum number of wait cycles reached. Bye ... \n\n");
+			break;
+		}
+	}
+//	sleep (1);
+   writeMMIO(&aesWindow, &next_zero ,sizeof(unsigned long)*2,sizeof(unsigned long)*1);
+    
+
+    readMMIO(&aesWindow,&doneValue,sizeof(unsigned long)*23,sizeof(unsigned long)*1);
+    
+    while (doneValue != 1)
+    {
+        readMMIO(&aesWindow,&doneValue,sizeof(unsigned long)*23,sizeof(unsigned long)*1);
+		printf(" donevalue ...0x%8.8lX\n",doneValue);
+		for (int t = 0; t < 1000000; t++) {
+		}
+		nwc++;
+		if (nwc == 10000) {
+			printf(" Maximum number of wait cycles reached. Bye ... \n\n");
+			break;
+		}
+    }
+   
+    readMMIO(&aesWindow,ciphertextlong,sizeof(unsigned long)*19,sizeof(unsigned long)*(No_of_ciphertext_reg)); 
+    
+        
+    	printf("\n	KEY:\n");
+    	for (int i = 0; i< 8; i++) {
+		printf("	0x%8.8lX\n",
+		      keylong[i]);
+	}
+	    
+	
+	printf("\n IV/FEEDBACK	Input	Ciphertext:\n");
+	for (int i = 0; i< 4; i++) {
+		printf("0x%8.8lX	0x%8.8lX	0x%8.8lX\n",
+		     ivlong[i],plaintextlong[i],ciphertextlong[i]);
+	}
+    
+    ulong_array_to_uchar_array(ciphertextlong, ulong_array_len, ciphertext, uchar_array_len);
+    
+    writeMMIO(&aesWindow, &controlWord ,sizeof(unsigned long)*1,sizeof(unsigned long)*1);
+    
+    doneValue = 0;
+
+    //return 0;
+
+}

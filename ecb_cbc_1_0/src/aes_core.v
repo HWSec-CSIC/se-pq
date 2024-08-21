@@ -59,9 +59,11 @@ module aes_core(
 
   wire [127 : 0] plaintext;
   wire [127:0] xor_result;
+  wire [127:0] result_reg ;
+  wire [127:0] xor_output;
   //wire [127 : 0] iv =  128'h000102030405060708090a0b0c0d0e0f;
   assign xor_result = iv ^ block;
-  assign plaintext = (ecb_cbc == 1'b1) ? xor_result: block;
+  assign plaintext = ((ecb_cbc == 1'b1) && (encdec == 1'b1)) ? xor_result: block;
   //----------------------------------------------------------------
   // Internal constant and parameter definitions.
   //----------------------------------------------------------------
@@ -182,7 +184,11 @@ module aes_core(
   // Concurrent connectivity for ports etc.
   //----------------------------------------------------------------
   assign ready        = ready_reg;
-  assign result       = muxed_new_block;
+  
+//  assign result       = muxed_new_block;
+  assign result_reg       = muxed_new_block;
+  assign xor_output = iv ^ result_reg;
+  assign result = ((ecb_cbc == 1'b1) && (encdec == 1'b0))? xor_output: result_reg;
   //assign result_valid = result_valid_reg;
   assign result_valid = result_done;
   assign result_done_flag = result_valid_reg;
