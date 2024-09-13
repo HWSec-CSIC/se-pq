@@ -417,6 +417,8 @@ void aes_128_cbc_encrypt_hw( unsigned char* key, unsigned char* iv, unsigned cha
 }
 
 
+
+
 void aes_128_cbc_decrypt_hw(unsigned char* key, unsigned char* iv, unsigned char* ciphertext, unsigned int ciphertext_len, unsigned char* plaintext, unsigned int* plaintext_len, MMIO_WINDOW ms2xl)
 
 {
@@ -471,6 +473,207 @@ void aes_128_cbc_decrypt_hw(unsigned char* key, unsigned char* iv, unsigned char
     // Print the length of the plaintext
     //printf("Plaintext length: %u bytes\n", *plaintext_len);
 }
+
+
+void xor_blocks(unsigned char* output, const unsigned char* input1, const unsigned char* input2, size_t length) {
+    for (size_t i = 0; i < length; i++) {
+        output[i] = input1[i] ^ input2[i];
+    }
+}
+
+void block_leftshift(unsigned char* dst, unsigned char* src)
+{
+    unsigned char ovf = 0x00;
+    for (int i = 15; i >= 0; i--) {
+        dst[i] = src[i] << 1;
+        dst[i] |= ovf;
+        ovf = (src[i] & 0x80) ? 1 : 0;
+    }
+}
+
+
+void subkeys_gen_hw(unsigned char* key, unsigned char* K1, unsigned char* K2, MMIO_WINDOW ms2xl) {
+    unsigned char L[BLOCK_SIZE] = {0};
+    unsigned char zero_block[BLOCK_SIZE] = {0};
+    unsigned char const_Rb[BLOCK_SIZE] = {
+        		0x00, 0x00, 0x00, 0x00,
+       	 		0x00, 0x00, 0x00, 0x00,
+        		0x00, 0x00, 0x00, 0x00,
+        		0x00, 0x00, 0x00, 0x87
+    			};
+    // Encrypt zero block with the key to generate L
+    aes_block_128_ecb_encrypt_hw(key, L, zero_block, ms2xl);
+    swapEndianness(L, BLOCK_SIZE);
+    	
+    block_leftshift(K1, L);
+    if (L[0] & 0x80) {
+        xor_blocks(K1, K1, const_Rb,BLOCK_SIZE);
+    }
+
+    block_leftshift(K2, K1);
+    if (K1[0] & 0x80) {
+        xor_blocks(K2, K2, const_Rb,BLOCK_SIZE);
+    }
+}
+
+void aes_128_cmac_hw(unsigned char* key, unsigned char* mac, unsigned int* mac_len, unsigned char* message, unsigned int message_len,  MMIO_WINDOW ms2xl) {
+    unsigned char K1[BLOCK_SIZE];
+    unsigned char K2[BLOCK_SIZE];
+    unsigned char last_block[BLOCK_SIZE] = {0};
+    unsigned char ciphertext_block[BLOCK_SIZE] = {0};
+    
+
+    // Generate subkeys K1 and K2
+    subkeys_gen_hw(key, K1, K2, ms2xl);
+	
+// Handle the case where message is NULL or empty
+    if (message == NULL || message_len == 0) {
+        // Treat this as a special case, padding with 0x80 followed by zeros
+        memset(last_block, 0, BLOCK_SIZE);
+        last_block[0] = 0x80; // Apply padding with 0x80
+        xor_blocks(last_block, last_block, K2, BLOCK_SIZE);
+
+        // Encrypt the last block to produce the MAC
+        unsigned char initial_block[BLOCK_SIZE] = {0}; // Initial vector is zero
+        aes_block_128_cbc_encrypt_hw(key, initial_block, mac, last_block, ms2xl);
+	swapEndianness(mac, BLOCK_SIZE);
+	
+        // Set MAC length
+        *mac_len = BLOCK_SIZE;
+        return;
+    }
+
+    else {
+    // Determine the number of blocks
+    unsigned int num_blocks = (message_len + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    unsigned char* M_last;
+    int is_complete_block = (message_len % BLOCK_SIZE == 0);
+
+    // Set the last block depending on the padding situation
+    if (is_complete_block && num_blocks > 0) {
+        M_last = &message[(num_blocks - 1) * BLOCK_SIZE];
+        xor_blocks(last_block, M_last, K1, BLOCK_SIZE);
+    } else {
+        memset(last_block, 0, BLOCK_SIZE);
+        memcpy(last_block, &message[(num_blocks - 1) * BLOCK_SIZE], message_len % BLOCK_SIZE);
+        last_block[message_len % BLOCK_SIZE] = 0x80; // Padding with 0x80 followed by zeros
+        xor_blocks(last_block, last_block, K2, BLOCK_SIZE);
+    }
+
+    // Process all blocks except the last one
+    unsigned char previous_block[BLOCK_SIZE] = {0}; // Initial is zero block
+    
+    for (unsigned int i = 0; i < num_blocks - 1; i++) {
+        // Encrypt each block, chaining through CBC
+       // aes_block_128_cbc_encrypt_hw(key, previous_block, ciphertext_block, &message[i * BLOCK_SIZE], ms2xl);  
+        aes_block_128_cbc_encrypt_hw(key, previous_block, previous_block, &message[i * BLOCK_SIZE], ms2xl);
+
+        //memcpy(previous_block, ciphertext_block, BLOCK_SIZE);
+                     
+    }
+			
+    // Process the last block
+    aes_block_128_cbc_encrypt_hw(key, previous_block, mac, last_block, ms2xl);
+    swapEndianness(mac, BLOCK_SIZE);
+    	       
+    *mac_len = BLOCK_SIZE;
+        
+    }
+                
+}
+
+void subkeys_gen_256_hw(unsigned char* key, unsigned char* K1, unsigned char* K2, MMIO_WINDOW ms2xl) {
+    unsigned char L[BLOCK_SIZE] = {0};
+    unsigned char zero_block[BLOCK_SIZE] = {0};
+    unsigned char const_Rb[BLOCK_SIZE] = {
+        		0x00, 0x00, 0x00, 0x00,
+       	 		0x00, 0x00, 0x00, 0x00,
+        		0x00, 0x00, 0x00, 0x00,
+        		0x00, 0x00, 0x00, 0x87
+    			};
+    // Encrypt zero block with the key to generate L
+    aes_block_256_ecb_encrypt_hw(key, L, zero_block, ms2xl);
+    swapEndianness(L, BLOCK_SIZE);
+    	
+    block_leftshift(K1, L);
+    if (L[0] & 0x80) {
+        xor_blocks(K1, K1, const_Rb,BLOCK_SIZE);
+    }
+
+    block_leftshift(K2, K1);
+    if (K1[0] & 0x80) {
+        xor_blocks(K2, K2, const_Rb,BLOCK_SIZE);
+    }
+}
+
+void aes_256_cmac_hw(unsigned char* key, unsigned char* mac, unsigned int* mac_len, unsigned char* message, unsigned int message_len,  MMIO_WINDOW ms2xl) {
+    unsigned char K1[BLOCK_SIZE];
+    unsigned char K2[BLOCK_SIZE];
+    unsigned char last_block[BLOCK_SIZE] = {0};
+    unsigned char ciphertext_block[BLOCK_SIZE] = {0};
+    
+
+    // Generate subkeys K1 and K2
+    subkeys_gen_256_hw(key, K1, K2, ms2xl);
+	
+// Handle the case where message is NULL or empty
+    if (message == NULL || message_len == 0) {
+        // Treat this as a special case, padding with 0x80 followed by zeros
+        memset(last_block, 0, BLOCK_SIZE);
+        last_block[0] = 0x80; // Apply padding with 0x80
+        xor_blocks(last_block, last_block, K2, BLOCK_SIZE);
+
+        // Encrypt the last block to produce the MAC
+        unsigned char initial_block[BLOCK_SIZE] = {0}; // Initial vector is zero
+        aes_block_256_cbc_encrypt_hw(key, initial_block, mac, last_block, ms2xl);
+	swapEndianness(mac, BLOCK_SIZE);
+	
+        // Set MAC length
+        *mac_len = BLOCK_SIZE;
+        return;
+    }
+
+    else {
+    // Determine the number of blocks
+    unsigned int num_blocks = (message_len + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    unsigned char* M_last;
+    int is_complete_block = (message_len % BLOCK_SIZE == 0);
+
+    // Set the last block depending on the padding situation
+    if (is_complete_block && num_blocks > 0) {
+        M_last = &message[(num_blocks - 1) * BLOCK_SIZE];
+        xor_blocks(last_block, M_last, K1, BLOCK_SIZE);
+    } else {
+        memset(last_block, 0, BLOCK_SIZE);
+        memcpy(last_block, &message[(num_blocks - 1) * BLOCK_SIZE], message_len % BLOCK_SIZE);
+        last_block[message_len % BLOCK_SIZE] = 0x80; // Padding with 0x80 followed by zeros
+        xor_blocks(last_block, last_block, K2, BLOCK_SIZE);
+    }
+
+    // Process all blocks except the last one
+    unsigned char previous_block[BLOCK_SIZE] = {0}; // Initial is zero block
+    
+    for (unsigned int i = 0; i < num_blocks - 1; i++) {
+        // Encrypt each block, chaining through CBC
+       // aes_block_128_cbc_encrypt_hw(key, previous_block, ciphertext_block, &message[i * BLOCK_SIZE], ms2xl);  
+        aes_block_256_cbc_encrypt_hw(key, previous_block, previous_block, &message[i * BLOCK_SIZE], ms2xl);
+
+        //memcpy(previous_block, ciphertext_block, BLOCK_SIZE);
+                     
+    }
+			
+    // Process the last block
+    aes_block_256_cbc_encrypt_hw(key, previous_block, mac, last_block, ms2xl);
+    swapEndianness(mac, BLOCK_SIZE);
+    	       
+    *mac_len = BLOCK_SIZE;
+        
+    }
+                
+}
+
+
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////

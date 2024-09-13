@@ -26,7 +26,9 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, MMIO_WINDOW ms2xl) {
         unsigned int recovered_msg_128_len;
 
         unsigned char* char_key_128 = "2b7e151628aed2a6abf7158809cf4f3c"; 
-        unsigned char key_128[16] = {0};// char2hex(char_key_128, key_128);
+       // unsigned char key_128[16] = {0};// char2hex(char_key_128, key_128);
+        
+        unsigned char key_128[16] ;  char2hex(char_key_128, key_128);
         unsigned char* char_iv_128 = "000102030405060708090a0b0c0d0e0f";
         unsigned char iv_128[16]; char2hex(char_iv_128, iv_128);
 
@@ -63,8 +65,8 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, MMIO_WINDOW ms2xl) {
         unsigned int mac_128_len;
         mac_128 = calloc(sizeof(char), 16);
 
-        //aes_128_cmac(key_128, mac_128, &mac_128_len, NULL, 0);
-	/*
+        aes_128_cmac_hw(key_128, mac_128, &mac_128_len, NULL, 0, ms2xl);
+	//aes_128_cmac_hw(key_128, mac_128, &mac_128_len, msg, strlen(msg), ms2xl);
         if (verb >= 1) {
             printf("\n Obtained Result: ");  show_array(mac_128, 16, 32);
             printf("\n Expected Result: ");  show_array(exp_mac_128, 16, 32);
@@ -73,7 +75,7 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, MMIO_WINDOW ms2xl) {
         if (!cmpchar(exp_mac_128, mac_128, 16)) printf("\n AES-128-CMAC Test: \u2705 VALID");
         else printf("\n AES-128-CMAC Test: \u274c FAIL");
 	
-        free(mac_128); */
+        free(mac_128); 
         free(ciphertext_128);
         free(recovered_msg_128);
     
@@ -212,6 +214,25 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, MMIO_WINDOW ms2xl) {
 
         if (!strcmp(msg, recovered_msg_256)) printf("\n AES-256-CBC Test: \u2705 VALID");
         else printf("\n AES-256-CBC Test: \u274c FAIL");
+        
+        // --- CMAC --- //
+        unsigned char* char_exp_mac_256 = "028962f61b7bf89efc6b551f4667d983";
+        unsigned char exp_mac_256[16]; char2hex(char_exp_mac_256, exp_mac_256);
+        unsigned char* mac_256;
+        unsigned int mac_256_len;
+        mac_256 = calloc(sizeof(char), 16);
+
+        aes_256_cmac_hw(key_256, mac_256, &mac_256_len, NULL, 0, ms2xl);
+
+        if (verb >= 1) {
+            printf("\n Obtained Result: ");  show_array(mac_256, 16, 32);
+            printf("\n Expected Result: ");  show_array(exp_mac_256, 16, 32);
+        }
+
+        if (!cmpchar(exp_mac_256, mac_256, 16)) printf("\n AES-256-CMAC Test: \u2705 VALID");
+        else printf("\n AES-256-CMAC Test: \u274c FAIL");
+	
+         free(mac_256);
         
         
     // Free allocated memory

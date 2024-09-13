@@ -85,6 +85,14 @@ void aes_128_cbc_encrypt_hw(unsigned char* key, unsigned char* iv, unsigned char
 
 void aes_128_cbc_decrypt_hw(unsigned char* key, unsigned char* iv, unsigned char* ciphertext, unsigned int ciphertext_len, unsigned char* plaintext, unsigned int* plaintext_len, MMIO_WINDOW ms2xl);
 
+void subkeys_gen_hw(unsigned char* key, unsigned char* K1, unsigned char* K2, MMIO_WINDOW ms2xl);
+
+void aes_128_cmac_hw(unsigned char* key, unsigned char* mac, unsigned int* mac_len, unsigned char* message, unsigned int message_len,  MMIO_WINDOW ms2xl);
+
+void subkeys_gen_256_hw(unsigned char* key, unsigned char* K1, unsigned char* K2, MMIO_WINDOW ms2xl);
+
+void aes_256_cmac_hw(unsigned char* key, unsigned char* mac, unsigned int* mac_len, unsigned char* message, unsigned int message_len,  MMIO_WINDOW ms2xl);
+
 void aes_block_256_ecb_encrypt_hw(unsigned  char* key, unsigned  char* ciphertext, unsigned  char* plaintext,  MMIO_WINDOW ms2xl);
 
 void aes_block_256_ecb_decrypt_hw(unsigned  char* key, unsigned  char* ciphertext, unsigned  char* plaintext,  MMIO_WINDOW ms2xl);

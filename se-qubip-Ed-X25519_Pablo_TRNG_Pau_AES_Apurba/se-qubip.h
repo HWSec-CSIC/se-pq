@@ -52,6 +52,10 @@
 #define aes_256_cbc_decrypt_hw	aes_256_cbc_decrypt_hw
 #define aes_128_cbc_encrypt_hw	aes_128_cbc_encrypt_hw
 #define aes_128_cbc_decrypt_hw	aes_128_cbc_decrypt_hw
+#define subkeys_gen_hw 		subkeys_gen_hw
+#define aes_128_cmac_hw		aes_128_cmac_hw
+#define subkeys_gen_256_hw 	subkeys_gen_256_hw
+#define aes_256_cmac_hw		aes_256_cmac_hw
 
 #define aes_block_256_ecb_encrypt_hw	aes_block_256_ecb_encrypt_hw
 #define aes_block_256_ecb_decrypt_hw	aes_block_256_ecb_decrypt_hw
@@ -71,9 +75,9 @@
 
 // ------- MS2XL_BASEADDR ------- //
 
-//#define MS2XL_LENGTH		0x40
+#define MS2XL_LENGTH		0x40
 
-#define MS2XL_LENGTH		0x80
+//#define MS2XL_LENGTH		0x80
 
 #ifdef PYNQZ2
 #define MS2XL_BASEADDR		0x43C00000
