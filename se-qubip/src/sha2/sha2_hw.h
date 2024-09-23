@@ -7,9 +7,9 @@
 
 /************************ MS2XL Constant Definitions **********************/
 
-#define LOAD_LENGTH				1
-#define LOAD					2
-#define START					3
+#define LOAD_LENGTH_SHA2			1
+#define LOAD_SHA2					2
+#define START_SHA2					3
 
 /************************ MS2XL Function Definitions **********************/
 

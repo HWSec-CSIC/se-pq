@@ -60,7 +60,7 @@ void sha3_shake_ms2xl(unsigned long long int* a, unsigned long long int* b, MMIO
 				tic = Wtime();
 			}
 
-			op = (unsigned long long int)ADD_SHA3 << 32 | ((op_version | LOAD_LENGTH) & 0xFFFFFFFF); // LOAD
+			op = (unsigned long long int)ADD_SHA3 << 32 | ((op_version | LOAD_LENGTH_SHA3) & 0xFFFFFFFF); // LOAD
 			writeMMIO(&ms2xl, &op, CONTROL, sizeof(unsigned long long int));
 
 			reg_addr = (unsigned long long int)(0);
@@ -76,7 +76,7 @@ void sha3_shake_ms2xl(unsigned long long int* a, unsigned long long int* b, MMIO
 			tic = Wtime();
 		}
 
-		op = (unsigned long long int)ADD_SHA3 << 32 | ((op_version | LOAD) & 0xFFFFFFFF); // LOAD
+		op = (unsigned long long int)ADD_SHA3 << 32 | ((op_version | LOAD_SHA3) & 0xFFFFFFFF); // LOAD
 		writeMMIO(&ms2xl, &op, CONTROL, sizeof(unsigned long long int));
 
 		for (int i = 0; i < (SIZE_BLOCK / 64); i++) {
@@ -100,7 +100,7 @@ void sha3_shake_ms2xl(unsigned long long int* a, unsigned long long int* b, MMIO
 		tic = Wtime();
 	}
 
-	op = (unsigned long long int)ADD_SHA3 << 32 | ((op_version | START) & 0xFFFFFFFF);; // START
+	op = (unsigned long long int)ADD_SHA3 << 32 | ((op_version | START_SHA3) & 0xFFFFFFFF);; // START
 	writeMMIO(&ms2xl, &op, CONTROL, sizeof(unsigned long long int));
 
 	// wait END_OP
@@ -145,7 +145,7 @@ void sha3_shake_ms2xl(unsigned long long int* a, unsigned long long int* b, MMIO
 			printf("(%3llu us.)\n", toc);
 		}
 
-		op = (unsigned long long int)ADD_SHA3 << 32 | ((op_version | LOAD_LENGTH) & 0xFFFFFFFF);; // ENABLE_SHAKE
+		op = (unsigned long long int)ADD_SHA3 << 32 | ((op_version | LOAD_LENGTH_SHA3) & 0xFFFFFFFF);; // ENABLE_SHAKE
 		writeMMIO(&ms2xl, &op, CONTROL, sizeof(unsigned long long int));
 
 	}

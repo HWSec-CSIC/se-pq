@@ -45,7 +45,7 @@ void sha2_ms2xl_init(MMIO_WINDOW ms2xl, unsigned long long int length, int VERSI
 		tic = Wtime();
 	}
 
-	op = (unsigned long long int)ADD_SHA2 << 32 | ((op_version | LOAD_LENGTH) & 0xFFFFFFFF); // LOAD_LENGTH
+	op = (unsigned long long int)ADD_SHA2 << 32 | ((op_version | LOAD_LENGTH_SHA2) & 0xFFFFFFFF); // LOAD_LENGTH
 	writeMMIO(&ms2xl, &op, CONTROL, sizeof(unsigned long long int));
 
 	reg_addr = (unsigned long long int)(0);
@@ -93,7 +93,7 @@ void sha2_ms2xl(MMIO_WINDOW ms2xl, unsigned long long int* a, unsigned long long
 		tic = Wtime();
 	}
 
-	op = (unsigned long long int)ADD_SHA2 << 32 | ((op_version | LOAD) & 0xFFFFFFFF); // LOAD
+	op = (unsigned long long int)ADD_SHA2 << 32 | ((op_version | LOAD_SHA2) & 0xFFFFFFFF); // LOAD
 	writeMMIO(&ms2xl, &op, CONTROL, sizeof(unsigned long long int));
 
 	for (int i = 0; i < 16; i++) {
@@ -115,7 +115,7 @@ void sha2_ms2xl(MMIO_WINDOW ms2xl, unsigned long long int* a, unsigned long long
 		tic = Wtime();
 	}
 
-	op = (unsigned long long int)ADD_SHA2 << 32 | ((op_version | START) & 0xFFFFFFFF); // LOAD
+	op = (unsigned long long int)ADD_SHA2 << 32 | ((op_version | START_SHA2) & 0xFFFFFFFF); // LOAD
 	writeMMIO(&ms2xl, &op, CONTROL, sizeof(unsigned long long int));
 
 	// wait END_OP
@@ -235,7 +235,7 @@ void sha2_hw(MMIO_WINDOW ms2xl, unsigned char* in, unsigned char* out, unsigned 
 
 
 	// ---- Read ----- //
-	if (op_version == 0 | op_version == 3) {
+	if (VERSION == 1) {
 		for (int i = 0; i < 8; i++) {
 			ind = i * 4;
 			out[ind + 3] = (buffer_out[i] & 0x00000000000000FF) >> 0;
@@ -244,8 +244,21 @@ void sha2_hw(MMIO_WINDOW ms2xl, unsigned char* in, unsigned char* out, unsigned 
 			out[ind + 0] = (buffer_out[i] & 0x00000000FF000000) >> 24;
 		}
 	}
-	else if (op_version == 1) {
+	else if (VERSION == 2) {
 		for (int i = 0; i < 6; i++) {
+			ind = i * 8;
+			out[ind + 7] = (buffer_out[i] & 0x00000000000000FF) >> 0;
+			out[ind + 6] = (buffer_out[i] & 0x000000000000FF00) >> 8;
+			out[ind + 5] = (buffer_out[i] & 0x0000000000FF0000) >> 16;
+			out[ind + 4] = (buffer_out[i] & 0x00000000FF000000) >> 24;
+			out[ind + 3] = (buffer_out[i] & 0x000000FF00000000) >> 32;
+			out[ind + 2] = (buffer_out[i] & 0x0000FF0000000000) >> 40;
+			out[ind + 1] = (buffer_out[i] & 0x00FF000000000000) >> 48;
+			out[ind + 0] = (buffer_out[i] & 0xFF00000000000000) >> 56;
+		}
+	}
+	else if (VERSION == 4) {
+		for (int i = 0; i < 4; i++) {
 			ind = i * 8;
 			out[ind + 7] = (buffer_out[i] & 0x00000000000000FF) >> 0;
 			out[ind + 6] = (buffer_out[i] & 0x000000000000FF00) >> 8;
