@@ -1,12 +1,82 @@
 #include "test_func.h"
 
-void load_bitstream() {
+void read_conf(data_conf *data) {
+	
+	unsigned char name[20] = "config.conf";
 
+	FILE* fp;
+	fp = fopen(name, "r");
+
+	unsigned char str[20];
+
+	unsigned int ind = 0;
+	unsigned int ind_vread = 0; 
+	unsigned int vread[7];
+
+	while (fgets(str, 20, fp)) {
+		// printf("%s", str);
+		char* token;
+		char* delimiter = "\t";
+		token = strtok(str, delimiter);
+		while (token != NULL) {
+			if ((ind % 2 != 0)) {
+				vread[ind_vread] = atoi(token);
+				ind_vread++;
+			}
+			// printf("%s\n", token);
+			token = strtok(NULL, delimiter);
+			ind += 1; 
+		}
+
+
+	}
+
+	data->sha3		= vread[0];
+	data->sha2		= vread[1];
+	data->eddsa		= vread[2];
+	data->x25519	= vread[3];
+	data->mlkem		= vread[4];
+	data->trng		= vread[5];
+	data->n_test	= vread[6];
+
+	fclose(fp);
+
+}
+
+void print_results(unsigned int verb, unsigned int n_test, time_result tr) {
+
+	printf("\n mean hw: %.3f s \t %.3f ms \t %ld us", tr.time_mean_value_hw / 1000000.0, tr.time_mean_value_hw / 1000.0, tr.time_mean_value_hw);
+	printf("\n mean sw: %.3f s \t %.3f ms \t %ld us", tr.time_mean_value_sw / 1000000.0, tr.time_mean_value_sw / 1000.0, tr.time_mean_value_sw);
+	if (verb >= 1) printf("\n max hw: %.3f s \t %.3f ms \t %ld us", tr.time_max_value_hw / 1000000.0, tr.time_max_value_hw / 1000.0, tr.time_max_value_hw);
+	if (verb >= 1) printf("\n max sw: %.3f s \t %.3f ms \t %ld us", tr.time_max_value_sw / 1000000.0, tr.time_max_value_sw / 1000.0, tr.time_max_value_sw);
+	if (verb >= 1) printf("\n min hw: %.3f s \t %.3f ms \t %ld us", tr.time_min_value_hw / 1000000.0, tr.time_min_value_hw / 1000.0, tr.time_min_value_hw);
+	if (verb >= 1) printf("\n min sw: %.3f s \t %.3f ms \t %ld us", tr.time_min_value_sw / 1000000.0, tr.time_min_value_sw / 1000.0, tr.time_min_value_sw);
+	printf("\n val result: %lld /", tr.val_result); printf(" %d", n_test);
+
+	double acc = (double)tr.time_mean_value_sw / (double)tr.time_mean_value_hw;
+	if (acc >= 1) {
+		printf("\x1b[32m"); // green color https://talyian.github.io/ansicolors/
+		printf("\x1b[1m"); // bold
+		// printf("\x1B[3m"); // italic
+		// printf("\x1B[4m"); // underline
+		printf("\n Acc.: %.2f ", acc);
+		printf("\x1b[0m"); // reset
+	}
+	else {
+		printf("\x1b[31m"); // red color
+		printf("\x1b[1m"); // bold
+		printf("\n Acc.: %.2f ", acc);
+		printf("\x1b[0m"); // reset
+	}
+}
+
+void load_bitstream(char* BITSTREAM_FILE)
+{
 	unsigned long long tic = 0, toc;
 	int Status;
 	char bitstream_file[80];
 
-	sprintf(bitstream_file, "%s", "../se-qubip/bit/BD_wrapper.bit");
+	sprintf(bitstream_file, "%s", BITSTREAM_FILE);
 
 	FILE* file;
 

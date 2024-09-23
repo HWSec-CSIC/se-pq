@@ -1,4 +1,4 @@
-#include "demo.h"
+#include "../demo.h"
 #include "test_func.h"
 
 #define SHA256_DIGEST_LENGTH 32
@@ -50,8 +50,8 @@ void demo_sha3_hw(unsigned int verb, MMIO_WINDOW ms2xl) {
         printf("\n Obtained Result: ");  show_array(md, SHA256_DIGEST_LENGTH, 32);
         printf("\n Expected Result: ");  show_array(res_3_256, SHA256_DIGEST_LENGTH, 32);
     }
-    if (!cmpchar(md, res_3_256, SHA256_DIGEST_LENGTH)) printf("\n SHA3-256 Test: \u2705 VALID");
-    else printf("\n SHA3-256 Test: \u274c FAIL");
+    if (!cmpchar(md, res_3_256, SHA256_DIGEST_LENGTH)) printf("\n SHA3-256 Test: \t\033[1;32m\u2705\033[0m VALID");
+    else printf("\n SHA3-256 Test: \t\033[1;31m\u274c\033[0m FAIL");
     free(md);
 
     /*
@@ -62,8 +62,8 @@ void demo_sha3_hw(unsigned int verb, MMIO_WINDOW ms2xl) {
         printf("\n Obtained Result: ");  show_array(md, SHA384_DIGEST_LENGTH, 32);
         printf("\n Expected Result: ");  show_array(res_3_384, SHA384_DIGEST_LENGTH, 32);
     }
-    if (!cmpchar(md, res_3_384, SHA384_DIGEST_LENGTH)) printf("\n SHA3-384 Test: \u2705 VALID");
-    else printf("\n SHA3-384 Test: \u274c FAIL");
+    if (!cmpchar(md, res_3_384, SHA384_DIGEST_LENGTH)) printf("\n SHA3-384 Test: \033[1;32m\u2705\033[0m VALID");
+    else printf("\n SHA3-384 Test: \033[1;31m\u274c\033[0m FAIL");
     free(md);
     */
 
@@ -74,8 +74,8 @@ void demo_sha3_hw(unsigned int verb, MMIO_WINDOW ms2xl) {
         printf("\n Obtained Result: ");  show_array(md, SHA512_DIGEST_LENGTH, 32);
         printf("\n Expected Result: ");  show_array(res_3_512, SHA512_DIGEST_LENGTH, 32);
     }
-    if (!cmpchar(md, res_3_512, SHA512_DIGEST_LENGTH)) printf("\n SHA3-512 Test: \u2705 VALID");
-    else printf("\n SHA3-512 Test: \u274c FAIL");
+    if (!cmpchar(md, res_3_512, SHA512_DIGEST_LENGTH)) printf("\n SHA3-512 Test: \t\033[1;32m\u2705\033[0m VALID");
+    else printf("\n SHA3-512 Test: \t\033[1;31m\u274c\033[0m FAIL");
     free(md);
 
     // ---- shake_128 ---- //
@@ -85,8 +85,8 @@ void demo_sha3_hw(unsigned int verb, MMIO_WINDOW ms2xl) {
         printf("\n Obtained Result: ");  show_array(md, 32, 32);
         printf("\n Expected Result: ");  show_array(res_s_128, 32, 32);
     }
-    if (!cmpchar(md, res_s_128, 32)) printf("\n SHAKE-128 Test: \u2705 VALID");
-    else printf("\n SHAKE-128 Test: \u274c FAIL");
+    if (!cmpchar(md, res_s_128, 32)) printf("\n SHAKE-128 Test: \t\033[1;32m\u2705\033[0m VALID");
+    else printf("\n SHAKE-128 Test: \t\033[1;31m\u274c\033[0m FAIL");
     free(md);
 
     // ---- shake_256 ---- //
@@ -96,8 +96,9 @@ void demo_sha3_hw(unsigned int verb, MMIO_WINDOW ms2xl) {
         printf("\n Obtained Result: ");  show_array(md, 64, 32);
         printf("\n Expected Result: ");  show_array(res_s_256, 64, 32);
     }
-    if (!cmpchar(md, res_s_256, 64)) printf("\n SHAKE-256 Test: \u2705 VALID");
-    else printf("\n SHAKE-256 Test: \u274c FAIL");
+    if (!cmpchar(md, res_s_256, 64)) printf("\n SHAKE-256 Test: \t\033[1;32m\u2705\033[0m VALID");
+    else printf("\n SHAKE-256 Test: \t\033[1;31m\u274c\033[0m FAIL");
     free(md);
 
 }
+
