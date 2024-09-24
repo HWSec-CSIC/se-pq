@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "stdlib.h": "c",
+        "x25519_hw.h": "c",
+        "se-qubip.h": "c",
+        "mman.h": "c",
+        "stdio.h": "c",
+        "fcntl.h": "c",
+        "test_func.h": "c",
+        "demo.h": "c",
+        "intf.h": "c",
+        "mmio.h": "c",
+        "eddsa_hw.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "enabled"
+}

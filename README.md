@@ -18,19 +18,29 @@ The content of the SE-QUBIP library is depicted in the next container tree:
             ├── common      # common files 
             ├── sha3        # SHA3 files 
             ├── sha2        # SHA2 files 
-            └── trng        # TRNG files
+	        ├── eddsa       # EdDSA files
+	        ├── x25519      # X25519 files
+ 		├── trng        # TRNG files
+            	├── AES         # AES files
+		└── MLKEM	# MLKEM files 	    	
+
         └── src             # folder that contains the sources files of the library
             .
             ├── common      # common files 
             ├── sha3        # SHA3 files 
-            └── sha2        # SHA2 files
+	        ├── sha2        # SHA2 files 
+		├── eddsa       # EdDSA files
+	        ├── x25519      # X25519 files
+ 		├── trng        # TRNG files
+            	├── AES         # AES files
+		└── MLKEM	# MLKEM files 
     ├── demo                # folder that contains the demo
     ├── se-qubip.h          # header of the library
     ├── Makefile            # To compile the library
-    ├── SE_QUBIP_1_0.rar    # The IP Module of the Secure Element
+    ├── SE_QUBIP_0.9.rar    # The IP Module of the Secure Element
     └── README.md  
 
-For now (***v2.0***) the list of supported algorithms are:
+For now (***v0.9***) the list of supported algorithms are:
 - SHA2:
     - SHA-256
     - SHA-384
@@ -41,6 +51,15 @@ For now (***v2.0***) the list of supported algorithms are:
     - SHA3-512
     - SHAKE128
     - SHAKE256
+- EDDSA:
+    - EdDSA25519
+- ECDH:
+    - X25519
+- TRNG
+- MLKEM:
+    - MLKEM-512
+    - MLKEM-768
+    - MLKEM-1024
 
 
 ## Installation
@@ -104,8 +123,38 @@ _Hardware Cryptography Researcher_
 
 _Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
 
+**Pablo Navarro-Torrero** - (navarro@imse-cnm.csic.es)
+
+_Hardware Cryptography Researcher_ 
+
+_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
+
+**Pau Ortega-Castro** - (ortega@imse-cnm.csic.es)
+
+_Hardware Cryptography Researcher_ 
+
+_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
+
+**Apurba Karmakar** - (apurba@imse-cnm.csic.es)
+
+_Hardware Cryptography Researcher_ 
+
+_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
+
 ## Developers
 
 Eros Camacho-Ruiz
+
+_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
+
+Pablo Navarro-Torrero
+
+_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
+
+Pau Ortega-Castro
+
+_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
+
+Apurba Karmakar
 
 _Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_

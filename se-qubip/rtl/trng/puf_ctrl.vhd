@@ -12,10 +12,10 @@ use WORK.puf_pkg.all;
 
 entity puf_ctrl is
 	generic(
-        Dbw : integer := 32; 	   	                                      -- AXI4-Lite Data Bus Width
-        Bpc : integer := 4; 	   	                                      -- Operation(4)/Characterization(32)
-        Mnc : integer := 4096; 	   	                                      -- Maximum number of comparisons
-        Nx  : integer := 1; 		                                      -- Number of columns of CLBs 
+        Dbw : integer := 64; 	   	                                      -- AXI4-Lite Data Bus Width
+        Bpc : integer := 8; 	   	                                      -- Operation(4)/Characterization(32)
+        Mnc : integer := 2048; 	   	                                      -- Maximum number of comparisons
+        Nx  : integer := 2; 		                                      -- Number of columns of CLBs 
         Ny  : integer := 2);		                                      -- Number of rows of CLBs 15
 	port (
 		clock    : in std_logic;                                          -- System Clock
@@ -117,7 +117,7 @@ begin
 	cmp_cap <= s_cmp_cap;	
 	sel_inc <= s_sel_inc;	
 		
-    OP1 : if Bpc = 4 generate   -- OPERATION
+    OP1 : if Bpc = 64 generate   -- OPERATION
         D32: if Dbw = 32  generate
     ncmps <= n_cmps when  n_cmps(2 downto 0) = "000" else  
              n_cmps(clog2(Mnc) downto 3) +1 & "000" ;   -- round to the next multiple of 8
@@ -134,7 +134,7 @@ begin
    
   	-- Increment comparisons counter and generate regfull and puf_end
     --
-    OP2 : if Bpc = 4 generate   -- OPERATION
+    OP2 : if Bpc = 64 generate   -- OPERATION
 	process (s_cmp_cap, reset)  
     begin
         if (reset='1') then
@@ -145,11 +145,7 @@ begin
             if (countc < ncmps) then
                 countc <= countc + 1;
             end if;
-            if (countc(clog2(Dbw)-3 downto 0) = (Dbw/4)-1) then
-                regfull <= '1';
-            else
-                regfull <= '0'; 
-            end if;
+            regfull <= '1';
             if (countc = ncmps) then
                 s_puf_end <= '1';
             end if;
@@ -220,13 +216,13 @@ begin
             
     -- Generate puf_wa
     --
-    OP3 : if Bpc = 4 generate   -- OPERATION
+    OP3 : if Bpc = 64 generate   -- OPERATION
 	process (s_puf_ldr, reset)  
     begin
         if (reset='1') then
             puf_wa <= (others => '0');
 		elsif (rising_edge(s_puf_ldr)) then
-            puf_wa <= countc(clog2(Mnc) downto clog2(Dbw)-2);
+            puf_wa <= countc(clog2(Mnc) downto clog2(Dbw)-6);
         end if;
     end process;
     end generate OP3;
