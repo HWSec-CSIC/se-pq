@@ -21,7 +21,7 @@ The content of the SE-QUBIP library is depicted in the next container tree:
 	        ├── eddsa       # EdDSA files
 	        ├── x25519      # X25519 files
  		├── trng        # TRNG files
-            	├── AES         # AES files
+            ├── AES         # AES files
 		└── MLKEM	# MLKEM files 	    	
 
         └── src             # folder that contains the sources files of the library
@@ -32,7 +32,7 @@ The content of the SE-QUBIP library is depicted in the next container tree:
 		├── eddsa       # EdDSA files
 	        ├── x25519      # X25519 files
  		├── trng        # TRNG files
-            	├── AES         # AES files
+            ├── AES         # AES files
 		└── MLKEM	# MLKEM files 
     ├── demo                # folder that contains the demo
     ├── se-qubip.h          # header of the library
