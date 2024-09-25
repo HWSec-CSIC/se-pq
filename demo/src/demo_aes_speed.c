@@ -73,7 +73,7 @@ void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, 
     unsigned char add_128[16]; char2hex(char_add_128, add_128);
 
     unsigned char* ciphertext_128;
-    unsigned int ciphertext_128_len = 0;
+    unsigned int ciphertext_128_len;
 
     ciphertext_128 = malloc(1080); memset(ciphertext_128, 0, 1080); // It is neccesary to add some bytes more
     recovered_msg_128 = malloc(1024); memset(recovered_msg_128, 0, 1024);
@@ -161,7 +161,7 @@ void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, 
 
         if (verb >= 1) printf("\n test: %d", test);
 
-        if (ecb) {
+        if (ecb) { 
             if (bits == 128) {
                 start_t = timeInMicroseconds();
                 aes_128_ecb_encrypt_hw(key_128, ciphertext_128, &ciphertext_128_len, msg, 1024, interface);

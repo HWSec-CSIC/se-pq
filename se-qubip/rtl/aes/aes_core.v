@@ -1,5 +1,5 @@
 //======================================================================
-// Rewrite by:
+// Rewritten by:
 // Apurba Karmakar
 //Instituto de Microelectrónica de Sevilla (IMSE-CNM)
 // apurba@imse-cnm.csic.es
@@ -246,13 +246,42 @@ module aes_core(
         end
     end // reg_update
 
-    reg [3:0] count;  // 4-bit counter to count up to 15
+    reg [3:0] count,count_start;  // 4-bit counter to count up to 15
+
+//reg [3:0] count_start; // 4-bit counter to count up to 10
+reg triggered1;          // Flag to track if start_new has been triggered
+reg start_new;
+always @(posedge clk) begin
+        if (!reset_n) begin
+            start_new <= 0;        
+            count_start <= 0;      
+            triggered1 <= 0;      
+        end else begin
+            if (!triggered1 && start) begin
+                // Trigger start_new
+                start_new <= 1;    
+                count_start <= 0;    
+                triggered1 <= 1;     
+            end else if (triggered1) begin
+                // Maintain start_new high for 11 clock cycles (0 to 10)
+                if (count_start < 10) begin 
+                    count_start <= count_start + 1; 
+                end else begin
+                    start_new <= 0;   
+                    count_start <= count_start; 
+                    triggered1 <= 1;   
+                end
+            end
+        end
+    end
+
+
 
     always @ (posedge clk ) begin
         if (!reset_n) begin
             init_reg <= 0;       
             count <= 0;      
-        end else if (start && count < 15) begin
+        end else if (start_new && count < 15) begin
             init_reg <= 1;       
             count <= count + 1;
         end else begin

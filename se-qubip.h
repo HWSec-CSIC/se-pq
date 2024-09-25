@@ -81,7 +81,7 @@
 #ifdef I2C
     #define INTF_ADDRESS            0x1A            //-- I2C_DEVICE_ADDRESS
     #define INTF_LENGTH		        0x40
-#else
+#elif AXI
     // ------- MS2XL_BASEADDR ------- //
     #define INTF_LENGTH		        0x40
 
@@ -96,20 +96,21 @@
     // ------- BITSTREAM_FILE ------- //
     #ifdef PYNQZ2
         #define BITSTREAM_AXI       "../se-qubip/bit/PYNQZ2_SE_QUBIP_0.9.bit"
-    #elif ZCU104    
-        #define BITSTREAM_AXI       "../se-qubip/bit/SE_QUBIP_ZCU104.bit"
+    #elif ZCU104
+        #define BITSTREAM_AXI       "../se-qubip/bit/ZCU104_SE_QUBIP_0.9.bit"
     #endif
 
     /* ------- FREQUENCIES DEFINITION ------- */
     #ifdef PYNQZ2
-        #define FREQ_TYPICAL        100.0
-        #define FREQ_EDDSA           60.0
-        #define FREQ_X25519          70.0
-        #define FREQ_AES             70.0
+        #define FREQ_TYPICAL    100.0
+        #define FREQ_EDDSA      60.0
+        #define FREQ_X25519     90.0
+        #define FREQ_AES        90.0
     #elif ZCU104
-        #define FREQ_TYPICAL        150.0
-        #define FREQ_EDDSA          300.0
-        #define FREQ_X25519         300.0
+        #define FREQ_TYPICAL    100.0
+        #define FREQ_EDDSA      200.0
+        #define FREQ_X25519     200.0
+        #define FREQ_AES        100.0
     #endif
 #endif
 

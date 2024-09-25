@@ -31,7 +31,7 @@ void sha3_shake_interface_init(INTF interface, int VERSION) {
 	else					op_version = 2 << 2;
 
 	op = (unsigned long long int)ADD_SHA3 << 32 | ((op_version | 0) & 0xFFFFFFFF);; // RESET OFF
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned int));
+	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
 }
 

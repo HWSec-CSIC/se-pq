@@ -726,7 +726,7 @@ void aes_block_256_ecb_encrypt_hw(unsigned  char* key, unsigned  char* ciphertex
     
 	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &start_on,interface);
 	    	        
-	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
+	//aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
 	
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
 	nwc = 0;
@@ -794,7 +794,7 @@ void aes_block_256_ecb_decrypt_hw(unsigned  char* key, unsigned  char* ciphertex
 	aes_write(AES_ADDR_BLOCK, BLOCK_OR_IV_BYTES/AXI_BYTES, ciphertext,interface);	
 	
 	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &start_on,interface);
-	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
+	//aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
 	
 	    while (result_valid != 1)
@@ -876,7 +876,7 @@ void aes_block_128_ecb_encrypt_hw(unsigned  char* key, unsigned  char* ciphertex
 	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &start_on,interface);
 	
 	
-	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
+	//aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
 	
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
 	nwc = 0;
@@ -955,7 +955,7 @@ void aes_block_128_ecb_decrypt_hw(unsigned  char* key, unsigned  char* ciphertex
     //start
 	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &start_on,interface);
 	
-	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
+	//aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
 
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
 	
@@ -1029,7 +1029,7 @@ void aes_block_256_cbc_encrypt_hw(unsigned  char* key, unsigned  char* iv, unsig
 	    //start
 	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &start_on,interface);
 	
-	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);	    
+	//aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);	    
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
 	nwc = 0;
 	    while (result_valid != 1)
@@ -1103,7 +1103,7 @@ void aes_block_256_cbc_decrypt_hw(unsigned  char* key,  unsigned  char* iv, unsi
 	    //start
 	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &start_on,interface);
 
-	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
+	//aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
 	
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
 	
@@ -1179,7 +1179,7 @@ void aes_block_128_cbc_encrypt_hw(unsigned  char* key, unsigned  char* iv, unsig
 	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &start_on,interface);
 
 
-	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);   
+	//aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);   
 		    
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
 	nwc = 0;
@@ -1255,7 +1255,7 @@ void aes_block_128_cbc_decrypt_hw(unsigned  char* key,  unsigned  char* iv, unsi
 //start
 	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &start_on,interface);
 
-	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
+	//aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
 	
 	    while (result_valid != 1)
@@ -1282,8 +1282,3 @@ void aes_block_128_cbc_decrypt_hw(unsigned  char* key,  unsigned  char* iv, unsi
     	control = (ADD_AES << 32) + AES_RST_ON + AES_INTF_RST;
     	write_INTF(interface, &control, CONTROL, AXI_BYTES);
 }
-
-
-
-
-

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is the repostiory of the Secure Element developed by CSIC-IMSE team within QUBIP project. 
+This is the repository of the Secure Element developed by CSIC-IMSE team within QUBIP project. 
 
 ## Description
 
@@ -21,7 +21,7 @@ The content of the SE-QUBIP library is depicted in the next container tree:
 	        ├── eddsa       # EdDSA files
 	        ├── x25519      # X25519 files
  		├── trng        # TRNG files
-            ├── AES         # AES files
+            	├── AES         # AES files
 		└── MLKEM	# MLKEM files 	    	
 
         └── src             # folder that contains the sources files of the library
@@ -32,7 +32,7 @@ The content of the SE-QUBIP library is depicted in the next container tree:
 		├── eddsa       # EdDSA files
 	        ├── x25519      # X25519 files
  		├── trng        # TRNG files
-            ├── AES         # AES files
+            	├── AES         # AES files
 		└── MLKEM	# MLKEM files 
     ├── demo                # folder that contains the demo
     ├── se-qubip.h          # header of the library
@@ -60,6 +60,13 @@ For now (***v0.9***) the list of supported algorithms are:
     - MLKEM-512
     - MLKEM-768
     - MLKEM-1024
+- AES:
+    - AES-128-ECB
+    - AES-128-CBC
+    - AES-128-CMAC
+    - AES-256-ECB
+    - AES-256-CBC
+    - AES-256-CMAC
 
 
 ## Installation

@@ -39,7 +39,7 @@ LIB_X25519_HW_HEADERS = $(SRCDIR)x25519/x25519_hw.h
 LIB_TRNG_HW_SOURCES = $(SRCDIR)trng/trng_hw.c 
 LIB_TRNG_HW_HEADERS = $(SRCDIR)trng/trng_hw.h 
 # AES
-LIB_AES_HW_SOURCES = $(SRCDIR)aes/aes_hw_temp.c 
+LIB_AES_HW_SOURCES = $(SRCDIR)aes/aes_hw.c 
 LIB_AES_HW_HEADERS = $(SRCDIR)aes/aes_hw.h
 # MLKEM
 LIB_MLKEM_HW_SOURCES = $(SRCDIR)mlkem/mlkem_hw.c 
