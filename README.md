@@ -165,11 +165,3 @@ _Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevi
 Apurba Karmakar
 
 _Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
-
-<iframe
-  id="inlineFrameExample"
-  title="Inline Frame Example"
-  width="300"
-  height="200"
-  src="https://google.com">
-</iframe>
