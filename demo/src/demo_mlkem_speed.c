@@ -1,5 +1,5 @@
 /**
-  * @file demo_mlkem_speed.c
+  * @file demo_mlkemspeed.c
   * @brief Performance test for MLKEM code
   *
   * @section License
@@ -43,25 +43,25 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 	start_t = timeInMicroseconds();
 	stop_t = timeInMicroseconds();
 
-	tr_kg->time_mean_value_sw = 0;
-	tr_kg->time_max_value_sw = 0;
-	tr_kg->time_min_value_sw = 0;
+	tr_kg->time_mean_value = 0;
+	tr_kg->time_max_value = 0;
+	tr_kg->time_min_value = 0;
 	tr_kg->val_result = 0;
 
-	tr_en->time_mean_value_sw = 0;
-	tr_en->time_max_value_sw = 0;
-	tr_en->time_min_value_sw = 0;
+	tr_en->time_mean_value = 0;
+	tr_en->time_max_value = 0;
+	tr_en->time_min_value = 0;
 	tr_en->val_result = 0;
 
-	tr_de->time_mean_value_sw = 0;
-	tr_de->time_max_value_sw = 0;
-	tr_de->time_min_value_sw = 0;
+	tr_de->time_mean_value = 0;
+	tr_de->time_max_value = 0;
+	tr_de->time_min_value = 0;
 	tr_de->val_result = 0;
 
-	uint64_t time_sw = 0;
-	uint64_t time_total_kg_sw = 0;
-	uint64_t time_total_en_sw = 0;
-	uint64_t time_total_de_sw = 0;
+	uint64_t time_hw = 0;
+	uint64_t time_total_kg_hw = 0;
+	uint64_t time_total_en_hw = 0;
+	uint64_t time_total_de_hw = 0;
 	
 	unsigned char* pk_512;
 	unsigned char* sk_512;
@@ -101,15 +101,15 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 			// keygen_sw
 			start_t = timeInMicroseconds();
-			mlkem_512_gen_keys_hw(pk_512, sk_512, interface);
+			mlkem512_genkeys_hw(pk_512, sk_512, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN KEYS: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
-			time_sw = stop_t - start_t;
-			time_total_kg_sw += time_sw;
+			time_hw = stop_t - start_t;
+			time_total_kg_hw += time_hw;
 
-			if (test == 1)										tr_kg->time_min_value_sw = time_sw;
-			else if (tr_kg->time_min_value_sw > time_sw)		tr_kg->time_min_value_sw = time_sw;
-			if (tr_kg->time_max_value_sw < time_sw)				tr_kg->time_max_value_sw = time_sw;
+			if (test == 1)										tr_kg->time_min_value = time_hw;
+			else if (tr_kg->time_min_value > time_hw)		tr_kg->time_min_value = time_hw;
+			if (tr_kg->time_max_value < time_hw)				tr_kg->time_max_value = time_hw;
 
 			if (verb >= 3) {
 				printf("\n pk_512: \t");  show_array(pk_512, 800, 32);
@@ -118,15 +118,15 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
  
 			// enc_sw
 			start_t = timeInMicroseconds();
-			mlkem_512_enc_hw(pk_512, ct_512, ss, interface);
+			mlkem512_enc_hw(pk_512, ct_512, ss, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCAP: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
-			time_sw = stop_t - start_t;
-			time_total_en_sw += time_sw;
+			time_hw = stop_t - start_t;
+			time_total_en_hw += time_hw;
 
-			if (test == 1)										tr_en->time_min_value_sw = time_sw;
-			else if (tr_en->time_min_value_sw > time_sw)		tr_en->time_min_value_sw = time_sw;
-			if (tr_en->time_max_value_sw < time_sw)				tr_en->time_max_value_sw = time_sw;
+			if (test == 1)										tr_en->time_min_value = time_hw;
+			else if (tr_en->time_min_value > time_hw)		tr_en->time_min_value = time_hw;
+			if (tr_en->time_max_value < time_hw)				tr_en->time_max_value = time_hw;
 
 			if (verb >= 3) {
 				printf("\n ct_512: \t");  show_array(ct_512, 768, 32);
@@ -134,15 +134,15 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 			// dec_sw
 			start_t = timeInMicroseconds();
-			mlkem_512_dec_hw(sk_512, ct_512, ss1, &result, interface);
+			mlkem512_dec_hw(sk_512, ct_512, ss1, &result, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW DECAP: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
-			time_sw = stop_t - start_t;
-			time_total_de_sw += time_sw;
+			time_hw = stop_t - start_t;
+			time_total_de_hw += time_hw;
 
-			if (test == 1)										tr_de->time_min_value_sw = time_sw;
-			else if (tr_de->time_min_value_sw > time_sw)		tr_de->time_min_value_sw = time_sw;
-			if (tr_de->time_max_value_sw < time_sw)				tr_de->time_max_value_sw = time_sw;
+			if (test == 1)										tr_de->time_min_value = time_hw;
+			else if (tr_de->time_min_value > time_hw)		tr_de->time_min_value = time_hw;
+			if (tr_de->time_max_value < time_hw)				tr_de->time_max_value = time_hw;
 
 			if (verb >= 2) {
 				printf("\n ss original: \t");  show_array(ss, 32, 32);
@@ -157,15 +157,15 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 			// keygen_sw
 			start_t = timeInMicroseconds();
-			mlkem_768_gen_keys_hw(pk_768, sk_768, interface);
+			mlkem768_genkeys_hw(pk_768, sk_768, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN KEYS: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
-			time_sw = stop_t - start_t;
-			time_total_kg_sw += time_sw;
+			time_hw = stop_t - start_t;
+			time_total_kg_hw += time_hw;
 
-			if (test == 1)										tr_kg->time_min_value_sw = time_sw;
-			else if (tr_kg->time_min_value_sw > time_sw)		tr_kg->time_min_value_sw = time_sw;
-			if (tr_kg->time_max_value_sw < time_sw)				tr_kg->time_max_value_sw = time_sw;
+			if (test == 1)										tr_kg->time_min_value = time_hw;
+			else if (tr_kg->time_min_value > time_hw)		tr_kg->time_min_value = time_hw;
+			if (tr_kg->time_max_value < time_hw)				tr_kg->time_max_value = time_hw;
 
 			if (verb >= 2) {
 				printf("\n pk_768: \t");  show_array(pk_768, 1184, 32);
@@ -174,15 +174,15 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 			// enc_sw
 			start_t = timeInMicroseconds();
-			mlkem_768_enc_hw(pk_768, ct_768, ss, interface);
+			mlkem768_enc_hw(pk_768, ct_768, ss, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCAP: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
-			time_sw = stop_t - start_t;
-			time_total_en_sw += time_sw;
+			time_hw = stop_t - start_t;
+			time_total_en_hw += time_hw;
 
-			if (test == 1)										tr_en->time_min_value_sw = time_sw;
-			else if (tr_en->time_min_value_sw > time_sw)		tr_en->time_min_value_sw = time_sw;
-			if (tr_en->time_max_value_sw < time_sw)				tr_en->time_max_value_sw = time_sw;
+			if (test == 1)										tr_en->time_min_value = time_hw;
+			else if (tr_en->time_min_value > time_hw)		tr_en->time_min_value = time_hw;
+			if (tr_en->time_max_value < time_hw)				tr_en->time_max_value = time_hw;
 
 			if (verb >= 2) {
 				printf("\n ct_768: \t");  show_array(ct_768, 1088, 32);
@@ -190,15 +190,15 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 			// dec_sw
 			start_t = timeInMicroseconds();
-			mlkem_768_dec_hw(sk_768, ct_768, ss1, &result, interface);
+			mlkem768_dec_hw(sk_768, ct_768, ss1, &result, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW DECAP: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
-			time_sw = stop_t - start_t;
-			time_total_de_sw += time_sw;
+			time_hw = stop_t - start_t;
+			time_total_de_hw += time_hw;
 
-			if (test == 1)										tr_de->time_min_value_sw = time_sw;
-			else if (tr_de->time_min_value_sw > time_sw)		tr_de->time_min_value_sw = time_sw;
-			if (tr_de->time_max_value_sw < time_sw)				tr_de->time_max_value_sw = time_sw;
+			if (test == 1)										tr_de->time_min_value = time_hw;
+			else if (tr_de->time_min_value > time_hw)		tr_de->time_min_value = time_hw;
+			if (tr_de->time_max_value < time_hw)				tr_de->time_max_value = time_hw;
 
 			if (verb >= 2) {
 				printf("\n ss original: \t");  show_array(ss, 32, 32);
@@ -212,15 +212,15 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 			// keygen_sw
 			start_t = timeInMicroseconds();
-			mlkem_1024_gen_keys_hw(pk_1024, sk_1024, interface);
+			mlkem1024_genkeys_hw(pk_1024, sk_1024, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN KEYS: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
-			time_sw = stop_t - start_t;
-			time_total_kg_sw += time_sw;
+			time_hw = stop_t - start_t;
+			time_total_kg_hw += time_hw;
 
-			if (test == 1)										tr_kg->time_min_value_sw = time_sw;
-			else if (tr_kg->time_min_value_sw > time_sw)		tr_kg->time_min_value_sw = time_sw;
-			if (tr_kg->time_max_value_sw < time_sw)				tr_kg->time_max_value_sw = time_sw;
+			if (test == 1)										tr_kg->time_min_value = time_hw;
+			else if (tr_kg->time_min_value > time_hw)		tr_kg->time_min_value = time_hw;
+			if (tr_kg->time_max_value < time_hw)				tr_kg->time_max_value = time_hw;
 
 			if (verb >= 2) {
 				printf("\n pk_1024: \t");  show_array(pk_1024, 1568, 32);
@@ -229,15 +229,15 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 			// enc_sw
 			start_t = timeInMicroseconds();
-			mlkem_1024_enc_hw(pk_1024, ct_1024, ss, interface);
+			mlkem1024_enc_hw(pk_1024, ct_1024, ss, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCAP: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
-			time_sw = stop_t - start_t;
-			time_total_en_sw += time_sw;
+			time_hw = stop_t - start_t;
+			time_total_en_hw += time_hw;
 
-			if (test == 1)										tr_en->time_min_value_sw = time_sw;
-			else if (tr_en->time_min_value_sw > time_sw)		tr_en->time_min_value_sw = time_sw;
-			if (tr_en->time_max_value_sw < time_sw)				tr_en->time_max_value_sw = time_sw;
+			if (test == 1)										tr_en->time_min_value = time_hw;
+			else if (tr_en->time_min_value > time_hw)		tr_en->time_min_value = time_hw;
+			if (tr_en->time_max_value < time_hw)				tr_en->time_max_value = time_hw;
 
 			if (verb >= 2) {
 				printf("\n ct_1024: \t");  show_array(ct_1024, 1568, 32);
@@ -245,15 +245,15 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 			// dec_sw
 			start_t = timeInMicroseconds();
-			mlkem_1024_dec_hw(sk_1024, ct_1024, ss1, &result, interface);
+			mlkem1024_dec_hw(sk_1024, ct_1024, ss1, &result, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW DECAP: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
-			time_sw = stop_t - start_t;
-			time_total_de_sw += time_sw;
+			time_hw = stop_t - start_t;
+			time_total_de_hw += time_hw;
 
-			if (test == 1)										tr_de->time_min_value_sw = time_sw;
-			else if (tr_de->time_min_value_sw > time_sw)		tr_de->time_min_value_sw = time_sw;
-			if (tr_de->time_max_value_sw < time_sw)				tr_de->time_max_value_sw = time_sw;
+			if (test == 1)										tr_de->time_min_value = time_hw;
+			else if (tr_de->time_min_value > time_hw)		tr_de->time_min_value = time_hw;
+			if (tr_de->time_max_value < time_hw)				tr_de->time_max_value = time_hw;
 
 			if (verb >= 2) {
 				printf("\n ss original: \t");  show_array(ss, 32, 32);
@@ -265,9 +265,9 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 		}
 	}
 
-	tr_kg->time_mean_value_sw = (uint64_t)(time_total_kg_sw / n_test);
-	tr_en->time_mean_value_sw = (uint64_t)(time_total_en_sw / n_test);
-	tr_de->time_mean_value_sw = (uint64_t)(time_total_de_sw / n_test);
+	tr_kg->time_mean_value = (uint64_t)(time_total_kg_hw / n_test);
+	tr_en->time_mean_value = (uint64_t)(time_total_en_hw / n_test);
+	tr_de->time_mean_value = (uint64_t)(time_total_de_hw / n_test);
 
 	free(sk_512);
 	free(pk_512);

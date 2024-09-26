@@ -122,26 +122,26 @@ void read_conf(data_conf* data) {
 
 void print_results(unsigned int verb, unsigned int n_test, time_result tr) {
 
-	printf("\n mean sw: %.3f s \t %.3f ms \t %d us", tr.time_mean_value_sw / 1000000.0, tr.time_mean_value_sw / 1000.0, (unsigned int)tr.time_mean_value_sw);
-	if (verb >= 1) printf("\n max sw: %.3f s \t %.3f ms \t %d us", tr.time_max_value_sw / 1000000.0, tr.time_max_value_sw / 1000.0, (unsigned int)tr.time_max_value_sw);
-	if (verb >= 1) printf("\n min sw: %.3f s \t %.3f ms \t %d us", tr.time_min_value_sw / 1000000.0, tr.time_min_value_sw / 1000.0, (unsigned int)tr.time_min_value_sw);
+	printf("\n mean sw: %.3f s \t %.3f ms \t %d us", tr.time_mean_value / 1000000.0, tr.time_mean_value / 1000.0, (unsigned int)tr.time_mean_value);
+	if (verb >= 1) printf("\n max sw: %.3f s \t %.3f ms \t %d us", tr.time_max_value / 1000000.0, tr.time_max_value / 1000.0, (unsigned int)tr.time_max_value);
+	if (verb >= 1) printf("\n min sw: %.3f s \t %.3f ms \t %d us", tr.time_min_value / 1000000.0, tr.time_min_value / 1000.0, (unsigned int)tr.time_min_value);
 	printf("\n val result: %d /", (unsigned int)tr.val_result); printf(" %d", n_test);
 
 }
 
 void print_results_str_1_tab_3(unsigned int n_test, unsigned char* str, time_result tr1, time_result tr2, time_result tr3) {
 
-	double time1_s = tr1.time_mean_value_sw / 1000000.0;
-	double time1_ms = tr1.time_mean_value_sw / 1000.0;
-	unsigned int time1_us = tr1.time_mean_value_sw;
+	double time1_s = tr1.time_mean_value / 1000000.0;
+	double time1_ms = tr1.time_mean_value / 1000.0;
+	unsigned int time1_us = tr1.time_mean_value;
 
-	double time2_s = tr2.time_mean_value_sw / 1000000.0;
-	double time2_ms = tr2.time_mean_value_sw / 1000.0;
-	unsigned int time2_us = tr2.time_mean_value_sw;
+	double time2_s = tr2.time_mean_value / 1000000.0;
+	double time2_ms = tr2.time_mean_value / 1000.0;
+	unsigned int time2_us = tr2.time_mean_value;
 
-	double time3_s = tr3.time_mean_value_sw / 1000000.0;
-	double time3_ms = tr3.time_mean_value_sw / 1000.0;
-	unsigned int time3_us = tr3.time_mean_value_sw;
+	double time3_s = tr3.time_mean_value / 1000000.0;
+	double time3_ms = tr3.time_mean_value / 1000.0;
+	unsigned int time3_us = tr3.time_mean_value;
 
 	// unsigned char time_s[20];	sprintf(time_s,		"%.3f / %.3f", time1_s,  time2_s);
 	unsigned char time_ms[30];	sprintf(time_ms, "%.3f / %.3f / %.3f", time1_ms, time2_ms, time3_ms);
@@ -154,15 +154,52 @@ void print_results_str_1_tab_3(unsigned int n_test, unsigned char* str, time_res
 
 }
 
+void print_results_str_1_tab_3_acc(unsigned int n_test, unsigned char* str, time_result tr1_hw, time_result tr2_hw, time_result tr3_hw, time_result tr1_sw, time_result tr2_sw, time_result tr3_sw) {
+
+	unsigned int time1_hw_us = tr1_hw.time_mean_value;
+	unsigned int time2_hw_us = tr2_hw.time_mean_value;
+	unsigned int time3_hw_us = tr3_hw.time_mean_value;
+	unsigned int time1_sw_us = tr1_sw.time_mean_value;
+	unsigned int time2_sw_us = tr2_sw.time_mean_value;
+	unsigned int time3_sw_us = tr3_sw.time_mean_value;
+
+	// unsigned char time_s[20];	sprintf(time_s,		"%.3f / %.3f", time1_s,  time2_s);
+	unsigned char time_us_hw[20];	sprintf(time_us_hw, "%d / %d / %d", time1_hw_us, time2_hw_us, time3_hw_us);
+	unsigned char time_us_sw[20];	sprintf(time_us_sw, "%d / %d / %d", time1_sw_us, time2_sw_us, time3_sw_us);
+
+	// Print acc with colours
+	double acc_1 = (double)time1_sw_us / (double)time1_hw_us;
+	double acc_2 = (double)time2_sw_us / (double)time2_hw_us;
+	double acc_3 = (double)time3_sw_us / (double)time3_hw_us;
+	unsigned char acc_1_text[30];
+	unsigned char acc_2_text[30];
+	unsigned char acc_3_text[30];
+	if (acc_1 > 1)  sprintf(acc_1_text, "\x1b[32m\x1b[1m%.2f\x1b[0m", acc_1); // green https://talyian.github.io/ansicolors/
+	else			sprintf(acc_1_text, "\x1b[31m\x1b[1m%.2f\x1b[0m", acc_1); // red
+	if (acc_2 > 1)	sprintf(acc_2_text, "\x1b[32m\x1b[1m%.2f\x1b[0m", acc_2); // green
+	else			sprintf(acc_2_text, "\x1b[31m\x1b[1m%.2f\x1b[0m", acc_2); // red
+	if (acc_3 > 1)	sprintf(acc_3_text, "\x1b[32m\x1b[1m%.2f\x1b[0m", acc_3); // green
+	else			sprintf(acc_3_text, "\x1b[31m\x1b[1m%.2f\x1b[0m", acc_3); // red
+
+	unsigned char acc[120]; sprintf(acc, "%s / %s / %s", acc_1_text, acc_2_text, acc_3_text);
+
+	unsigned char s_test[20];	if (tr3_hw.val_result != 0xFFFFFFFF)	sprintf(s_test, "%d / %d", (unsigned int)tr3_hw.val_result, n_test);
+	else								strcpy(s_test, "-");
+
+	// printf("\n %-30s | %-25s | %-25s | %-25s | %-15s ", str, time_s, time_ms, time_us, s_test);
+	printf("\n %-30s | %-30s | %-30s | %-69s | %-15s ", str, time_us_hw, time_us_sw, acc, s_test); // 56 purely empirical value
+
+}
+
 void print_results_str_1_tab_2(unsigned int n_test, unsigned char* str, time_result tr1, time_result tr2) {
 
-	double time1_s	= tr1.time_mean_value_sw / 1000000.0; 
-	double time1_ms = tr1.time_mean_value_sw / 1000.0;
-	unsigned int time1_us = tr1.time_mean_value_sw;
+	double time1_s	= tr1.time_mean_value / 1000000.0; 
+	double time1_ms = tr1.time_mean_value / 1000.0;
+	unsigned int time1_us = tr1.time_mean_value;
 
-	double time2_s	= tr2.time_mean_value_sw / 1000000.0;
-	double time2_ms = tr2.time_mean_value_sw / 1000.0;
-	unsigned int time2_us = tr2.time_mean_value_sw;
+	double time2_s	= tr2.time_mean_value / 1000000.0;
+	double time2_ms = tr2.time_mean_value / 1000.0;
+	unsigned int time2_us = tr2.time_mean_value;
 
 	// unsigned char time_s[20];	sprintf(time_s,		"%.3f / %.3f", time1_s,  time2_s);
 	unsigned char time_ms[20];	sprintf(time_ms,	"%.3f / %.3f", time1_ms, time2_ms);
@@ -175,11 +212,43 @@ void print_results_str_1_tab_2(unsigned int n_test, unsigned char* str, time_res
 
 }
 
+void print_results_str_1_tab_2_acc(unsigned int n_test, unsigned char* str, time_result tr1_hw, time_result tr2_hw, time_result tr1_sw, time_result tr2_sw) {
+
+	unsigned int time1_hw_us = tr1_hw.time_mean_value;
+	unsigned int time2_hw_us = tr2_hw.time_mean_value;
+	unsigned int time1_sw_us = tr1_sw.time_mean_value;
+	unsigned int time2_sw_us = tr2_sw.time_mean_value;
+
+	// unsigned char time_s[20];	sprintf(time_s,		"%.3f / %.3f", time1_s,  time2_s);
+	unsigned char time_us_hw[20];	sprintf(time_us_hw, "%d / %d", time1_hw_us, time2_hw_us);
+	unsigned char time_us_sw[20];	sprintf(time_us_sw, "%d / %d", time1_sw_us, time2_sw_us);
+
+	// Print acc with colours
+	double acc_1 = (double)time1_sw_us / (double)time1_hw_us;
+	double acc_2 = (double)time2_sw_us / (double)time2_hw_us;
+	unsigned char acc_1_text[30]; 
+	unsigned char acc_2_text[30];
+	if (acc_1 > 1)  sprintf(acc_1_text, "\x1b[32m\x1b[1m%.2f\x1b[0m", acc_1); // green https://talyian.github.io/ansicolors/
+	else			sprintf(acc_1_text, "\x1b[31m\x1b[1m%.2f\x1b[0m", acc_1); // red
+	if (acc_2 > 1)	sprintf(acc_2_text, "\x1b[32m\x1b[1m%.2f\x1b[0m", acc_2); // green
+	else			sprintf(acc_2_text, "\x1b[31m\x1b[1m%.2f\x1b[0m", acc_2); // red
+
+	unsigned char acc[80]; sprintf(acc, "%s / %s", acc_1_text, acc_2_text);
+
+	unsigned char s_test[20];	if (tr2_hw.val_result != 0xFFFFFFFF)	sprintf(s_test, "%d / %d", (unsigned int)tr2_hw.val_result, n_test);
+	else								strcpy(s_test, "-");
+
+	// printf("\n %-30s | %-25s | %-25s | %-25s | %-15s ", str, time_s, time_ms, time_us, s_test);
+	printf("\n %-30s | %-30s | %-30s | %-56s | %-15s ", str, time_us_hw, time_us_sw, acc, s_test); // 56 purely empirical value
+
+}
+
+
 void print_results_str_1_tab_1(unsigned int n_test, unsigned char* str, time_result tr) {
 
-	double time1_s			= tr.time_mean_value_sw / 1000000.0;
-	double time1_ms			= tr.time_mean_value_sw / 1000.0;
-	unsigned int time1_us	= tr.time_mean_value_sw;
+	double time1_s			= tr.time_mean_value / 1000000.0;
+	double time1_ms			= tr.time_mean_value / 1000.0;
+	unsigned int time1_us	= tr.time_mean_value;
 
 	// unsigned char time_s[20];	sprintf(time_s,		"%.3f / %.3f", time1_s,  time2_s);
 	unsigned char time_ms[20];	sprintf(time_ms, "%.3f", time1_ms);
@@ -192,11 +261,36 @@ void print_results_str_1_tab_1(unsigned int n_test, unsigned char* str, time_res
 
 }
 
+void print_results_str_1_tab_1_acc(unsigned int n_test, unsigned char* str, time_result tr_hw, time_result tr_sw) {
+
+	unsigned int time_hw_us = tr_hw.time_mean_value;
+	unsigned int time_sw_us = tr_sw.time_mean_value;
+
+	// unsigned char time_s[20];	sprintf(time_s,		"%.3f / %.3f", time1_s,  time2_s);
+	unsigned char time_us_hw[20];	sprintf(time_us_hw, "%d / %d", time_hw_us, time_hw_us);
+	unsigned char time_us_sw[20];	sprintf(time_us_sw, "%d / %d", time_sw_us, time_sw_us);
+
+	// Print acc with colours
+	double acc_1 = (double)time_sw_us / (double)time_hw_us;
+	unsigned char acc_1_text[30];
+	if (acc_1 > 1)  sprintf(acc_1_text, "\x1b[32m\x1b[1m%.2f\x1b[0m", acc_1); // green https://talyian.github.io/ansicolors/
+	else			sprintf(acc_1_text, "\x1b[31m\x1b[1m%.2f\x1b[0m", acc_1); // red
+
+	unsigned char acc[80]; sprintf(acc, "%s", acc_1_text);
+
+	unsigned char s_test[20];	if (tr_hw.val_result != 0xFFFFFFFF)	sprintf(s_test, "%d / %d", (unsigned int)tr_hw.val_result, n_test);
+	else								strcpy(s_test, "-");
+
+	// printf("\n %-30s | %-25s | %-25s | %-25s | %-15s ", str, time_s, time_ms, time_us, s_test);
+	printf("\n %-30s | %-30s | %-30s | %-43s | %-15s ", str, time_us_hw, time_us_sw, acc, s_test); // 30 purely empirical value
+
+}
+
 void print_results_str_2_tab_1(unsigned int n_test, unsigned char* str1, unsigned char* str2, time_result tr) {
 
-	double time1_s = tr.time_mean_value_sw / 1000000.0;
-	double time1_ms = tr.time_mean_value_sw / 1000.0;
-	unsigned int time1_us = tr.time_mean_value_sw;
+	double time1_s = tr.time_mean_value / 1000000.0;
+	double time1_ms = tr.time_mean_value / 1000.0;
+	unsigned int time1_us = tr.time_mean_value;
 
 	// unsigned char time_s[20];	sprintf(time_s,		"%.3f / %.3f", time1_s,  time2_s);
 	unsigned char time_ms[20];	sprintf(time_ms, "%.3f", time1_ms);
@@ -206,6 +300,31 @@ void print_results_str_2_tab_1(unsigned int n_test, unsigned char* str1, unsigne
 
 	// printf("\n %-30s | %-25s | %-25s | %-25s | %-15s ", str, time_s, time_ms, time_us, s_test);
 	printf("\n %-14s %-15s | %-30s | %-30s | %-15s ", str1, str2, time_ms, time_us, s_test);
+
+}
+
+void print_results_str_2_tab_1_acc(unsigned int n_test, unsigned char* str1, unsigned char* str2, time_result tr_hw, time_result tr_sw) {
+
+	unsigned int time_hw_us = tr_hw.time_mean_value;
+	unsigned int time_sw_us = tr_sw.time_mean_value;
+
+	// unsigned char time_s[20];	sprintf(time_s,		"%.3f / %.3f", time1_s,  time2_s);
+	unsigned char time_us_hw[20];	sprintf(time_us_hw, "%d / %d", time_hw_us, time_hw_us);
+	unsigned char time_us_sw[20];	sprintf(time_us_sw, "%d / %d", time_sw_us, time_sw_us);
+
+	// Print acc with colours
+	double acc_1 = (double)time_sw_us / (double)time_hw_us;
+	unsigned char acc_1_text[30];
+	if (acc_1 > 1)  sprintf(acc_1_text, "\x1b[32m\x1b[1m%.2f\x1b[0m", acc_1); // green https://talyian.github.io/ansicolors/
+	else			sprintf(acc_1_text, "\x1b[31m\x1b[1m%.2f\x1b[0m", acc_1); // red
+
+	unsigned char acc[80]; sprintf(acc, "%s", acc_1_text);
+
+	unsigned char s_test[20];	if (tr_hw.val_result != 0xFFFFFFFF)	sprintf(s_test, "%d / %d", (unsigned int)tr_hw.val_result, n_test);
+	else								strcpy(s_test, "-");
+
+	// printf("\n %-30s | %-25s | %-25s | %-25s | %-15s ", str, time_s, time_ms, time_us, s_test);
+	printf("\n %-14s %-15s | %-30s | %-30s | %-43s | %-15s ", str1, str2, time_us_hw, time_us_sw, acc, s_test); // 43 purely empirical value
 
 }
 

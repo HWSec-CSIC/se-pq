@@ -48,13 +48,13 @@ void test_trng_hw(unsigned int mode, unsigned int bits, unsigned int n_test, tim
     start_t = timeInMicroseconds();
     stop_t = timeInMicroseconds();
 
-    tr->time_mean_value_sw = 0;
-    tr->time_max_value_sw = 0;
-    tr->time_min_value_sw = 0;
+    tr->time_mean_value = 0;
+    tr->time_max_value = 0;
+    tr->time_min_value = 0;
     tr->val_result = 0;
 
-    uint64_t time_sw = 0;
-    uint64_t time_total_sw = 0;
+    uint64_t time_hw = 0;
+    uint64_t time_total_hw = 0;
 
     /*
     if (mode == 0)        printf("\n\n -- Test TRNG %d bits --", bits);
@@ -90,18 +90,18 @@ void test_trng_hw(unsigned int mode, unsigned int bits, unsigned int n_test, tim
         */
         }
 
-        time_sw = stop_t - start_t;
-        time_total_sw += time_sw;
+        time_hw = stop_t - start_t;
+        time_total_hw += time_hw;
 
-        if (test == 1)                               tr->time_min_value_sw = time_sw;
-        else if (tr->time_min_value_sw > time_sw)    tr->time_min_value_sw = time_sw;
+        if (test == 1)                               tr->time_min_value = time_hw;
+        else if (tr->time_min_value > time_hw)    tr->time_min_value = time_hw;
 
-        if (tr->time_max_value_sw < time_sw)         tr->time_max_value_sw = time_sw;
+        if (tr->time_max_value < time_hw)         tr->time_max_value = time_hw;
 
 
     }
 
-    tr->time_mean_value_sw = (uint64_t)(time_total_sw / n_test);
+    tr->time_mean_value = (uint64_t)(time_total_hw / n_test);
 
     free(random_trng);
     free(random_ctr);

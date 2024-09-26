@@ -56,7 +56,7 @@ void sha3_shake_interface(unsigned long long int* a, unsigned long long int* b, 
 
 			// ----------- LOAD LENGTH ---------- //
 			if (DBG == 2) {
-				printf("  -- sha2_interface - Loading data padding ...................... \n");
+				printf("  -- sha3_interface - Loading data padding ...................... \n");
 				tic = Wtime();
 			}
 
@@ -68,11 +68,16 @@ void sha3_shake_interface(unsigned long long int* a, unsigned long long int* b, 
 			write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
 			write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
 			if (DBG == 3) printf(" pos_pad: %lld\n\r", reg_data_in);
+
+			if (DBG == 2) {
+				toc = Wtime() - tic;
+				printf("(%3llu us.)\n", toc);
+			}
 		}
 
 		// ----------- LOAD ------------------ //
 		if (DBG == 2) {
-			printf("  -- sha2_interface - Loading data .............................. \n");
+			printf("  -- sha3_interface - Loading data .............................. \n");
 			tic = Wtime();
 		}
 
@@ -96,7 +101,7 @@ void sha3_shake_interface(unsigned long long int* a, unsigned long long int* b, 
 
 	// ----------- OPERATING ------------- //
 	if (DBG == 2) {
-		printf("  -- sha2_interface - Operating .............. \n");
+		printf("  -- sha3_interface - Operating .............. \n");
 		tic = Wtime();
 	}
 
@@ -115,7 +120,7 @@ void sha3_shake_interface(unsigned long long int* a, unsigned long long int* b, 
 	// ----------- READ ------------- //
 	if (pad) {
 		if (DBG == 2) {
-			printf("  -- sha2_interface - Reading output .............................. \n");
+			printf("  -- sha3_interface - Reading output .............................. \n");
 			tic = Wtime();
 		}
 
@@ -189,6 +194,7 @@ void sha3_shake_hw(unsigned char* in, unsigned char* out, unsigned int length, u
 	// ------- Operation ---------------- //
 
 	for (unsigned int hb = 1; hb <= hb_num; hb++) {
+
 		ind = (hb - 1) * (SIZE_BLOCK / 8);
 		for (int j = 0; j < (SIZE_BLOCK / 8); j++) {
 			if ((ind + j) >= (length / 8))	in_prev[j] = 0x00;
@@ -197,29 +203,8 @@ void sha3_shake_hw(unsigned char* in, unsigned char* out, unsigned int length, u
 		// memcpy(in_prev, in + ind, sizeof(unsigned char) * (SIZE_BLOCK / 8));
 		ind = 0;
 		for (int i = 0; i < (SIZE_BLOCK / 64); i++) {
-			/*
-			if ((ind + 0) * 8 >= length) in_prev[ind + 0] = 0x00;
-			if ((ind + 1) * 8 >= length) in_prev[ind + 1] = 0x00;
-			if ((ind + 2) * 8 >= length) in_prev[ind + 2] = 0x00;
-			if ((ind + 3) * 8 >= length) in_prev[ind + 3] = 0x00;
-			if ((ind + 4) * 8 >= length) in_prev[ind + 4] = 0x00;
-			if ((ind + 5) * 8 >= length) in_prev[ind + 5] = 0x00;
-			if ((ind + 6) * 8 >= length) in_prev[ind + 6] = 0x00;
-			if ((ind + 7) * 8 >= length) in_prev[ind + 7] = 0x00;
-
-			buf_1 = ((unsigned long long int)in[ind + 7] << 56) + ((unsigned long long int)in[ind + 6] << 48) + ((unsigned long long int)in[ind + 5] << 40) + ((unsigned long long int)in[ind + 4] << 32);
-			buf_2 = ((unsigned long long int)in[ind + 3] << 24) + ((unsigned long long int)in[ind + 2] << 16) + ((unsigned long long int)in[ind + 1] << 8) + ((unsigned long long int)in[ind + 0]);
-			buffer_in[i] = buf_1 + buf_2;
-			*/
-			buffer_in[i] =
-				((unsigned long long)(in_prev[ind + 7]) << 56) |
-				((unsigned long long)(in_prev[ind + 6]) << 48) |
-				((unsigned long long)(in_prev[ind + 5]) << 40) |
-				((unsigned long long)(in_prev[ind + 4]) << 32) |
-				((unsigned long long)(in_prev[ind + 3]) << 24) |
-				((unsigned long long)(in_prev[ind + 2]) << 16) |
-				((unsigned long long)(in_prev[ind + 1]) << 8) |
-				((unsigned long long)(in_prev[ind + 0]) << 0);
+			
+			memcpy(buffer_in + i, in_prev + ind, 8);
 
 			if (DBG == 1) printf("in[%d] = %02x \t in[%d] = %02x \t in[%d] = %02x \t in[%d] = %02x \n", ind, in_prev[ind], ind + 1, in_prev[ind + 1], ind + 2, in_prev[ind + 2], ind + 3, in_prev[ind + 3]);
 			if (DBG == 1) printf("buffer_in[%d] = %02llx \n", i, buffer_in[i]);
@@ -243,6 +228,7 @@ void sha3_shake_hw(unsigned char* in, unsigned char* out, unsigned int length, u
 	if (hb_num_out > hb_num) {
 		for (int i = 0; i < (SIZE_BLOCK / 64); i++) {
 			ind = i * 8;
+			/*
 			out[ind + 0] = (buffer_out[i] & 0x00000000000000FF) >> 0;
 			out[ind + 1] = (buffer_out[i] & 0x000000000000FF00) >> 8;
 			out[ind + 2] = (buffer_out[i] & 0x0000000000FF0000) >> 16;
@@ -251,6 +237,8 @@ void sha3_shake_hw(unsigned char* in, unsigned char* out, unsigned int length, u
 			out[ind + 5] = (buffer_out[i] & 0x0000FF0000000000) >> 40;
 			out[ind + 6] = (buffer_out[i] & 0x00FF000000000000) >> 48;
 			out[ind + 7] = (buffer_out[i] & 0xFF00000000000000) >> 56;
+			*/
+			memcpy(out + ind, buffer_out + i, 8 * sizeof(unsigned char));
 		}
 
 		int hb_shake = 0;
@@ -259,28 +247,14 @@ void sha3_shake_hw(unsigned char* in, unsigned char* out, unsigned int length, u
 			hb_shake++;
 			for (int i = 0; i < (SIZE_BLOCK / 64); i++) {
 				ind = i * 8 + hb_shake * (SIZE_BLOCK / 8);
-				out[ind + 0] = (buffer_out[i] & 0x00000000000000FF) >> 0;
-				out[ind + 1] = (buffer_out[i] & 0x000000000000FF00) >> 8;
-				out[ind + 2] = (buffer_out[i] & 0x0000000000FF0000) >> 16;
-				out[ind + 3] = (buffer_out[i] & 0x00000000FF000000) >> 24;
-				out[ind + 4] = (buffer_out[i] & 0x000000FF00000000) >> 32;
-				out[ind + 5] = (buffer_out[i] & 0x0000FF0000000000) >> 40;
-				out[ind + 6] = (buffer_out[i] & 0x00FF000000000000) >> 48;
-				out[ind + 7] = (buffer_out[i] & 0xFF00000000000000) >> 56;
+				memcpy(out + ind, buffer_out + i, 8 * sizeof(unsigned char));
 			}
 		}
 	}
 	else {
 		for (int i = 0; i < (int)ceil((double)length_out / (double)64); i++) {
 			ind = i * 8;
-			out[ind + 0] = (buffer_out[i] & 0x00000000000000FF) >> 0;
-			out[ind + 1] = (buffer_out[i] & 0x000000000000FF00) >> 8;
-			out[ind + 2] = (buffer_out[i] & 0x0000000000FF0000) >> 16;
-			out[ind + 3] = (buffer_out[i] & 0x00000000FF000000) >> 24;
-			out[ind + 4] = (buffer_out[i] & 0x000000FF00000000) >> 32;
-			out[ind + 5] = (buffer_out[i] & 0x0000FF0000000000) >> 40;
-			out[ind + 6] = (buffer_out[i] & 0x00FF000000000000) >> 48;
-			out[ind + 7] = (buffer_out[i] & 0xFF00000000000000) >> 56;
+			memcpy(out + ind, buffer_out + i, 8 * sizeof(unsigned char));
 		}
 	}
 

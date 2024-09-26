@@ -204,6 +204,7 @@ void sha2_hw(INTF interface, unsigned char* in, unsigned char* out, unsigned lon
 		ind = 0;
 		for (int i = 0; i < 16; i++) {
 			if (!op_version) {
+
 				buffer_in[i] =
 					0x00000000 |
 					((unsigned long long)(in_prev[ind + 3]) << 0) |

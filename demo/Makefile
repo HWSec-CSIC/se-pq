@@ -2,10 +2,10 @@
 CC=/usr/bin/cc -O3
 
 # BOARD (PYNQZ2 or ZCU104)
-BOARD = PYNQZ2
+BOARD = ZCU104
 
 # INTERFACE (AXI or I2C)
-INTERFACE = I2C
+INTERFACE = AXI
 
 # COMPILER FLAGS
 ifeq ($(INTERFACE), AXI)
@@ -82,6 +82,15 @@ DEMO_SPEED_SOURCES =	$(SRC_DEMO)demo_aes_speed.c \
 						$(SRC_DEMO)demo_trng_speed.c \
 						$(SRC_DEMO)test_func.c
 
+DEMO_ACC_SOURCES =		$(SRC_DEMO)demo_aes_acc.c \
+						$(SRC_DEMO)demo_sha3_acc.c \
+						$(SRC_DEMO)demo_sha2_acc.c \
+						$(SRC_DEMO)demo_eddsa_acc.c \
+						$(SRC_DEMO)demo_x25519_acc.c \
+						$(SRC_DEMO)demo_mlkem_acc.c \
+						$(SRC_DEMO)demo_trng_acc.c \
+						$(SRC_DEMO)test_func.c
+
 DEMO_HEADERS = $(SRC_DEMO)demo.h $(SRC_DEMO)test_func.h
 
 SOURCES = $(LIB_SOURCES) $(DEMO_SOURCES)
@@ -90,6 +99,9 @@ HEADERS = $(LIB_HEADERS) $(DEMO_HEADERS)
 SOURCES_SPEED = $(LIB_SOURCES) $(DEMO_SPEED_SOURCES)
 HEADERS_SPEED = $(LIB_HEADERS) $(DEMO_HEADERS)
 
+SOURCES_ACC = $(LIB_SOURCES) $(DEMO_ACC_SOURCES)
+HEADERS_ACC = $(LIB_HEADERS) $(DEMO_HEADERS)
+
 # PROGRAMS
 demo-all: $(SOURCES) demo.c $(HEADERS)
 	$(CC) -o $@ $(CFLAGS_DEMO) $(SOURCES) demo.c $(LDFLAGS_DEMO) -D$(BOARD) -D$(INTERFACE)
@@ -97,11 +109,18 @@ demo-all: $(SOURCES) demo.c $(HEADERS)
 demo-build: $(DEMO_SOURCES) demo.c $(DEMO_HEADERS)
 	$(CC) -o $@ $(CFLAGS_DEMO_BUILD) $(DEMO_SOURCES) demo.c $(LDFLAGS_DEMO_BUILD) -D$(BOARD) -D$(INTERFACE)
 
-demo-speed-all: $(SOURCES) demo_speed.c $(HEADERS)
+demo-speed-all: $(SOURCES_SPEED) demo_speed.c $(HEADERS)
 	$(CC) -o $@ $(CFLAGS_DEMO) $(SOURCES_SPEED) demo_speed.c $(LDFLAGS_DEMO) -D$(BOARD) -D$(INTERFACE)
 
 demo-speed-build: $(DEMO_SOURCES) demo_speed.c $(DEMO_HEADERS)
 	$(CC) -o $@ $(CFLAGS_DEMO_BUILD) $(DEMO_SPEED_SOURCES) demo_speed.c $(LDFLAGS_DEMO_BUILD) -D$(BOARD) -D$(INTERFACE)
+
+demo-acc-openssl-all: $(SOURCES_ACC) demo_acc.c $(HEADERS)
+	$(CC) -o $@ $(CFLAGS_DEMO) $(SOURCES_ACC) demo_acc.c $(LDFLAGS_DEMO) -lcryptoapi -D$(BOARD) -D$(INTERFACE)
+
+demo-acc-alt-all: $(SOURCES_ACC) demo_acc.c $(HEADERS)
+	$(CC) -o $@ $(CFLAGS_DEMO) $(SOURCES_ACC) demo_acc.c $(LDFLAGS_DEMO) -lcryptoapialt -D$(BOARD) -D$(INTERFACE)
+
 
 .PHONY: all demo clean
 

@@ -1,0 +1,13 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\demo",
+    "\\demo\\src",
+    "\\se-qubip",
+    "\\se-qubip\\src",
+    "\\se-qubip\\src\\aes",
+    "\\se-qubip\\src\\mlkem"
+  ],
+  "SelectedNode": "\\demo\\src\\test_func.c",
+  "PreviewInSolutionExplorer": false
+}

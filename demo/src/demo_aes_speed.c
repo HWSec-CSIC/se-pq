@@ -43,19 +43,19 @@ void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, 
     start_t = timeInMicroseconds();
     stop_t = timeInMicroseconds();
 
-    tr_en->time_mean_value_sw = 0;
-    tr_en->time_max_value_sw = 0;
-    tr_en->time_min_value_sw = 0;
+    tr_en->time_mean_value = 0;
+    tr_en->time_max_value = 0;
+    tr_en->time_min_value = 0;
     tr_en->val_result = 0;
 
-    tr_de->time_mean_value_sw = 0;
-    tr_de->time_max_value_sw = 0;
-    tr_de->time_min_value_sw = 0;
+    tr_de->time_mean_value = 0;
+    tr_de->time_max_value = 0;
+    tr_de->time_min_value = 0;
     tr_de->val_result = 0;
 
-    uint64_t time_sw = 0;
-    uint64_t time_total_en_sw = 0;
-    uint64_t time_total_de_sw = 0;
+    uint64_t time_hw = 0;
+    uint64_t time_total_en_hw = 0;
+    uint64_t time_total_de_hw = 0;
 
     // unsigned char msg[128] = "Hello, this is the SE of QUBIP project";
     unsigned char msg[1024];
@@ -178,12 +178,12 @@ void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, 
                 stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
             }
 
-            time_sw = stop_t - start_t;
-            time_total_en_sw += time_sw;
+            time_hw = stop_t - start_t;
+            time_total_en_hw += time_hw;
 
-            if (test == 1)										tr_en->time_min_value_sw = time_sw;
-            else if (tr_en->time_min_value_sw > time_sw)		tr_en->time_min_value_sw = time_sw;
-            if (tr_en->time_max_value_sw < time_sw)				tr_en->time_max_value_sw = time_sw;
+            if (test == 1)										tr_en->time_min_value = time_hw;
+            else if (tr_en->time_min_value > time_hw)		tr_en->time_min_value = time_hw;
+            if (tr_en->time_max_value < time_hw)				tr_en->time_max_value = time_hw;
 
             if (bits == 128) {
                 start_t = timeInMicroseconds();
@@ -201,12 +201,12 @@ void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, 
                 stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW DECRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
             }
 
-            time_sw = stop_t - start_t;
-            time_total_de_sw += time_sw;
+            time_hw = stop_t - start_t;
+            time_total_de_hw += time_hw;
 
-            if (test == 1)										tr_de->time_min_value_sw = time_sw;
-            else if (tr_de->time_min_value_sw > time_sw)		tr_de->time_min_value_sw = time_sw;
-            if (tr_de->time_max_value_sw < time_sw)				tr_de->time_max_value_sw = time_sw;
+            if (test == 1)										tr_de->time_min_value = time_hw;
+            else if (tr_de->time_min_value > time_hw)		tr_de->time_min_value = time_hw;
+            if (tr_de->time_max_value < time_hw)				tr_de->time_max_value = time_hw;
 
             if (bits == 128) {
                 if (verb >= 3) { printf("\n original msg: "); show_array(msg, 1024, 32); }
@@ -242,12 +242,12 @@ void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, 
                 stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
             }
 
-            time_sw = stop_t - start_t;
-            time_total_en_sw += time_sw;
+            time_hw = stop_t - start_t;
+            time_total_en_hw += time_hw;
 
-            if (test == 1)										tr_en->time_min_value_sw = time_sw;
-            else if (tr_en->time_min_value_sw > time_sw)		tr_en->time_min_value_sw = time_sw;
-            if (tr_en->time_max_value_sw < time_sw)				tr_en->time_max_value_sw = time_sw;
+            if (test == 1)										tr_en->time_min_value = time_hw;
+            else if (tr_en->time_min_value > time_hw)		tr_en->time_min_value = time_hw;
+            if (tr_en->time_max_value < time_hw)				tr_en->time_max_value = time_hw;
 
             if (bits == 128) {
                 start_t = timeInMicroseconds();
@@ -265,12 +265,12 @@ void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, 
                 stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW DECRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
             }
 
-            time_sw = stop_t - start_t;
-            time_total_de_sw += time_sw;
+            time_hw = stop_t - start_t;
+            time_total_de_hw += time_hw;
 
-            if (test == 1)										tr_de->time_min_value_sw = time_sw;
-            else if (tr_de->time_min_value_sw > time_sw)		tr_de->time_min_value_sw = time_sw;
-            if (tr_de->time_max_value_sw < time_sw)				tr_de->time_max_value_sw = time_sw;
+            if (test == 1)										tr_de->time_min_value = time_hw;
+            else if (tr_de->time_min_value > time_hw)		tr_de->time_min_value = time_hw;
+            if (tr_de->time_max_value < time_hw)				tr_de->time_max_value = time_hw;
 
             if (bits == 128) {
                 if (verb >= 3) printf("\n original msg: %s", msg);
@@ -307,12 +307,12 @@ void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, 
                 stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
             }
 
-            time_sw = stop_t - start_t;
-            time_total_en_sw += time_sw;
+            time_hw = stop_t - start_t;
+            time_total_en_hw += time_hw;
 
-            if (test == 1)										tr_en->time_min_value_sw = time_sw;
-            else if (tr_en->time_min_value_sw > time_sw)		tr_en->time_min_value_sw = time_sw;
-            if (tr_en->time_max_value_sw < time_sw)				tr_en->time_max_value_sw = time_sw;
+            if (test == 1)										tr_en->time_min_value = time_hw;
+            else if (tr_en->time_min_value > time_hw)		tr_en->time_min_value = time_hw;
+            if (tr_en->time_max_value < time_hw)				tr_en->time_max_value = time_hw;
 
             if (bits == 128) {
                 start_t = timeInMicroseconds();
@@ -330,12 +330,12 @@ void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, 
                 stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW DECRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
             }
 
-            time_sw = stop_t - start_t;
-            time_total_de_sw += time_sw;
+            time_hw = stop_t - start_t;
+            time_total_de_hw += time_hw;
 
-            if (test == 1)										tr_de->time_min_value_sw = time_sw;
-            else if (tr_de->time_min_value_sw > time_sw)		tr_de->time_min_value_sw = time_sw;
-            if (tr_de->time_max_value_sw < time_sw)				tr_de->time_max_value_sw = time_sw;
+            if (test == 1)										tr_de->time_min_value = time_hw;
+            else if (tr_de->time_min_value > time_hw)		tr_de->time_min_value = time_hw;
+            if (tr_de->time_max_value < time_hw)				tr_de->time_max_value = time_hw;
 
             if (bits == 128) {
                 if (verb >= 3) printf("\n original msg: %s", msg);
@@ -371,12 +371,12 @@ void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, 
                 stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
             }
 
-            time_sw = stop_t - start_t;
-            time_total_en_sw += time_sw;
+            time_hw = stop_t - start_t;
+            time_total_en_hw += time_hw;
 
-            if (test == 1)										tr_en->time_min_value_sw = time_sw;
-            else if (tr_en->time_min_value_sw > time_sw)		tr_en->time_min_value_sw = time_sw;
-            if (tr_en->time_max_value_sw < time_sw)				tr_en->time_max_value_sw = time_sw;
+            if (test == 1)										tr_en->time_min_value = time_hw;
+            else if (tr_en->time_min_value > time_hw)		tr_en->time_min_value = time_hw;
+            if (tr_en->time_max_value < time_hw)				tr_en->time_max_value = time_hw;
 
             if (bits == 128) {
                 start_t = timeInMicroseconds();
@@ -394,12 +394,12 @@ void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, 
                 stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW DECRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
             }
 
-            time_sw = stop_t - start_t;
-            time_total_de_sw += time_sw;
+            time_hw = stop_t - start_t;
+            time_total_de_hw += time_hw;
 
-            if (test == 1)										tr_de->time_min_value_sw = time_sw;
-            else if (tr_de->time_min_value_sw > time_sw)		tr_de->time_min_value_sw = time_sw;
-            if (tr_de->time_max_value_sw < time_sw)				tr_de->time_max_value_sw = time_sw;
+            if (test == 1)										tr_de->time_min_value = time_hw;
+            else if (tr_de->time_min_value > time_hw)		tr_de->time_min_value = time_hw;
+            if (tr_de->time_max_value < time_hw)				tr_de->time_max_value = time_hw;
 
             if (bits == 128) {
                 if (verb >= 3) printf("\n original msg: %s", msg);
@@ -436,12 +436,12 @@ void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, 
                 stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW CMAC: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
             }
 
-            time_sw = stop_t - start_t;
-            time_total_en_sw += time_sw;
+            time_hw = stop_t - start_t;
+            time_total_en_hw += time_hw;
 
-            if (test == 1)										tr_en->time_min_value_sw = time_sw;
-            else if (tr_en->time_min_value_sw > time_sw)		tr_en->time_min_value_sw = time_sw;
-            if (tr_en->time_max_value_sw < time_sw)				tr_en->time_max_value_sw = time_sw;
+            if (test == 1)										tr_en->time_min_value = time_hw;
+            else if (tr_en->time_min_value > time_hw)		tr_en->time_min_value = time_hw;
+            if (tr_en->time_max_value < time_hw)				tr_en->time_max_value = time_hw;
 
             if (bits == 128) {
                 if (verb >= 3) { printf("\n Obtained Result: ");  show_array(mac_128, 16, 32); }
@@ -459,8 +459,8 @@ void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, 
         }
     }
 
-    tr_en->time_mean_value_sw = (uint64_t)(time_total_en_sw / n_test);
-    tr_de->time_mean_value_sw = (uint64_t)(time_total_de_sw / n_test);
+    tr_en->time_mean_value = (uint64_t)(time_total_en_hw / n_test);
+    tr_de->time_mean_value = (uint64_t)(time_total_de_hw / n_test);
 
     free(mac_128);
     free(mac_192);

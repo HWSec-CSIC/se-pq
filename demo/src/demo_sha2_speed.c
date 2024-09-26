@@ -36,7 +36,7 @@
 #include "test_func.h"
 
 
-void demo_sha2_perf_sw(unsigned int sel, unsigned char* input, unsigned int len_input, unsigned char* md, INTF interface) {
+static void demo_sha2_perf_hw(unsigned int sel, unsigned char* input, unsigned int len_input, unsigned char* md, INTF interface) {
 
     if (sel == 0)           sha_256_hw(input, len_input, md, interface);
     else if (sel == 1)      sha_384_hw(input, len_input, md, interface);
@@ -58,13 +58,13 @@ void test_sha2_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsign
     start_t = timeInMicroseconds();
     stop_t = timeInMicroseconds();
 
-    tr->time_mean_value_sw = 0;
-    tr->time_max_value_sw = 0;
-    tr->time_min_value_sw = 0;
+    tr->time_mean_value = 0;
+    tr->time_max_value = 0;
+    tr->time_min_value = 0;
     tr->val_result = 0xFFFFFFFF;
 
-    uint64_t time_sw = 0;
-    uint64_t time_total_sw = 0;
+    uint64_t time_hw = 0;
+    uint64_t time_total_hw = 0;
 
     /*
     if (sel == 0)        printf("\n\n -- Test SHA-256 --");
@@ -92,21 +92,21 @@ void test_sha2_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsign
         if (verb >= 2) printf("\n test: %d \t bytes: %d", test, r);
 
         start_t = timeInMicroseconds();
-        demo_sha2_perf_sw(sel, buf, r, md, interface);
+        demo_sha2_perf_hw(sel, buf, r, md, interface);
         stop_t = timeInMicroseconds(); if (verb >= 2) printf("\n SW: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
         if (verb >= 1) show_array(md, 64, 32);
 
-        time_sw = stop_t - start_t;
-        time_total_sw += time_sw;
+        time_hw = stop_t - start_t;
+        time_total_hw += time_hw;
 
-        if (test == 1)                                  tr->time_min_value_sw = time_sw;
-        else if (tr->time_min_value_sw > time_sw)       tr->time_min_value_sw = time_sw;
-        if (tr->time_max_value_sw < time_sw)            tr->time_max_value_sw = time_sw;
+        if (test == 1)                                  tr->time_min_value = time_hw;
+        else if (tr->time_min_value > time_hw)       tr->time_min_value = time_hw;
+        if (tr->time_max_value < time_hw)            tr->time_max_value = time_hw;
 
     }
 
-    tr->time_mean_value_sw = (uint64_t)(time_total_sw / n_test);
+    tr->time_mean_value = (uint64_t)(time_total_hw / n_test);
 
     // free(buf);
     // free(md);

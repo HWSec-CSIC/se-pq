@@ -25,9 +25,9 @@ typedef struct {
 
 
 typedef struct {
-	uint64_t time_mean_value_sw;
-	uint64_t time_max_value_sw;
-	uint64_t time_min_value_sw;
+	uint64_t time_mean_value;
+	uint64_t time_max_value;
+	uint64_t time_min_value;
 	uint64_t val_result;
 } time_result;
 
@@ -43,6 +43,10 @@ void print_results_str_1_tab_3(unsigned int n_test, unsigned char* str, time_res
 void print_results_str_1_tab_2(unsigned int n_test, unsigned char* str, time_result tr1, time_result tr2);
 void print_results_str_1_tab_1(unsigned int n_test, unsigned char* str, time_result tr);
 void print_results_str_2_tab_1(unsigned int n_test, unsigned char* str1, unsigned char* str2, time_result tr);
+void print_results_str_1_tab_2_acc(unsigned int n_test, unsigned char* str, time_result tr1_hw, time_result tr2_hw, time_result tr1_sw, time_result tr2_sw);
+void print_results_str_1_tab_1_acc(unsigned int n_test, unsigned char* str, time_result tr_hw, time_result tr_sw);
+void print_results_str_1_tab_3_acc(unsigned int n_test, unsigned char* str, time_result tr1_hw, time_result tr2_hw, time_result tr3_hw, time_result tr1_sw, time_result tr2_sw, time_result tr3_sw);
+void print_results_str_2_tab_1_acc(unsigned int n_test, unsigned char* str1, unsigned char* str2, time_result tr_hw, time_result tr_sw);
 void read_conf(data_conf* data);
 
 

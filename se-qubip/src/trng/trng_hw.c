@@ -93,33 +93,78 @@ void trng_read(unsigned char* out, unsigned int bytes, INTF interface)
 
 void trng_hw(unsigned char* out, unsigned int bytes, INTF interface){
 	
-	
+	unsigned int block_num = 0; 
+	unsigned int block_total = bytes / TRNG_MAX_BYTES;
+	unsigned int last_bytes = (bytes % TRNG_MAX_BYTES);
+
+	// printf("\n %d %d %d", bytes, block_total, last_bytes);
+
+	unsigned char out_trng[TRNG_MAX_BYTES]; 
+
+	/*
 	if (bytes > TRNG_MAX_BYTES) {
 		 printf("\nTRNG FAIL: Max bytes = %d\n ", TRNG_MAX_BYTES);
 		 exit(1);
 	}
-	
-	trng_init (interface);
-	
-	trng_start (bytes, interface);
-	
-	//-- Detect when finish
-	unsigned long long info;
-    int count = 0;
-	
-    while (count < TRNG_WAIT_TIME)
-    {
-        read_INTF(interface, &info, END_OP, AXI_BYTES);
+	*/
+	if (block_total != 0) { // blocks of TRNG_MAX_BYTES
+		for (block_num = 0; block_num < block_total; block_num++) {
+			trng_init(interface);
 
-        if (info & 0x1) break;
+			trng_start(TRNG_MAX_BYTES, interface);
 
-        count++;
-    }
-    if (count == TRNG_WAIT_TIME)
-        printf("\nTRNG FAIL!: TIMEOUT \t%d\n", count);
+			//-- Detect when finish
+			unsigned long long info;
+			int count = 0;
 
-    count = 0;
+			while (count < TRNG_WAIT_TIME)
+			{
+				read_INTF(interface, &info, END_OP, AXI_BYTES);
+
+				if (info & 0x1) break;
+
+				count++;
+			}
+			if (count == TRNG_WAIT_TIME)
+				printf("\nTRNG FAIL!: TIMEOUT \t%d\n", count);
+
+			count = 0;
+
+			trng_read(out_trng, TRNG_MAX_BYTES, interface);
+
+			memcpy(out + TRNG_MAX_BYTES * block_num, out_trng, TRNG_MAX_BYTES);
+
+		}
+	}
+
+	// last one or block less than TRNG_MAX_BYTES
+	if (last_bytes != 0) {
+
+		trng_init(interface);
+
+		trng_start(last_bytes, interface);
+
+		//-- Detect when finish
+		unsigned long long info;
+		int count = 0;
+
+		while (count < TRNG_WAIT_TIME)
+		{
+			read_INTF(interface, &info, END_OP, AXI_BYTES);
+
+			if (info & 0x1) break;
+
+			count++;
+		}
+		if (count == TRNG_WAIT_TIME)
+			printf("\nTRNG FAIL!: TIMEOUT \t%d\n", count);
+
+		count = 0;
+
+		trng_read(out_trng, last_bytes, interface);
+
+		memcpy(out + TRNG_MAX_BYTES * block_num, out_trng, last_bytes);
 	
-	trng_read(out, bytes, interface);
+	}
 }
 

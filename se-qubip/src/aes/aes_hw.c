@@ -718,7 +718,7 @@ void aes_block_256_ecb_encrypt_hw(unsigned  char* key, unsigned  char* ciphertex
 	    	    /*    for (int t = 0; t < 1000000; t++) {
 		
 		nwc++;
-		if (nwc == 10000) {
+		if (nwc == 1000000) {
 			//printf(" Maximum number of wait cycles reached. Bye ... \n\n");
 			break;
 		}
@@ -729,22 +729,8 @@ void aes_block_256_ecb_encrypt_hw(unsigned  char* key, unsigned  char* ciphertex
 	//aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
 	
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
-	nwc = 0;
-	    while (result_valid != 1)
-    {
-        aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
-		printf(" result_valid ...0x%8.8llX\n",result_valid);
-		for (int t = 0; t < 1000000; t++) {
-		
-		nwc++;
-		if (nwc == 10000) {
-			printf(" Maximum number of wait cycles reached. Bye ... \n\n");
-			break;
-		}
-		
-    }
-	nwc = 0;
-}
+
+    while (result_valid != 1) aes_read(AES_ADDR_RESULT_VALID, AXI_BYTES / AXI_BYTES, &result_valid, interface);
 	
 	aes_read(AES_ADDR_RESULT, BLOCK_OR_IV_BYTES/AXI_BYTES, ciphertext, interface);
 	
@@ -796,22 +782,8 @@ void aes_block_256_ecb_decrypt_hw(unsigned  char* key, unsigned  char* ciphertex
 	aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &start_on,interface);
 	//aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
-	
-	    while (result_valid != 1)
-    {
-        aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
-		//printf(" result_valid ...0x%8.8llX\n",result_valid);
-		for (int t = 0; t < 1000000; t++) {
-		
-		nwc++;
-		if (nwc == 10000) {
-			printf(" Maximum number of wait cycles reached. Bye ... \n\n");
-			break;
-		}
-		
-    }
-	nwc = 0;
-}
+
+    while (result_valid != 1) aes_read(AES_ADDR_RESULT_VALID, AXI_BYTES / AXI_BYTES, &result_valid, interface);
 	
 	aes_read(AES_ADDR_RESULT, BLOCK_OR_IV_BYTES/AXI_BYTES, plaintext, interface);
 	
@@ -879,22 +851,9 @@ void aes_block_128_ecb_encrypt_hw(unsigned  char* key, unsigned  char* ciphertex
 	//aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
 	
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
-	nwc = 0;
-	    while (result_valid != 1)
-    {
-        aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
-		//printf(" result_valid ...0x%8.8llX\n",result_valid);
-		for (int t = 0; t < 1000000; t++) {
-		
-		nwc++;
-		if (nwc == 10000) {
-			printf(" Maximum number of wait cycles reached. Bye ... \n\n");
-			break;
-		}
-		
-    }
-	nwc = 0;
-}
+
+	while (result_valid != 1) aes_read(AES_ADDR_RESULT_VALID, AXI_BYTES / AXI_BYTES, &result_valid, interface);
+    
 	
 	aes_read(AES_ADDR_RESULT, BLOCK_OR_IV_BYTES/AXI_BYTES, ciphertext, interface);
 		  
@@ -959,21 +918,7 @@ void aes_block_128_ecb_decrypt_hw(unsigned  char* key, unsigned  char* ciphertex
 
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
 	
-	    while (result_valid != 1)
-    {
-        aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
-		//printf(" result_valid ...0x%8.8llX\n",result_valid);
-		for (int t = 0; t < 1000000; t++) {
-		
-		nwc++;
-		if (nwc == 10000) {
-			printf(" Maximum number of wait cycles reached. Bye ... \n\n");
-			break;
-		}
-		
-    }
-	nwc = 0;
-}
+    while (result_valid != 1) aes_read(AES_ADDR_RESULT_VALID, AXI_BYTES / AXI_BYTES, &result_valid, interface);
 	
 	aes_read(AES_ADDR_RESULT, BLOCK_OR_IV_BYTES/AXI_BYTES, plaintext, interface);
 	
@@ -1031,22 +976,8 @@ void aes_block_256_cbc_encrypt_hw(unsigned  char* key, unsigned  char* iv, unsig
 	
 	//aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);	    
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
-	nwc = 0;
-	    while (result_valid != 1)
-    	{
-        aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
-		//printf(" result_valid ...0x%8.8llX\n",result_valid);
-		for (int t = 0; t < 1000000; t++) {
-		
-		nwc++;
-		if (nwc == 10000) {
-			printf(" Maximum number of wait cycles reached. Bye ... \n\n");
-			break;
-		}
-		
-    	}
-	nwc = 0;
-	}
+
+    while (result_valid != 1) aes_read(AES_ADDR_RESULT_VALID, AXI_BYTES / AXI_BYTES, &result_valid, interface);
 	
 	aes_read(AES_ADDR_RESULT, BLOCK_OR_IV_BYTES/AXI_BYTES, ciphertext, interface);
 	
@@ -1107,21 +1038,7 @@ void aes_block_256_cbc_decrypt_hw(unsigned  char* key,  unsigned  char* iv, unsi
 	
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
 	
-	    while (result_valid != 1)
-    {
-        aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
-		//printf(" result_valid ...0x%8.8llX\n",result_valid);
-		for (int t = 0; t < 1000000; t++) {
-		
-		nwc++;
-		if (nwc == 10000) {
-			printf(" Maximum number of wait cycles reached. Bye ... \n\n");
-			break;
-		}
-		
-    }
-	nwc = 0;
-}
+    while (result_valid != 1) aes_read(AES_ADDR_RESULT_VALID, AXI_BYTES / AXI_BYTES, &result_valid, interface);
 	
 	aes_read(AES_ADDR_RESULT, BLOCK_OR_IV_BYTES/AXI_BYTES, plaintext, interface);
 	
@@ -1182,22 +1099,8 @@ void aes_block_128_cbc_encrypt_hw(unsigned  char* key, unsigned  char* iv, unsig
 	//aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);   
 		    
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
-	nwc = 0;
-	    while (result_valid != 1)
-    	{
-        aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
-		//printf(" result_valid ...0x%8.8llX\n",result_valid);
-		for (int t = 0; t < 1000000; t++) {
-		
-		nwc++;
-		if (nwc == 10000) {
-			printf(" Maximum number of wait cycles reached. Bye ... \n\n");
-			break;
-		}
-		
-    	}
-	nwc = 0;
-	}
+
+    while (result_valid != 1) aes_read(AES_ADDR_RESULT_VALID, AXI_BYTES / AXI_BYTES, &result_valid, interface);
 	
 	aes_read(AES_ADDR_RESULT, BLOCK_OR_IV_BYTES/AXI_BYTES, ciphertext, interface);
 	
@@ -1257,22 +1160,8 @@ void aes_block_128_cbc_decrypt_hw(unsigned  char* key,  unsigned  char* iv, unsi
 
 	//aes_write(AES_ADDR_CTRL, AXI_BYTES/AXI_BYTES, &mode_operation,interface);
 	aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
-	
-	    while (result_valid != 1)
-    {
-        aes_read(AES_ADDR_RESULT_VALID,AXI_BYTES/AXI_BYTES,&result_valid,interface);
-		//printf(" result_valid ...0x%8.8llX\n",result_valid);
-		for (int t = 0; t < 1000000; t++) {
-		
-		nwc++;
-		if (nwc == 10000) {
-			printf(" Maximum number of wait cycles reached. Bye ... \n\n");
-			break;
-		}
-		
-    }
-	nwc = 0;
-}
+
+    while (result_valid != 1) aes_read(AES_ADDR_RESULT_VALID, AXI_BYTES / AXI_BYTES, &result_valid, interface);
 	
 	aes_read(AES_ADDR_RESULT, BLOCK_OR_IV_BYTES/AXI_BYTES, plaintext, interface);
 	

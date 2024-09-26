@@ -61,21 +61,21 @@
 #define aes_256_cmac_hw         aes_256_cmac_hw
 
 //-- MLKEM
-#define mlkem_512_gen_keys_hw   mlkem_512_gen_keys_hw
-#define mlkem_768_gen_keys_hw   mlkem_768_gen_keys_hw
-#define mlkem_1024_gen_keys_hw  mlkem_1024_gen_keys_hw
-#define mlkem_gen_keys_hw       mlkem_gen_keys_hw
+#define mlkem512_genkeys_hw   mlkem_512_gen_keys_hw
+#define mlkem768_genkeys_hw   mlkem_768_gen_keys_hw
+#define mlkem1024_genkeys_hw  mlkem_1024_gen_keys_hw
+#define mlkem_gen_keys_hw      mlkem_gen_keys_hw
 
-#define mlkem_512_enc_hw        mlkem_512_enc_hw
-#define mlkem_768_enc_hw        mlkem_768_enc_hw
-#define mlkem_1024_enc_hw       mlkem_1024_enc_hw
-#define mlkem_enc_hw            mlkem_enc_hw
-#define mlkem_enc_coins_hw      mlkem_enc_coins_hw
+#define mlkem512_enc_hw        mlkem_512_enc_hw
+#define mlkem768_enc_hw        mlkem_768_enc_hw
+#define mlkem1024_enc_hw       mlkem_1024_enc_hw
+#define mlkem_enc_hw           mlkem_enc_hw
+#define mlkem_enc_coins_hw     mlkem_enc_coins_hw
 
-#define mlkem_512_dec_hw        mlkem_512_dec_hw 
-#define mlkem_768_dec_hw        mlkem_768_dec_hw 
-#define mlkem_1024_dec_hw       mlkem_1024_dec_hw
-#define mlkem_dec_hw            mlkem_dec_hw     
+#define mlkem512_dec_hw        mlkem_512_dec_hw 
+#define mlkem768_dec_hw        mlkem_768_dec_hw 
+#define mlkem1024_dec_hw       mlkem_1024_dec_hw
+#define mlkem_dec_hw           mlkem_dec_hw     
 
 //-- INTERFACE
 #ifdef I2C
