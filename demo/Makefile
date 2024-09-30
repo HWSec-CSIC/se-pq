@@ -1,20 +1,21 @@
 # COMPILER
-CC=/usr/bin/cc -O3
-
-# BOARD (PYNQZ2 or ZCU104)
-BOARD = ZCU104
+CC=/usr/bin/cc -fPIC
 
 # INTERFACE (AXI or I2C)
 INTERFACE = AXI
 
+# BOARD (PYNQZ2 or ZCU104)
+BOARD = ZCU104
+
 # COMPILER FLAGS
 ifeq ($(INTERFACE), AXI)
-	LDFLAGS_DEMO = -lpthread -lm -lpynq -lcma
-	LDFLAGS_DEMO_BUILD = -lpthread -lm -lpynq -lcma -L../se-qubip/build/ -lsequbip 
+	LDFLAGS_DEMO = -lm -lpynq -lcma
+	LDFLAGS_DEMO_BUILD = -lm -lpynq -lcma -L../se-qubip/build/ -lsequbip 
+	LDFLAGS_DEMO_INSTALL = -lm -lpynq -lcma -lsequbip 
 	CFLAGS_DEMO = 
 else ifeq ($(INTERFACE), I2C)
-	LDFLAGS_DEMO = -lpthread -lm 
-	LDFLAGS_DEMO_BUILD = -lpthread -lm -L../se-qubip/build/ -lsequbip 
+	LDFLAGS_DEMO = -lm 
+	LDFLAGS_DEMO_BUILD = -lm -L../se-qubip/build/ -lsequbip 
 	CFLAGS_DEMO = 
 else
 	@echo "ERROR: SELECT INTERFACE TYPE!"
@@ -109,21 +110,47 @@ demo-all: $(SOURCES) demo.c $(HEADERS)
 demo-build: $(DEMO_SOURCES) demo.c $(DEMO_HEADERS)
 	$(CC) -o $@ $(CFLAGS_DEMO_BUILD) $(DEMO_SOURCES) demo.c $(LDFLAGS_DEMO_BUILD) -D$(BOARD) -D$(INTERFACE)
 
+demo-install: $(DEMO_SOURCES) demo.c $(DEMO_HEADERS)
+	$(CC) -o $@ $(DEMO_SOURCES) demo.c $(LDFLAGS_DEMO_INSTALL) -D$(BOARD) -D$(INTERFACE) -DSEQUBIP_INST
+
 demo-speed-all: $(SOURCES_SPEED) demo_speed.c $(HEADERS)
 	$(CC) -o $@ $(CFLAGS_DEMO) $(SOURCES_SPEED) demo_speed.c $(LDFLAGS_DEMO) -D$(BOARD) -D$(INTERFACE)
 
-demo-speed-build: $(DEMO_SOURCES) demo_speed.c $(DEMO_HEADERS)
+demo-speed-build: $(DEMO_SPEED_SOURCES) demo_speed.c $(DEMO_HEADERS)
 	$(CC) -o $@ $(CFLAGS_DEMO_BUILD) $(DEMO_SPEED_SOURCES) demo_speed.c $(LDFLAGS_DEMO_BUILD) -D$(BOARD) -D$(INTERFACE)
+
+demo-speed-install: $(DEMO_SPEED_SOURCES) demo_speed.c $(DEMO_HEADERS)
+	$(CC) -o $@ $(CFLAGS_DEMO_BUILD) $(DEMO_SPEED_SOURCES) demo_speed.c $(LDFLAGS_DEMO_INSTALL) -D$(BOARD) -D$(INTERFACE) -DSEQUBIP_INST
 
 demo-acc-openssl-all: $(SOURCES_ACC) demo_acc.c $(HEADERS)
 	$(CC) -o $@ $(CFLAGS_DEMO) $(SOURCES_ACC) demo_acc.c $(LDFLAGS_DEMO) -lcryptoapi -D$(BOARD) -D$(INTERFACE)
 
+demo-acc-mbedtls-all: $(SOURCES_ACC) demo_acc.c $(HEADERS)
+	$(CC) -o $@ $(CFLAGS_DEMO) $(SOURCES_ACC) demo_acc.c $(LDFLAGS_DEMO) -lcryptoapimbedtls -D$(BOARD) -D$(INTERFACE)
+
 demo-acc-alt-all: $(SOURCES_ACC) demo_acc.c $(HEADERS)
 	$(CC) -o $@ $(CFLAGS_DEMO) $(SOURCES_ACC) demo_acc.c $(LDFLAGS_DEMO) -lcryptoapialt -D$(BOARD) -D$(INTERFACE)
 
+demo-acc-openssl-build: $(DEMO_ACC_SOURCES) demo_acc.c $(DEMO_HEADERS)
+	$(CC) -o $@ $(CFLAGS_DEMO) $(DEMO_ACC_SOURCES) demo_acc.c $(LDFLAGS_DEMO_BUILD) -lcryptoapi -D$(BOARD) -D$(INTERFACE)
+
+demo-acc-mbedtls-build: $(DEMO_ACC_SOURCES) demo_acc.c $(DEMO_HEADERS)
+	$(CC) -o $@ $(CFLAGS_DEMO) $(DEMO_ACC_SOURCES) demo_acc.c $(LDFLAGS_DEMO_BUILD) -lcryptoapimbedtls -D$(BOARD) -D$(INTERFACE)
+
+demo-acc-alt-build: $(DEMO_ACC_SOURCES) demo_acc.c $(DEMO_HEADERS)
+	$(CC) -o $@ $(CFLAGS_DEMO) $(DEMO_ACC_SOURCES) demo_acc.c $(LDFLAGS_DEMO_BUILD) -lcryptoapialt -D$(BOARD) -D$(INTERFACE)
+
+demo-acc-openssl-install: $(DEMO_ACC_SOURCES) demo_acc.c $(DEMO_HEADERS)
+	$(CC) -o $@ $(CFLAGS_DEMO) $(DEMO_ACC_SOURCES) demo_acc.c $(LDFLAGS_DEMO_INSTALL) -lcryptoapi -D$(BOARD) -D$(INTERFACE) -DSEQUBIP_INST
+
+demo-acc-mbedtls-install: $(DEMO_ACC_SOURCES) demo_acc.c $(DEMO_HEADERS)
+	$(CC) -o $@ $(CFLAGS_DEMO) $(DEMO_ACC_SOURCES) demo_acc.c $(LDFLAGS_DEMO_INSTALL) -lcryptoapimbedtls -D$(BOARD) -D$(INTERFACE) -DSEQUBIP_INST
+
+demo-acc-alt-install: $(DEMO_ACC_SOURCES) demo_acc.c $(DEMO_HEADERS)
+	$(CC) -o $@ $(CFLAGS_DEMO) $(DEMO_ACC_SOURCES) demo_acc.c $(LDFLAGS_DEMO_INSTALL) -lcryptoapialt -D$(BOARD) -D$(INTERFACE) -DSEQUBIP_INST
 
 .PHONY: all demo clean
 
 # CLEAN
 clean:
-	-rm demo
+	-rm demo-*

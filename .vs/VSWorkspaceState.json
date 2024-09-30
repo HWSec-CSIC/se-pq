@@ -5,9 +5,11 @@
     "\\demo\\src",
     "\\se-qubip",
     "\\se-qubip\\src",
-    "\\se-qubip\\src\\aes",
-    "\\se-qubip\\src\\mlkem"
+    "\\se-qubip\\src\\common",
+    "\\se-qubip\\src\\sha2",
+    "\\se-qubip\\src\\sha3",
+    "\\se-qubip\\src\\trng"
   ],
-  "SelectedNode": "\\demo\\src\\test_func.c",
+  "SelectedNode": "\\demo\\config.conf",
   "PreviewInSolutionExplorer": false
 }

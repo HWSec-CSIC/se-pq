@@ -97,9 +97,11 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
     ciphertext_128 = malloc(1080); memset(ciphertext_128, 0, 1080); // It is neccesary to add some bytes more
     recovered_msg_128 = malloc(1024); memset(recovered_msg_128, 0, 1024);
 
-    unsigned char* mac_128;
+    unsigned char* mac_128_sw;
+    unsigned char* mac_128_hw;
     unsigned int mac_128_len;
-    mac_128 = malloc(16); memset(mac_128, 0, 16);
+    mac_128_sw = malloc(16); memset(mac_128_sw, 0, 16);
+    mac_128_hw = malloc(16); memset(mac_128_hw, 0, 16);
 
     // 192
     unsigned char* recovered_msg_192;
@@ -118,9 +120,11 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
     ciphertext_192 = malloc(1080); memset(ciphertext_192, 0, 1080);
     recovered_msg_192 = malloc(1024); memset(recovered_msg_192, 0, 1024);
 
-    unsigned char* mac_192;
+    unsigned char* mac_192_sw;
+    unsigned char* mac_192_hw;
     unsigned int mac_192_len;
-    mac_192 = malloc(16); memset(mac_192, 0, 16);
+    mac_192_sw = malloc(16); memset(mac_192_sw, 0, 16);
+    mac_192_hw = malloc(16); memset(mac_192_hw, 0, 16);
 
     // 256
     unsigned char* recovered_msg_256;
@@ -139,9 +143,11 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
     ciphertext_256 = malloc(1080);  memset(ciphertext_256, 0, 1080);
     recovered_msg_256 = malloc(1024); memset(recovered_msg_256, 0, 1024);
 
-    unsigned char* mac_256;
+    unsigned char* mac_256_sw;
+    unsigned char* mac_256_hw;
     unsigned int mac_256_len;
-    mac_256 = malloc(16); memset(mac_256, 0, 16);
+    mac_256_sw = malloc(16); memset(mac_256_sw, 0, 16);
+    mac_256_hw = malloc(16); memset(mac_256_hw, 0, 16);
 
     // tag
     unsigned char tag[16]; memset(tag, 0, 16);
@@ -511,11 +517,11 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
         else if (cmac) {
             if (bits == 128) {
                 start_t_sw = timeInMicroseconds();
-                aes_128_cmac(key_128, mac_128, &mac_128_len, msg, 1024);
+                aes_128_cmac(key_128, mac_128_sw, &mac_128_len, msg, 1024);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW CMAC: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
-                
+
                 start_t_hw = timeInMicroseconds();
-                aes_128_cmac_hw(key_128, mac_128, &mac_128_len, msg, 1024, interface);
+                aes_128_cmac_hw(key_128, mac_128_hw, &mac_128_len, msg, 1024, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW CMAC: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
             /*
@@ -527,11 +533,11 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
             */
             else if (bits == 256) {
                 start_t_sw = timeInMicroseconds();
-                aes_256_cmac(key_256, mac_256, &mac_256_len, msg, 1024);
+                aes_256_cmac(key_256, mac_256_sw, &mac_256_len, msg, 1024);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW CMAC: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_256_cmac_hw(key_256, mac_256, &mac_256_len, msg, 1024, interface);
+                aes_256_cmac_hw(key_256, mac_256_hw, &mac_256_len, msg, 1024, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW CMAC: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
 
@@ -549,16 +555,19 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
             if (tr_en_hw->time_max_value < time_hw)				tr_en_hw->time_max_value = time_hw;
 
             if (bits == 128) {
-                if (verb >= 3) { printf("\n Obtained Result: ");  show_array(mac_128, 16, 32); }
-                tr_en_hw->val_result = 0xFFFFFFFF; // We can not compare the result
+                if (verb >= 3) { printf("\n Obtained Result HW: ");  show_array(mac_128_hw, 16, 32); }
+                if (verb >= 3) { printf("\n Obtained Result SW: ");  show_array(mac_128_sw, 16, 32); }
+                if (!memcmp(mac_128_sw, mac_128_hw, 16)) tr_en_hw->val_result++;
             }
             else if (bits == 192) {
-                if (verb >= 3) { printf("\n Obtained Result: ");  show_array(mac_192, 16, 32); }
-                tr_en_hw->val_result = 0xFFFFFFFF;
+                if (verb >= 3) { printf("\n Obtained Result HW: ");  show_array(mac_192_hw, 16, 32); }
+                if (verb >= 3) { printf("\n Obtained Result SW: ");  show_array(mac_192_sw, 16, 32); }
+                if (!memcmp(mac_192_sw, mac_192_hw, 16)) tr_en_hw->val_result++;
             }
             else if (bits == 256) {
-                if (verb >= 3) { printf("\n Obtained Result: ");  show_array(mac_256, 16, 32); }
-                tr_en_hw->val_result = 0xFFFFFFFF;
+                if (verb >= 3) { printf("\n Obtained Result HW: ");  show_array(mac_256_hw, 16, 32); }
+                if (verb >= 3) { printf("\n Obtained Result SW: ");  show_array(mac_256_sw, 16, 32); }
+                if (!memcmp(mac_256_sw, mac_256_hw, 16)) tr_en_hw->val_result++;
             }
 
         }
@@ -569,9 +578,12 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
     tr_en_hw->time_mean_value = (uint64_t)(time_total_en_hw / n_test);
     tr_de_hw->time_mean_value = (uint64_t)(time_total_de_hw / n_test);
 
-    free(mac_128);
-    free(mac_192);
-    free(mac_256);
+    free(mac_128_hw);
+    free(mac_192_hw);
+    free(mac_256_hw);
+    free(mac_128_sw);
+    free(mac_192_sw);
+    free(mac_256_sw);
 
     free(ciphertext_128);
     free(recovered_msg_128);

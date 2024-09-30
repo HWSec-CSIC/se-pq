@@ -20,20 +20,19 @@ The content of the SE-QUBIP library is depicted in the next container tree:
             ├── sha2        # SHA2 files 
 	        ├── eddsa       # EdDSA files
 	        ├── x25519      # X25519 files
- 		├── trng        # TRNG files
+ 		    ├── trng        # TRNG files
             ├── AES         # AES files
-		└── MLKEM	# MLKEM files 	    	
-
+		    └── MLKEM	    # MLKEM files 	    	
         └── src             # folder that contains the sources files of the library
             .
             ├── common      # common files 
             ├── sha3        # SHA3 files 
 	        ├── sha2        # SHA2 files 
-		├── eddsa       # EdDSA files
+		    ├── eddsa       # EdDSA files
 	        ├── x25519      # X25519 files
- 		├── trng        # TRNG files
+ 		    ├── trng        # TRNG files
             ├── AES         # AES files
-		└── MLKEM	# MLKEM files 
+		    └── MLKEM	# MLKEM files 
     ├── demo                # folder that contains the demo
     ├── se-qubip.h          # header of the library
     ├── Makefile            # To compile the library
@@ -68,8 +67,22 @@ For now (***v0.9***) the list of supported algorithms are:
     - AES-256-CBC
     - AES-256-CMAC
 
+## Interface
+
+### AXI-Lite
+
+*Description of AXI-Lite*
+
+### I2C
+
+*Description of i2c. To include photo.*
 
 ## Installation
+
+### Makefile Configuration
+
+The SE-QUBIP library is ready to perform the communication to the hardware through two different interfaces: AXI-Lite and I2C. All this implementation has been done through the `INTF` variable into the code. 
+To select this configuration during the compilation process, it is ***mandatory*** to change the variable `INTERFACE` (`AXI` or `I2C`) and `BOARD` (`ZCU104` or `PYNQZ2`). If `INTERFACE = I2C`, then the variable `BOARD` is not applied.
 
 ### Library Installation
 
@@ -91,58 +104,54 @@ It might be necessary to add the output libraries to the `LD_LIBRARY_PATH`. In o
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/xilinx/se-qubip/se-qubip/build
 ```
 
+3. There is also possible to install the library into the system local folder. For that, 
+```bash
+make install
+```
+
+4. In case it was necessary to remove the old version of the SE-QUBIP library already installed in the system folder type:
+```bash
+make uninstall
+```
+
 You can skip this step and go directly to the `demo` section. 
 
 ## Demo
 
-The Demo presented in this repository is working just showing the functionality of the SE. For the use: 
+The Demo presented in this repository is working just showing the functionality of the SE. For the use type `make XXX-YYY` where `XXX` and `YYY` can be: 
 
-1. In the folder `demo`, type: 
-```bash
-make demo-build
-```
-if the library in the step 2 of the Installation section has been compiled. Otherwise, type: 
-```bash
-make demo-all
-```
+| XXX                   | Meaning   |
+| ----------            | --------- |
+| demo                  | Functionality Demo                                        |
+| demo-speed            | Execution Time Demo                                       |
+| demo-acc-openssl      | HW Acceleration vs OpenSSL flavour of [CRYPTO_API](https://gitlab.com/hwsec/crypto_api_sw)           |
+| demo-acc-mbedtls      | HW Acceleration vs MbedTLS flavour of [CRYPTO_API](https://gitlab.com/hwsec/crypto_api_sw)           |
+| demo-acc-alt          | HW Acceleration vs ALT flavour of [CRYPTO_API](https://gitlab.com/hwsec/crypto_api_sw)               |
 
-2. To run the demo, type: 
-```bash
-./demo-build
-```
-or
-```bash
-./demo-all
-```
+| YYY           | Meaning   |
+| ----------    | --------- |
+| all           | Local compilation of the whole SE-QUBIP library                    |
+| build         | Use of the local shared libraries in build/ folder                 |
+| install       | Use of the *already* installed library in the system local folder  |
 
-3. It is optional to perform a speed demo (`demo_speed.c`). For that change `demo` to `demo-speed` in the step 2. An example can be: 
-```bash
-make demo-speed-build
-./demo-speed-build
-```
-The results will also show performance in term of Elapsed Time (ET) of each cryptograhic algorithm. 
+*Note: To perform the acc test it is ***mandatory*** to have installed the [CRYPTO_API](https://gitlab.com/hwsec/crypto_api_sw) library*.
+
+For any demo it is possible to type `-v` or `-vv` for different verbose level. For example, `./demo-install -vv`. *We do not recommend that for long test.*  
+
+## Results of Performance
+
+The next section describe the average Execution Time of different platforms and libraries of the cryptography algorithms after ***1000*** tests. This results are shown in the `results` folder.  
+
+| Plattform         | Speed Test                                | acc vs OpenSSL 3                          | acc vs MbedTLS                            | acc vs ALT                                    |
+| ----------        | ---------                                 | -------                                   | ---------                                 | ---------                                     |
+| *Pynq-Z2*         | TBD                                       | TBD                                       | TBD                                       | TBD                                           |
+| *ZCU-104*         | [link](results/zcu104/zcu104_speed.txt)   | TBD                                       | [link](results/zcu104/zcu104_alt.txt)     | TBD                                           |
+
+\* _TBD: To Be Done_
 
 ## Contact
 
 **Eros Camacho-Ruiz** - (camacho@imse-cnm.csic.es)
-
-_Hardware Cryptography Researcher_ 
-
-_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
-
-**Pablo Navarro-Torrero** - (navarro@imse-cnm.csic.es)
-
-_Hardware Cryptography Researcher_ 
-
-_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
-
-**Pau Ortega-Castro** - (ortega@imse-cnm.csic.es)
-
-_Hardware Cryptography Researcher_ 
-
-_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
-
-**Apurba Karmakar** - (apurba@imse-cnm.csic.es)
 
 _Hardware Cryptography Researcher_ 
 
@@ -165,3 +174,12 @@ _Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevi
 Apurba Karmakar
 
 _Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
+
+## Note 
+
+The .html files of results have been generated with this command: 
+
+```bash
+sudo apt-get install colorized-logs
+./demo-acc-alt-all | ansi2html > output.html
+```

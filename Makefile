@@ -1,11 +1,11 @@
 # COMPILER
-CC=/usr/bin/cc -O3
-
-# BOARD (PYNQZ2 or ZCU104)
-BOARD = ZCU104
+CC=/usr/bin/cc -fPIC
 
 # INTERFACE (AXI or I2C)
 INTERFACE = AXI
+
+# BOARD (PYNQZ2 or ZCU104)
+BOARD = ZCU104
 
 # OPENSSL DIRECTORY
 OPENSSL_DIR = /opt/openssl/
@@ -73,6 +73,18 @@ build: $(SOURCES) $(HEADERS)
 	mkdir -p $(BLDDIR)
 	$(CC) -shared -Wl,-soname,libsequbip.so -o $(BLDDIR)libsequbip.so $(SOURCES) $(LDFLAGS) -D$(BOARD) -D$(INTERFACE)
 	ar rcs $(BLDDIR)libsequbip.a $(BLDDIR)libsequbip.so
+
+install:
+	cp $(BLDDIR)libsequbip.so /usr/lib/.
+	cp $(BLDDIR)libsequbip.a /usr/lib/.
+	cp se-qubip.h /usr/include/.
+	cp -r se-qubip /usr/include/se-qubip
+
+uninstall: 
+	rm -f /usr/lib/libsequbip.so
+	rm -f /usr/lib/libsequbip.a
+	rm -f /usr/include/se-qubip.h
+	rm -rf /usr/include/se-qubip
 
 .PHONY: build
 

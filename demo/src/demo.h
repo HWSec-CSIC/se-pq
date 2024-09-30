@@ -35,7 +35,12 @@
 #ifndef DEMO_H
 #define DEMO_H
 
+#ifdef SEQUBIP_INST
+#include <se-qubip.h>
+#else
 #include "../../se-qubip.h"
+#endif // SEQUBIP_INST
+
 #include "test_func.h"
 
 void demo_eddsa_hw(unsigned int mode, unsigned int verb, INTF interface);
