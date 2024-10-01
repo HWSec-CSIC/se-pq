@@ -1,2 +1,0 @@
-sudo apt-get install colorized-logs
-./demo-acc-alt-all | ansi2html > output.html
