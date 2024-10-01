@@ -164,13 +164,13 @@ void main(int argc, char** argv) {
 		// test_sha3(5, data_conf.n_test, &tr, verb); // SHA3-384
 		// print_results_str_1_tab_1(data_conf.n_test, "SHA3-384", tr);
 
-		// test_sha3_hw(1, data_conf.n_test, &tr, verb, interface); // SHA3-512
+		test_sha3_hw(1, data_conf.n_test, &tr, verb, interface); // SHA3-512
 		print_results_str_1_tab_1(data_conf.n_test, "SHA3-512", tr);
 
-		// test_sha3_hw(2, data_conf.n_test, &tr, verb, interface); // SHAKE-128
+		test_sha3_hw(2, data_conf.n_test, &tr, verb, interface); // SHAKE-128
 		print_results_str_1_tab_1(data_conf.n_test, "SHAKE-128", tr);
 
-		// test_sha3_hw(3, data_conf.n_test, &tr, verb, interface); // SHAKE-256
+		test_sha3_hw(3, data_conf.n_test, &tr, verb, interface); // SHAKE-256
 		print_results_str_1_tab_1(data_conf.n_test, "SHAKE-256", tr);
 
 	}
