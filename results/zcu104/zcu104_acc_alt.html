@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+body {background-color: black;}
+pre {
+	font-weight: normal;
+	color: #bbb;
+	white-space: -moz-pre-wrap;
+	white-space: -o-pre-wrap;
+	white-space: -pre-wrap;
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+}
+b {font-weight: normal}
+b.BOLD {color: #fff}
+b.ITA {font-style: italic}
+b.UND {text-decoration: underline}
+b.STR {text-decoration: line-through}
+b.UNDSTR {text-decoration: underline line-through}
+b.BLK {color: #000000}
+b.RED {color: #aa0000}
+b.GRN {color: #00aa00}
+b.YEL {color: #aa5500}
+b.BLU {color: #0000aa}
+b.MAG {color: #aa00aa}
+b.CYN {color: #00aaaa}
+b.WHI {color: #aaaaaa}
+b.HIK {color: #555555}
+b.HIR {color: #ff5555}
+b.HIG {color: #55ff55}
+b.HIY {color: #ffff55}
+b.HIB {color: #5555ff}
+b.HIM {color: #ff55ff}
+b.HIC {color: #55ffff}
+b.HIW {color: #ffffff}
+b.BBLK {background-color: #000000}
+b.BRED {background-color: #aa0000}
+b.BGRN {background-color: #00aa00}
+b.BYEL {background-color: #aa5500}
+b.BBLU {background-color: #0000aa}
+b.BMAG {background-color: #aa00aa}
+b.BCYN {background-color: #00aaaa}
+b.BWHI {background-color: #aaaaaa}
+</style>
+</head>
+<body>
+<pre>
+	███████╗███████╗     ██████╗ ██╗   ██╗██████╗ ██╗██████╗ 
+	██╔════╝██╔════╝    ██╔═══██╗██║   ██║██╔══██╗██║██╔══██╗
+	███████╗█████╗█████╗██║   ██║██║   ██║██████╔╝██║██████╔╝
+	╚════██║██╔══╝╚════╝██║▄▄ ██║██║   ██║██╔══██╗██║██╔═══╝ 
+	███████║███████╗    ╚██████╔╝╚██████╔╝██████╔╝██║██║     
+	╚══════╝╚══════╝     ╚══▀▀═╝  ╚═════╝ ╚═════╝ ╚═╝╚═╝     
+	 Developers:                                         v0.9
+	 		 Eros Camacho-Ruiz
+	 		 Pablo Navarro-Torrero
+	 		 Pau Ortega-Castro
+	 		 Apurba Karmakar
+
+
+	 ---- Performance Evaluation --- 
+ Configuration: 
+ AES       : yes
+ SHA3      : yes
+ SHA2      : yes
+ EdDSA     : yes
+ ECDH      : yes
+ MLKEM     : yes
+ DRBG      : yes
+ Number of Tests: 	1000
+
+
+ Algorithm                      | HW Execution Time (us)         | SW Execution Time (us)         | Acceleration (x)               | Validation Test 
+ ---------                      | ----------------------         | ----------------------         | ----------------               | --------------- 
+ AES-128-ECB                    | 596 / 597                      | 204 / 205                      | <b class=RED></b><b class=HIR>0.34</b> / <b class=RED></b><b class=HIR>0.34</b>                    | 1000 / 1000     
+ AES-128-CBC                    | 652 / 654                      | 225 / 212                      | <b class=RED></b><b class=HIR>0.35</b> / <b class=RED></b><b class=HIR>0.32</b>                    | 1000 / 1000     
+ AES-128-CMAC                   | 662 / 662                      | 224 / 224                      | <b class=RED></b><b class=HIR>0.34</b>                           | 1000 / 1000        
+ AES-256-ECB                    | 596 / 597                      | 272 / 273                      | <b class=RED></b><b class=HIR>0.46</b> / <b class=RED></b><b class=HIR>0.46</b>                    | 1000 / 1000     
+ AES-256-CBC                    | 652 / 653                      | 294 / 281                      | <b class=RED></b><b class=HIR>0.45</b> / <b class=RED></b><b class=HIR>0.43</b>                    | 1000 / 1000     
+ AES-256-CMAC                   | 662 / 662                      | 298 / 298                      | <b class=RED></b><b class=HIR>0.45</b>                           | 1000 / 1000        
+ SHA3-256                       | 3837 / 3837                    | 12124 / 12124                  | <b class=GRN></b><b class=HIG>3.16</b>                           | 1000 / 1000     
+ SHA3-512                       | 4369 / 4369                    | 23263 / 23263                  | <b class=GRN></b><b class=HIG>5.32</b>                           | 1000 / 1000     
+ SHAKE-128                      | 3804 / 3804                    | 9959 / 9959                    | <b class=GRN></b><b class=HIG>2.62</b>                           | 1000 / 1000     
+ SHAKE-256                      | 3947 / 3947                    | 12425 / 12425                  | <b class=GRN></b><b class=HIG>3.15</b>                           | 1000 / 1000     
+ SHA-256                        | 7186 / 7186                    | 8420 / 8420                    | <b class=GRN></b><b class=HIG>1.17</b>                           | 1000 / 1000     
+ SHA-384                        | 4545 / 4545                    | 5250 / 5250                    | <b class=GRN></b><b class=HIG>1.16</b>                           | 1000 / 1000     
+ SHA-512                        | 4700 / 4700                    | 5426 / 5426                    | <b class=GRN></b><b class=HIG>1.15</b>                           | 1000 / 1000     
+ SHA-512/256                    | 4758 / 4758                    | 5492 / 5492                    | <b class=GRN></b><b class=HIG>1.15</b>                           | 1000 / 1000     
+ EdDSA-25519                    | 77 / 85 / 102                  | 23941 / 48001 / 47900          | <b class=GRN></b><b class=HIG>310.92</b> / <b class=GRN></b><b class=HIG>564.72</b> / <b class=GRN></b><b class=HIG>469.61</b>       | 1000 / 1000     
+ X25519                         | 71 / 67                        | 13656 / 13546                  | <b class=GRN></b><b class=HIG>192.34</b> / <b class=GRN></b><b class=HIG>202.18</b>                | 1000 / 1000     
+ MLKEM-512                      | 3621 / 3716 / 4642             | 1183 / 1648 / 2086             | <b class=RED></b><b class=HIR>0.33</b> / <b class=RED></b><b class=HIR>0.44</b> / <b class=RED></b><b class=HIR>0.45</b>             | 953 / 1000      
+ MLKEM-768                      | 5442 / 5108 / 6504             | 1977 / 2594 / 3166             | <b class=RED></b><b class=HIR>0.36</b> / <b class=RED></b><b class=HIR>0.51</b> / <b class=RED></b><b class=HIR>0.49</b>             | 939 / 1000      
+ MLKEM-1024                     | 7460 / 6854 / 8795             | 3032 / 3776 / 4496             | <b class=RED></b><b class=HIR>0.41</b> / <b class=RED></b><b class=HIR>0.55</b> / <b class=RED></b><b class=HIR>0.51</b>             | 932 / 1000      
+ TRNG           128 bits        | 487 / 487                      | 27 / 27                        | <b class=RED></b><b class=HIR>0.06</b>                           | 963 / 1000      
+ TRNG           256 bits        | 491 / 491                      | 53 / 53                        | <b class=RED></b><b class=HIR>0.11</b>                           | 993 / 1000      
+ TRNG           512 bits        | 497 / 497                      | 104 / 104                      | <b class=RED></b><b class=HIR>0.21</b>                           | 999 / 1000      
+ TRNG           1024 bits       | 511 / 511                      | 206 / 206                      | <b class=RED></b><b class=HIR>0.40</b>                           | 1000 / 1000     
+ TRNG           2048 bits       | 990 / 990                      | 410 / 410                      | <b class=RED></b><b class=HIR>0.41</b>                           | 1000 / 1000     
+
+</pre>
+</body>
+</html>
