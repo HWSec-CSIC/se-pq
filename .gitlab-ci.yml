@@ -1,8 +1,9 @@
 pages:
- script:
- - mkdir .results
- - cp -r * .results
- - mv .results results
- artifacts:
-    paths:
-    - results
+   stage: deploy
+   script:
+   - echo 'Nothing to do...'
+   artifacts:
+      paths:
+      - results
+   only:
+   - main
