@@ -166,7 +166,7 @@ The next section describe the average Execution Time of different platforms and 
 | Plattform         | Speed Test                                | acc vs OpenSSL 3                          | acc vs MbedTLS                            | acc vs ALT                                    |
 | ----------        | ---------                                 | -------                                   | ---------                                 | ---------                                     |
 | **Pynq-Z2** *(AXI)*        | TBD                                       | TBD                                       | TBD                                       | TBD                                           |
-| **ZCU-104** *(AXI)*        | [link](results/zcu104/zcu104_speed.txt)   | TBD                                       | [link](results/zcu104/zcu104_alt.txt)     | TBD                                           |
+| **ZCU-104** *(AXI)*        | [link](results/zcu104/zcu104_speed.txt)   | TBD                                       | <a href="https://gitlab.com/hwsec/se-qubip/-/blob/0b513bf8556a87a9fd898946f48e43a5e2f2462a/results/zcu104/zcu104_acc_alt.html" target="_blank">link</a>     | TBD                                           |
 | **Genesys2** *(I2C)*        | [link](results/zcu104/zcu104_speed.txt)   | TBD                                       | [link](results/zcu104/zcu104_alt.txt)     | TBD                                           |
 
 \* _TBD: To Be Done_
