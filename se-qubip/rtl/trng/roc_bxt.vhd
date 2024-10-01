@@ -20,8 +20,6 @@ entity roc_bxt is
 		str      : in std_logic;	                                -- Start
 		ro1      : in std_logic;	                                -- RO1 clk
 		ro2      : in std_logic;	                                -- RO2 clk
-		counter1 : out std_logic_vector(Nbc-1 downto 0);			-- RO1 counter
-		counter2 : out std_logic_vector(Nbc-1 downto 0);			-- RO2 counter		
 		full1    : out std_logic;									-- RO1 full signal
 		full2    : out std_logic;									-- RO2 full signal
 		busy     : out std_logic;									-- Busy output signal
@@ -82,8 +80,6 @@ begin
     end process;
   
 	-- Generate output signals
-	counter1 <= counter_1;
-	counter2 <= counter_2;
 	full     <= full_1 or full_2;	
 
 	-- Output 0 if not (full1 or full2)

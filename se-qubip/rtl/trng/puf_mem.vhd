@@ -40,13 +40,13 @@ begin
 
   	-- Encapsulate PUF output in 32/64-bit registers  
   	-- 
-    OP1: if Bpc = 4 generate                         -- OPERATION
+    OP1: if Bpc = 64 generate                         -- OPERATION
     process (clk_sr, reset)
     begin
         if (reset='1') then
             puf_reg_in <= (others => '0');
         elsif (rising_edge(clk_sr)) then
-            puf_reg_in <= puf_reg_in(Dbw-5 downto 0) & cmp_out;
+            puf_reg_in <= cmp_out;
         end if;
     end process;
     end generate OP1;
@@ -72,7 +72,7 @@ begin
          
     -- Write PUF register    
     --
-    OP2: if Bpc = 4 generate                         -- OPERATION
+    OP2: if Bpc = 64 generate                         -- OPERATION
     process(clk_w)
     begin
         if(rising_edge(clk_w)) then

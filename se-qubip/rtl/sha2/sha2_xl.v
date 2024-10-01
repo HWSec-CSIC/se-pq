@@ -63,7 +63,7 @@ module sha2_xl (
              
     // Multiplexer out
     always @(posedge i_clk) begin
-        if(!i_rst) data_out_reg <= 0;
+        if(!reset) data_out_reg <= 0;
         else begin  
             case(i_add) 
                 5'b00000: data_out_reg <= H_out[8*64-1:7*64];
@@ -169,7 +169,7 @@ module control_sha2 (
 	//--*** STATE initialization **--//
 	 always @(posedge clk)
 		begin
-			if (!rst)    
+			if (!reset)    
 			     current_state <= LOAD;
 			else
 			     current_state <= next_state;
@@ -245,7 +245,7 @@ module control_sha2 (
     
 	always @(posedge clk) 
 		begin
-		  if(!rst) begin
+		  if(!reset) begin
 		      counter     <= 0;
 		  end  
 		  else begin

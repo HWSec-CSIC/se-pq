@@ -14,7 +14,10 @@
 
 /************************************* Include Files ************************************/
 
+#ifdef AXI
   #include <pynq_api.h>
+#endif
+
   #include <stdio.h>
   #include <string.h>
   #include <stdlib.h>
@@ -50,8 +53,7 @@
 
 /****************************************************************************************/
 
-  int Set_Clk_Freq( unsigned int clk_index, float * clk_frequency, float * set_clk_frequency);
+  int Set_Clk_Freq( unsigned int clk_index, float * clk_frequency, float * set_clk_frequency, int DBG);
 
-  unsigned long long Wtime();
 
 #endif  //  MMIO_INCLUDED

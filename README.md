@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is the repostiory of the Secure Element developed by CSIC-IMSE team within QUBIP project. 
+This is the repository of the Secure Element developed by CSIC-IMSE team within QUBIP project. 
 
 ## Description
 
@@ -18,19 +18,41 @@ The content of the SE-QUBIP library is depicted in the next container tree:
             ├── common      # common files 
             ├── sha3        # SHA3 files 
             ├── sha2        # SHA2 files 
-            └── trng        # TRNG files
+	        ├── eddsa       # EdDSA files
+	        ├── x25519      # X25519 files
+ 		├── trng        # TRNG files
+            ├── AES         # AES files
+		└── MLKEM	    # MLKEM files 	    	
         └── src             # folder that contains the sources files of the library
             .
             ├── common      # common files 
             ├── sha3        # SHA3 files 
-            └── sha2        # SHA2 files
+	        ├── sha2        # SHA2 files 
+		├── eddsa       # EdDSA files
+	        ├── x25519      # X25519 files
+ 		├── trng        # TRNG files
+            ├── AES         # AES files
+		└── MLKEM	# MLKEM files 
     ├── demo                # folder that contains the demo
     ├── se-qubip.h          # header of the library
     ├── Makefile            # To compile the library
-    ├── SE_QUBIP_1_0.rar    # The IP Module of the Secure Element
+    ├── SE_QUBIP_1.0.rar    # The IP Module of the Secure Element
     └── README.md  
 
-For now (***v2.0***) the list of supported algorithms are:
+For now (***v0.9***) the list of supported algorithms are:
+
+| Sym. Enc.     | Hash          | EC            | RNG           | PQC           |
+| --------      | ---------     | -------       | -------       | -------       |
+| AES-128-ECB   | SHA-256       | EdDSA25519    | TRNG          | MLKEM-512     |
+| AES-128-CBC   | SHA-384       | X25519        |               | MLKEM-768     |            
+| AES-128-CMAC  | SHA-512       |               |               | MLKEM-1024    |
+| AES-256-ECB   | SHA-512/256   |               |               |               |                           
+| AES-256-CBC   | SHA3-256      |               |               |               |                        
+| AES-256-CMAC  | SHA3-512      |               |               |               |
+|               | SHAKE128      |               |               |               |
+|               | SHAKE256      |               |               |               |
+
+<!--
 - SHA2:
     - SHA-256
     - SHA-384
@@ -41,9 +63,40 @@ For now (***v2.0***) the list of supported algorithms are:
     - SHA3-512
     - SHAKE128
     - SHAKE256
+- EDDSA:
+    - EdDSA25519
+- ECDH:
+    - X25519
+- TRNG
+- MLKEM:
+    - MLKEM-512
+    - MLKEM-768
+    - MLKEM-1024
+- AES:
+    - AES-128-ECB
+    - AES-128-CBC
+    - AES-128-CMAC
+    - AES-256-ECB
+    - AES-256-CBC
+    - AES-256-CMAC
+-->
 
+## Interface
+
+### AXI-Lite
+
+*Description of AXI-Lite*
+
+### I2C
+
+*Description of i2c. To include photo.*
 
 ## Installation
+
+### Makefile Configuration
+
+The SE-QUBIP library is ready to perform the communication to the hardware through two different interfaces: AXI-Lite and I2C. All this implementation has been done through the `INTF` variable into the code. 
+To select this configuration during the compilation process, it is ***mandatory*** to change the variable `INTERFACE` (`AXI` or `I2C`) and `BOARD` (`ZCU104` or `PYNQZ2`). If `INTERFACE = I2C`, then the variable `BOARD` is not applied.
 
 ### Library Installation
 
@@ -65,36 +118,58 @@ It might be necessary to add the output libraries to the `LD_LIBRARY_PATH`. In o
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/xilinx/se-qubip/se-qubip/build
 ```
 
+3. There is also possible to install the library into the system local folder. For that, 
+```bash
+make install
+```
+
+4. In case it was necessary to remove the old version of the SE-QUBIP library already installed in the system folder type:
+```bash
+make uninstall
+```
+
 You can skip this step and go directly to the `demo` section. 
 
 ## Demo
 
-The Demo presented in this repository is working just showing the functionality of the SE. For the use: 
+It has been implemented different type of demo:
+- `demo`: the basic demo is working just showing the functionality of the SE. It will return a ✅ in case the implemented algorithm is working properly or ❌ in other case.
+- `demo-speed`: The results will show performance in term of Elapsed Time (ET) of each cryptograhic algorithm. 
+- `demo-acc`: It will return the HW acceleration versus the SW implementation of the algorithms for different flavours already presented in [CRYPTO_API](https://gitlab.com/hwsec/crypto_api_sw). 
 
-1. In the folder `demo`, type: 
-```bash
-make demo-build
-```
-if the library in the step 2 of the Installation section has been compiled. Otherwise, type: 
-```bash
-make demo-all
-```
+For the use type `make XXX-YYY` where `XXX` and `YYY` can be: 
 
-2. To run the demo, type: 
-```bash
-./demo-build
-```
-or
-```bash
-./demo-all
-```
+| XXX                   | Meaning   |
+| ----------            | --------- |
+| demo                  | Functionality Demo                                        |
+| demo-speed            | Execution Time Demo                                       |
+| demo-acc-openssl      | HW Acceleration vs OpenSSL flavour of [CRYPTO_API](https://gitlab.com/hwsec/crypto_api_sw)           |
+| demo-acc-mbedtls      | HW Acceleration vs MbedTLS flavour of [CRYPTO_API](https://gitlab.com/hwsec/crypto_api_sw)           |
+| demo-acc-alt          | HW Acceleration vs ALT flavour of [CRYPTO_API](https://gitlab.com/hwsec/crypto_api_sw)               |
 
-3. It is optional to perform a speed demo (`demo_speed.c`). For that change `demo` to `demo-speed` in the step 2. An example can be: 
-```bash
-make demo-speed-build
-./demo-speed-build
-```
-The results will also show performance in term of Elapsed Time (ET) of each cryptograhic algorithm. 
+| YYY           | Meaning   |
+| ----------    | --------- |
+| all           | Local compilation of the whole SE-QUBIP library                    |
+| build         | Use of the local shared libraries in build/ folder                 |
+| install       | Use of the *already* installed library in the system local folder  |
+
+*Note: To perform the acc test it is ***mandatory*** to have installed the [CRYPTO_API](https://gitlab.com/hwsec/crypto_api_sw) library*.
+
+It is possible to change the behaviour of demo with the file ```config.conf```. The variables ```SHA-2```, ```SHA-3```, etc. represent the type of algorithm to be tested. If ```1``` is set the test will be performed, while a ```0``` will point out that this test won't be performed. The variable ```N_TEST``` set the number of test to be performed to calculate the average execution time.  
+
+For any demo it is possible to type `-v` or `-vv` for different verbose level. For example, `./demo-install -vv`. *We do not recommend that for long test.*  
+
+## Results of Performance
+
+The next section describe the average Execution Time of different platforms and libraries of the cryptography algorithms after ***1000*** tests. This results are shown in the `results` folder.  
+
+| Plattform         | Speed Test                                | acc vs OpenSSL 3                          | acc vs MbedTLS                            | acc vs ALT                                    |
+| ----------        | ---------                                 | -------                                   | ---------                                 | ---------                                     |
+| **Pynq-Z2** *(AXI)*        | TBD                                       | TBD                                       | TBD                                       | TBD                                           |
+| **ZCU-104** *(AXI)*        | [link](results/zcu104/zcu104_speed.txt)   | TBD                                       | <a href="https://gitlab.com/hwsec/se-qubip/-/blob/0b513bf8556a87a9fd898946f48e43a5e2f2462a/results/zcu104/zcu104_acc_alt.html" target="_blank">link</a>     | TBD                                           |
+| **Genesys2** *(I2C)*        | [link](results/zcu104/zcu104_speed.txt)   | TBD                                       | [link](results/zcu104/zcu104_alt.txt)     | TBD                                           |
+
+\* _TBD: To Be Done_
 
 ## Contact
 
@@ -109,3 +184,24 @@ _Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevi
 Eros Camacho-Ruiz
 
 _Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
+
+Pablo Navarro-Torrero
+
+_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
+
+Pau Ortega-Castro
+
+_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
+
+Apurba Karmakar
+
+_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
+
+## Note 
+
+The .html files of results have been generated with this command: 
+
+```bash
+sudo apt-get install colorized-logs
+./demo-acc-alt-all | ansi2html > output.html
+```

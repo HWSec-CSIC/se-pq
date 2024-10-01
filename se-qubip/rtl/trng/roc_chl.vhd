@@ -40,4 +40,3 @@ begin
     cnf2  <= s_cnf(11 downto 6);
     
 end FPGA;
-

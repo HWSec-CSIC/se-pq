@@ -15,8 +15,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-  #include "mmio.h"
-  #include <stdbool.h>
+#include "mmio.h"
+#include <stdbool.h>
 
 /**
 * Creates an MMIO window at a specific base address of a provided size
@@ -67,26 +67,18 @@ int readMMIO(MMIO_WINDOW * state, void * data, size_t offset, size_t size_data) 
   return SUCCESS;
 }
 
-/**
-* Returns the time in microseconds since the epoch
-*/
-unsigned long long Wtime() {
-  struct timeval time_val;
-  gettimeofday(&time_val, NULL);
-  return time_val.tv_sec * 1000000 + time_val.tv_usec;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 ///////////                   Change Clock Frequency                 ///////////
 ////////////////////////////////////////////////////////////////////////////////
 	
-  int Set_Clk_Freq(unsigned int clk_index, float * clk_frequency, float * set_clk_frequency) {
+  int Set_Clk_Freq(unsigned int clk_index, float * clk_frequency, float * set_clk_frequency, int DBG) {
 
   if (!PYNQ_getPLClockFreq(clk_index, clk_frequency)) {
 		printf("\n  Cannot determine clock frequency\n\n");
 	} else {
-	  printf("\n  Running   @ %6.2f MHz.\n", *clk_frequency);
-	  printf("\n  Selecting @ %6.2f MHz.\n", *set_clk_frequency);
+	  if (DBG > 0) printf("\n\n  Running   @ %6.2f MHz.\n", *clk_frequency);
+	  if (DBG > 0) printf("  Selecting @ %6.2f MHz.\n", *set_clk_frequency);
 	    if ( clk_frequency != set_clk_frequency) {
 			int div0 = 1;
 			int * p_div0 = &div0;
@@ -99,7 +91,7 @@ unsigned long long Wtime() {
 		if(!PYNQ_getPLClockFreq(clk_index, clk_frequency)) {
 			printf("\n");
 		} else {
-	 printf("\n  Setting   @ %6.2f MHz.\n", * clk_frequency);
+	  if (DBG > 0) printf("  Setting   @ %6.2f MHz.\n", * clk_frequency);
 		}
 	}
 	return SUCCESS;

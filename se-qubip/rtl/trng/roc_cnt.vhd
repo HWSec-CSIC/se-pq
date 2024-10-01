@@ -51,4 +51,3 @@ begin
     counter <= binary_count when BG else gray_count;
 
 end FPGA;
-

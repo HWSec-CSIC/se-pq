@@ -1,28 +1,28 @@
 #include "sha2_hw.h"
 
 
-void sha_256_hw_func(unsigned char* in, unsigned int length, unsigned char* out, MMIO_WINDOW ms2xl)
+void sha_256_hw_func(unsigned char* in, unsigned int length, unsigned char* out, INTF interface)
 {
-	sha2_hw(ms2xl, in, out, length * 8, 1, 0);
+	sha2_hw(interface, in, out, length * 8, 1, 0);
 }
 
-void sha_384_hw_func(unsigned char* in, unsigned int length, unsigned char* out, MMIO_WINDOW ms2xl)
+void sha_384_hw_func(unsigned char* in, unsigned int length, unsigned char* out, INTF interface)
 {
-	sha2_hw(ms2xl, in, out, length * 8, 2, 0);
+	sha2_hw(interface, in, out, length * 8, 2, 0);
 }
 
-void sha_512_hw_func(unsigned char* in, unsigned int length, unsigned char* out, MMIO_WINDOW ms2xl)
+void sha_512_hw_func(unsigned char* in, unsigned int length, unsigned char* out, INTF interface)
 {
-	sha2_hw(ms2xl, in, out, length * 8, 3, 0);
+	sha2_hw(interface, in, out, length * 8, 3, 0);
 }
 
-void sha_512_256_hw_func(unsigned char* in, unsigned int length, unsigned char* out, MMIO_WINDOW ms2xl)
+void sha_512_256_hw_func(unsigned char* in, unsigned int length, unsigned char* out, INTF interface)
 {
-	sha2_hw(ms2xl, in, out, length * 8, 4, 0);
+	sha2_hw(interface, in, out, length * 8, 4, 0);
 }
 
 
-void sha2_ms2xl_init(MMIO_WINDOW ms2xl, unsigned long long int length, int VERSION, int DBG) {
+void sha2_interface_init(INTF interface, unsigned long long int length, int VERSION, int DBG) {
 
 	unsigned long long int op;
 	unsigned long long int op_version;
@@ -34,30 +34,30 @@ void sha2_ms2xl_init(MMIO_WINDOW ms2xl, unsigned long long int length, int VERSI
 	else					op_version = 0 << 2;
 
 	op = (unsigned long long int)ADD_SHA2 << 32 | ((op_version | 0) & 0xFFFFFFFF); // RESET
-	writeMMIO(&ms2xl, &op, CONTROL, sizeof(unsigned int));
+	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
 	unsigned long long int reg_addr;
 	unsigned long long int reg_data_in;
-	unsigned long long tic = 0, toc;
+	unsigned long long tic = 0, toc; 
 	// ----------- LOAD PADDING ---------- //
 	if (DBG == 2) {
-		printf("  -- sha2_ms2xl - Loading data padding ...................... \n");
+		printf("  -- sha2_interface - Loading data padding ...................... \n");
 		tic = Wtime();
 	}
 
-	op = (unsigned long long int)ADD_SHA2 << 32 | ((op_version | LOAD_LENGTH) & 0xFFFFFFFF); // LOAD_LENGTH
-	writeMMIO(&ms2xl, &op, CONTROL, sizeof(unsigned long long int));
+	op = (unsigned long long int)ADD_SHA2 << 32 | ((op_version | LOAD_LENGTH_SHA2) & 0xFFFFFFFF); // LOAD_LENGTH
+	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
 	reg_addr = (unsigned long long int)(0);
 	if(!op_version) reg_data_in = (unsigned long long int)(length);
 	else			reg_data_in = (unsigned long long int)(0);
-	writeMMIO(&ms2xl, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-	writeMMIO(&ms2xl, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
+	write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
+	write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
 
 	reg_addr = (unsigned long long int)(1);
 	reg_data_in = (unsigned long long int)(length);
-	writeMMIO(&ms2xl, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-	writeMMIO(&ms2xl, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
+	write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
+	write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
 
 	if (DBG == 3) printf(" length: %lld\n\r", reg_data_in);
 
@@ -69,7 +69,7 @@ void sha2_ms2xl_init(MMIO_WINDOW ms2xl, unsigned long long int length, int VERSI
 
 }
 
-void sha2_ms2xl(MMIO_WINDOW ms2xl, unsigned long long int* a, unsigned long long int* b, unsigned long long int length, int last_hb, int VERSION, int DBG) {
+void sha2_interface(INTF interface, unsigned long long int* a, unsigned long long int* b, unsigned long long int length, int last_hb, int VERSION, int DBG) {
 
 	unsigned long long int end_op = 0;
 	unsigned long long int reg_addr;
@@ -89,18 +89,18 @@ void sha2_ms2xl(MMIO_WINDOW ms2xl, unsigned long long int* a, unsigned long long
 
 	// ----------- LOAD ------------------ //
 	if (DBG == 2) {
-		printf("  -- sha2_ms2xl - Loading data .............................. \n");
+		printf("  -- sha2_interface - Loading data .............................. \n");
 		tic = Wtime();
 	}
 
-	op = (unsigned long long int)ADD_SHA2 << 32 | ((op_version | LOAD) & 0xFFFFFFFF); // LOAD
-	writeMMIO(&ms2xl, &op, CONTROL, sizeof(unsigned long long int));
+	op = (unsigned long long int)ADD_SHA2 << 32 | ((op_version | LOAD_SHA2) & 0xFFFFFFFF); // LOAD
+	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
 	for (int i = 0; i < 16; i++) {
 			reg_addr = (unsigned long long int)(i);
 			reg_data_in = (unsigned long long int)(a[i]);
-			writeMMIO(&ms2xl, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-			writeMMIO(&ms2xl, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
+			write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
+			write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
 			if (DBG == 3) printf(" a(%d): %02llx\n\r", i, a[i]);
 	}
 
@@ -111,15 +111,15 @@ void sha2_ms2xl(MMIO_WINDOW ms2xl, unsigned long long int* a, unsigned long long
 
 	// ----------- OPERATING ------------- //
 	if (DBG == 2) {
-		printf("  -- sha2_ms2xl - Operating .............. \n");
+		printf("  -- sha2_interface - Operating .............. \n");
 		tic = Wtime();
 	}
 
-	op = (unsigned long long int)ADD_SHA2 << 32 | ((op_version | START) & 0xFFFFFFFF); // LOAD
-	writeMMIO(&ms2xl, &op, CONTROL, sizeof(unsigned long long int));
+	op = (unsigned long long int)ADD_SHA2 << 32 | ((op_version | START_SHA2) & 0xFFFFFFFF); // LOAD
+	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
 	// wait END_OP
-	while (!end_op) readMMIO(&ms2xl, &end_op, END_OP, sizeof(unsigned long long int));
+	while (!end_op) read_INTF(interface, &end_op, END_OP, sizeof(unsigned long long int));
 
 	if (DBG == 2) {
 		toc = Wtime() - tic;
@@ -129,14 +129,14 @@ void sha2_ms2xl(MMIO_WINDOW ms2xl, unsigned long long int* a, unsigned long long
 	if (last_hb) {
 		// ----------- READ ------------- //
 		if (DBG == 2) {
-			printf("  -- sha2_ms2xl - Reading output .............................. \n");
+			printf("  -- sha2_interface - Reading output .............................. \n");
 			tic = Wtime();
 		}
 
 		for (int i = 0; i < 8; i++) {
 			reg_addr = (unsigned long long int)(i);
-			writeMMIO(&ms2xl, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-			readMMIO(&ms2xl, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
+			write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
+			read_INTF(interface, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
 			b[i] = reg_data_out;
 			if (DBG == 3) printf(" b(%d): %02llx\n\r", i, b[i]);
 		}
@@ -151,7 +151,7 @@ void sha2_ms2xl(MMIO_WINDOW ms2xl, unsigned long long int* a, unsigned long long
 
 
 
-void sha2_hw(MMIO_WINDOW ms2xl, unsigned char* in, unsigned char* out, unsigned long long int length, unsigned int VERSION, int DBG) {
+void sha2_hw(INTF interface, unsigned char* in, unsigned char* out, unsigned long long int length, unsigned int VERSION, int DBG) {
 
 	unsigned long long int hb_num;
 	unsigned long long int ind;
@@ -191,7 +191,7 @@ void sha2_hw(MMIO_WINDOW ms2xl, unsigned char* in, unsigned char* out, unsigned 
 
 	// ------- SHA2 Initialization --------//
 
-	sha2_ms2xl_init(ms2xl, length, VERSION, DBG);
+	sha2_interface_init(interface, length, VERSION, DBG);
 
 	// ------- Operation ---------------- //
 	for (unsigned int hb = 1; hb <= hb_num; hb++) {
@@ -204,6 +204,7 @@ void sha2_hw(MMIO_WINDOW ms2xl, unsigned char* in, unsigned char* out, unsigned 
 		ind = 0;
 		for (int i = 0; i < 16; i++) {
 			if (!op_version) {
+
 				buffer_in[i] =
 					0x00000000 |
 					((unsigned long long)(in_prev[ind + 3]) << 0) |
@@ -230,12 +231,12 @@ void sha2_hw(MMIO_WINDOW ms2xl, unsigned char* in, unsigned char* out, unsigned 
 		}
 
 		if (hb == hb_num) last_hb = 1;
-		sha2_ms2xl(ms2xl, buffer_in, buffer_out, length, last_hb, VERSION, DBG);
+		sha2_interface(interface, buffer_in, buffer_out, length, last_hb, VERSION, DBG);
 	}
 
 
 	// ---- Read ----- //
-	if (op_version == 0 | op_version == 3) {
+	if (VERSION == 1) {
 		for (int i = 0; i < 8; i++) {
 			ind = i * 4;
 			out[ind + 3] = (buffer_out[i] & 0x00000000000000FF) >> 0;
@@ -244,8 +245,21 @@ void sha2_hw(MMIO_WINDOW ms2xl, unsigned char* in, unsigned char* out, unsigned 
 			out[ind + 0] = (buffer_out[i] & 0x00000000FF000000) >> 24;
 		}
 	}
-	else if (op_version == 1) {
+	else if (VERSION == 2) {
 		for (int i = 0; i < 6; i++) {
+			ind = i * 8;
+			out[ind + 7] = (buffer_out[i] & 0x00000000000000FF) >> 0;
+			out[ind + 6] = (buffer_out[i] & 0x000000000000FF00) >> 8;
+			out[ind + 5] = (buffer_out[i] & 0x0000000000FF0000) >> 16;
+			out[ind + 4] = (buffer_out[i] & 0x00000000FF000000) >> 24;
+			out[ind + 3] = (buffer_out[i] & 0x000000FF00000000) >> 32;
+			out[ind + 2] = (buffer_out[i] & 0x0000FF0000000000) >> 40;
+			out[ind + 1] = (buffer_out[i] & 0x00FF000000000000) >> 48;
+			out[ind + 0] = (buffer_out[i] & 0xFF00000000000000) >> 56;
+		}
+	}
+	else if (VERSION == 4) {
+		for (int i = 0; i < 4; i++) {
 			ind = i * 8;
 			out[ind + 7] = (buffer_out[i] & 0x00000000000000FF) >> 0;
 			out[ind + 6] = (buffer_out[i] & 0x000000000000FF00) >> 8;
