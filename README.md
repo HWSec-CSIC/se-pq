@@ -118,7 +118,12 @@ You can skip this step and go directly to the `demo` section.
 
 ## Demo
 
-The Demo presented in this repository is working just showing the functionality of the SE. For the use type `make XXX-YYY` where `XXX` and `YYY` can be: 
+It has been implemented different type of demo:
+- `demo`: the basic demo is working just showing the functionality of the SE. It will return a ✅ in case the implemented algorithm is working properly or ❌ in other case.
+- `demo-speed`: The results will show performance in term of Elapsed Time (ET) of each cryptograhic algorithm. 
+- `demo-acc`: It will return the HW acceleration versus the SW implementation of the algorithms for different flavours already presented in [CRYPTO_API](https://gitlab.com/hwsec/crypto_api_sw). 
+
+For the use type `make XXX-YYY` where `XXX` and `YYY` can be: 
 
 | XXX                   | Meaning   |
 | ----------            | --------- |
@@ -135,6 +140,8 @@ The Demo presented in this repository is working just showing the functionality 
 | install       | Use of the *already* installed library in the system local folder  |
 
 *Note: To perform the acc test it is ***mandatory*** to have installed the [CRYPTO_API](https://gitlab.com/hwsec/crypto_api_sw) library*.
+
+It is possible to change the behaviour of demo with the file ```config.conf```. The variables ```SHA-2```, ```SHA-3```, etc. represent the type of algorithm to be tested. If ```1``` is set the test will be performed, while a ```0``` will point out that this test won't be performed. The variable ```N_TEST``` set the number of test to be performed to calculate the average execution time.  
 
 For any demo it is possible to type `-v` or `-vv` for different verbose level. For example, `./demo-install -vv`. *We do not recommend that for long test.*  
 
