@@ -1,7 +1,4 @@
 pages:
    stage: deploy
-   script:
-   - echo 'Nothing to do...'
-   artifacts:
-      paths:
-      - results
+   script: echo 'Nothing to do...'
+   publish: results
