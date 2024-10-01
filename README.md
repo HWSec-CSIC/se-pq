@@ -39,7 +39,7 @@ The content of the SE-QUBIP library is depicted in the next container tree:
     ├── SE_QUBIP_1.0.rar    # The IP Module of the Secure Element
     └── README.md  
 
-For now (***v0.9***) the list of supported algorithms are:
+For now (***v1.0***) the list of supported algorithms are:
 
 | Sym. Enc.     | Hash          | EC            | RNG           | PQC           |
 | --------      | ---------     | -------       | -------       | -------       |
@@ -165,9 +165,21 @@ The next section describe the average Execution Time of different platforms and 
 
 | Plattform         | Speed Test                                | acc vs OpenSSL 3                          | acc vs MbedTLS                            | acc vs ALT                                    |
 | ----------        | ---------                                 | -------                                   | ---------                                 | ---------                                     |
-| **Pynq-Z2** *(AXI)*        | TBD                                       | TBD                                       | TBD                                       | TBD                                           |
-| **ZCU-104** *(AXI)*        | [link](results/zcu104/zcu104_speed.txt)   | TBD                                       | <a href="https://hwsec.gitlab.io/se-qubip/zcu104/zcu104_acc_alt.html" target="_blank">link</a>     | TBD                                           |
-| **Genesys2** *(I2C)*        | [link](results/zcu104/zcu104_speed.txt)   | TBD                                       | [link](results/zcu104/zcu104_alt.txt)     | TBD                                           |
+| **Pynq-Z2** *(AXI)*           | TBD                                       
+                                | TBD                                       
+                                | TBD                                       
+                                | TBD                                           
+                                |
+| **ZCU-104** *(AXI)*           | [link](results/zcu104/zcu104_speed.txt)   
+                                | <a href="https://hwsec.gitlab.io/se-qubip/zcu104/zcu104_acc_alt.html" target="_blank">link<a>
+                                | <a href="https://hwsec.gitlab.io/se-qubip/zcu104/zcu104_acc_openssl.html" target="_blank">link</a> 
+                                | TBD                                           
+                                |
+| **Genesys2** *(I2C)*          | TBD                                           
+                                | TBD                                       
+                                | TBD     
+                                | TBD                                           
+                                |
 
 \* _TBD: To Be Done_
 
