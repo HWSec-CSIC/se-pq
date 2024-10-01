@@ -40,6 +40,19 @@ The content of the SE-QUBIP library is depicted in the next container tree:
     └── README.md  
 
 For now (***v0.9***) the list of supported algorithms are:
+
+| Sym. Enc.     | Hash          | EC            | RNG           | PQC           |
+| --------      | ---------     | -------       | -------       | -------       |
+| AES-128-ECB   | SHA-256       | EdDSA25519    | TRNG          | MLKEM-512     |
+| AES-128-CBC   | SHA-384       | X25519        |               | MLKEM-768     |            
+| AES-128-CMAC  | SHA-512       |               |               | MLKEM-1024    |
+| AES-256-ECB   | SHA-512/256   |               |               |               |                           
+| AES-256-CBC   | SHA3-256      |               |               |               |                        
+| AES-256-CMAC  | SHA3-512      |               |               |               |
+|               | SHAKE128      |               |               |               |
+|               | SHAKE256      |               |               |               |
+
+<!--
 - SHA2:
     - SHA-256
     - SHA-384
@@ -66,6 +79,7 @@ For now (***v0.9***) the list of supported algorithms are:
     - AES-256-ECB
     - AES-256-CBC
     - AES-256-CMAC
+-->
 
 ## Interface
 
