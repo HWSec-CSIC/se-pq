@@ -5,5 +5,3 @@ pages:
    artifacts:
       paths:
       - results
-   only:
-   - main
