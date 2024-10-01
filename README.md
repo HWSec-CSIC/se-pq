@@ -20,23 +20,23 @@ The content of the SE-QUBIP library is depicted in the next container tree:
             ├── sha2        # SHA2 files 
 	        ├── eddsa       # EdDSA files
 	        ├── x25519      # X25519 files
- 		    ├── trng        # TRNG files
+ 		├── trng        # TRNG files
             ├── AES         # AES files
-		    └── MLKEM	    # MLKEM files 	    	
+		└── MLKEM	    # MLKEM files 	    	
         └── src             # folder that contains the sources files of the library
             .
             ├── common      # common files 
             ├── sha3        # SHA3 files 
 	        ├── sha2        # SHA2 files 
-		    ├── eddsa       # EdDSA files
+		├── eddsa       # EdDSA files
 	        ├── x25519      # X25519 files
- 		    ├── trng        # TRNG files
+ 		├── trng        # TRNG files
             ├── AES         # AES files
-		    └── MLKEM	# MLKEM files 
+		└── MLKEM	# MLKEM files 
     ├── demo                # folder that contains the demo
     ├── se-qubip.h          # header of the library
     ├── Makefile            # To compile the library
-    ├── SE_QUBIP_0.9.rar    # The IP Module of the Secure Element
+    ├── SE_QUBIP_1.0.rar    # The IP Module of the Secure Element
     └── README.md  
 
 For now (***v0.9***) the list of supported algorithms are:
