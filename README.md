@@ -168,18 +168,15 @@ The next section describe the average Execution Time of different platforms and 
 | **Pynq-Z2** *(AXI)*           | TBD                                       
                                 | TBD                                       
                                 | TBD                                       
-                                | TBD                                           
-                                |
+                                | TBD                                           |
 | **ZCU-104** *(AXI)*           | [link](results/zcu104/zcu104_speed.txt)   
                                 | <a href="https://hwsec.gitlab.io/se-qubip/zcu104/zcu104_acc_alt.html" target="_blank">link<a>
                                 | <a href="https://hwsec.gitlab.io/se-qubip/zcu104/zcu104_acc_openssl.html" target="_blank">link</a> 
-                                | TBD                                           
-                                |
+                                | TBD                                           |
 | **Genesys2** *(I2C)*          | TBD                                           
                                 | TBD                                       
                                 | TBD     
-                                | TBD                                           
-                                |
+                                | TBD                                           |
 
 \* _TBD: To Be Done_
 
