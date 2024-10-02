@@ -1,6 +1,6 @@
 /**
   * @file sha2_mem.v
-  * @brief RAM memory Module
+  * @brief RAM Module
   *
   * @section License
   *
