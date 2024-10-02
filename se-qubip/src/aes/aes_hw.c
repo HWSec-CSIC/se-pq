@@ -1,6 +1,6 @@
 /**
   * @file aes_hw.c
-  * @brief AES HW header
+  * @brief AES Test File
   *
   * @section License
   *
