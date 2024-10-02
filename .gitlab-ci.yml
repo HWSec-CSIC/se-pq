@@ -1,7 +1,0 @@
-pages:
-   stage: deploy
-   script: echo 'Nothing to do...'
-   artifacts:
-      paths:
-      - results
-   publish: results
