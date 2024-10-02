@@ -1,6 +1,6 @@
 /**
   * @file piso.v
-  * @brief Parallel in Serial Out DHL
+  * @brief Parallel in Serial Out HDL Description
   *
   * @section License
   *
