@@ -1,6 +1,6 @@
 /**
   * @file intf.h
-  * @brief AES HW header
+  * @brief HW Interface header
   *
   * @section License
   *
