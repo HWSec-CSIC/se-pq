@@ -1,6 +1,6 @@
 /**
   * @file EdDSA.v
-  * @brief EdDSA Top HDL Description
+  * @brief EDSA25519 Cryptocore
   *
   * @section License
   *
