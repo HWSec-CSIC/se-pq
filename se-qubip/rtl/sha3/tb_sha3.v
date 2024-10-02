@@ -1,23 +1,65 @@
+/**
+  * @file tb_sha3.v
+  * @brief SHA3 Test bench Module
+  *
+  * @section License
+  *
+  * Secure Element for QUBIP Project
+  *
+  * This Secure Element repository for QUBIP Project is subject to the
+  * BSD 3-Clause License below.
+  *
+  * Copyright (c) 2024,
+  *         Eros Camacho-Ruiz
+  *         Pablo Navarro-Torrero
+  *         Pau Ortega-Castro
+  *         Apurba Karmakar
+  *         Macarena C. MartÃ­nez-RodrÃ­guez
+  *         Piedad Brox
+  *
+  * All rights reserved.
+  *
+  * This Secure Element was developed by Instituto de MicroelectrÃ³nica de
+  * Sevilla - IMSE (CSIC/US) as part of the QUBIP Project, co-funded by the
+  * European Union under the Horizon Europe framework programme
+  * [grant agreement no. 101119746].
+  *
+  * -----------------------------------------------------------------------
+  *
+  * Redistribution and use in source and binary forms, with or without
+  * modification, are permitted provided that the following conditions are met:
+  *
+  * 1. Redistributions of source code must retain the above copyright notice, this
+  *    list of conditions and the following disclaimer.
+  *
+  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  *    this list of conditions and the following disclaimer in the documentation
+  *    and/or other materials provided with the distribution.
+  *
+  * 3. Neither the name of the copyright holder nor the names of its
+  *    contributors may be used to endorse or promote products derived from
+  *    this software without specific prior written permission.
+  *
+  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  *
+  *
+  *
+  *
+  * @author Eros Camacho-Ruiz (camacho@imse-cnm.csic.es)
+  * @version 1.0
+  **/
+
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 18.03.2024 12:07:10
-// Design Name: 
-// Module Name: tb_sha3
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
+
 
 
 module tb_sha3(
@@ -27,7 +69,7 @@ module tb_sha3(
   parameter PERIOD = 10;
   parameter D_WIDTH = 64;
   
-    // Declaración de señales para conectar con el DUT (Device Under Test)
+    // Declaraciï¿½n de seï¿½ales para conectar con el DUT (Device Under Test)
   reg                   clk;
   reg                   rst; 
   reg   [D_WIDTH-1:0]   data_in;
@@ -36,7 +78,7 @@ module tb_sha3(
   wire  [D_WIDTH-1:0]   data_out;
   wire                  end_op;
 
-  // Instanciación del DUT
+  // Instanciaciï¿½n del DUT
   sha3_xl sha3_xl (
     .clk(clk),
     .rst(rst),
@@ -51,7 +93,7 @@ module tb_sha3(
   
     reg [D_WIDTH - 1:0] MEM_IN [0:24];
     reg [D_WIDTH - 1:0] LEN;
-  // Bloque de inicialización para las señales de prueba
+  // Bloque de inicializaciï¿½n para las seï¿½ales de prueba
   initial begin
     LEN = 64;
     MEM_IN[0] = 64'hb2cfa3f83ffa53af; 
@@ -94,7 +136,7 @@ module tb_sha3(
 
   end
   
-  // Generación de la señal de reloj
+  // Generaciï¿½n de la seï¿½al de reloj
   initial begin
     clk = 0;
     forever #(PERIOD) clk = ~clk; // Cambia el estado del reloj cada 5 unidades de tiempo
