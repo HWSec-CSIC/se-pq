@@ -167,9 +167,9 @@
 
     // ------- BITSTREAM_FILE ------- //
     #ifdef PYNQZ2
-        #define BITSTREAM_AXI       "../se-qubip/bit/PYNQZ2_SE_QUBIP_0.10.bit"
+        #define BITSTREAM_AXI       "../se-qubip/bit/PYNQZ2_SE_QUBIP_1.0.bit"
     #elif ZCU104
-        #define BITSTREAM_AXI       "../se-qubip/bit/ZCU104_SE_QUBIP_0.9.bit"
+        #define BITSTREAM_AXI       "../se-qubip/bit/ZCU104_SE_QUBIP_1.0.bit"
     #endif
 
     /* ------- FREQUENCIES DEFINITION ------- */
