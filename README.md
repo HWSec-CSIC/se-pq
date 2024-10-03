@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is the repository of the Secure Element developed by CSIC-IMSE team within QUBIP project. 
+This is the repository of the Secure Element (SE) developed by CSIC-IMSE team within QUBIP project. 
 
 ## Description
 
@@ -92,11 +92,24 @@ For now (***v1.0***) the list of supported algorithms are:
 
 ## Interface
 
-### AXI-Lite
+### AXI-Lite (MPU flavour)
 
-*Description of AXI-Lite* **Pynq-API**
+The AXI-Lite drivers are described using the PYNQ API interface. To use the SE in the MPU IoT device, it is mandatory to have installed this interface. In the case, the developers desire to test the SE in **PynqZ2 platform** should follow the next steps to install the PYNQ API repository:  
 
-### I2C
+1. Download the PYNQ C-API from [here](https://github.com/mesham/pynq_api/). 
+
+2. To modify the clock frequency (it is mandatory for the demo) you must edit the file ```src/pynq_api.c``` to replace **0x00** with **address** on _line 327_:
+
+```c
+    // return PYNQ_writeMMIO(&(state->mmio_window), &write_data, **0x00**, sizeof(unsigned int));
+    return PYNQ_writeMMIO(&(state->mmio_window), &write_data, **address**, sizeof(unsigned int));
+```
+
+3. Then, issue ```make```. Once it is built, issue ```sudo make install```. 
+
+By default, within the QUBIP project, the platform to be used will be the **ZCU104**. For that, the developers just have to follow the instructions of the modified PYNQ API [here](https://gitlab.com/hwsec/pynq-api-ultrascale).
+
+### I2C (MCU flavour)
 
 The **I2C Slave Interface** enables communication between a master device (such as a **Raspberry Pi 4B**) and the SE-QUBIP platform, allowing for read and write operations with the cryptographic IP cores. It supports several key features including glitch filtering and dynamic configuration.
 
