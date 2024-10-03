@@ -94,7 +94,7 @@ For now (***v1.0***) the list of supported algorithms are:
 
 ### AXI-Lite
 
-*Description of AXI-Lite*
+*Description of AXI-Lite* **Pynq-API**
 
 ### I2C
 
