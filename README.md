@@ -98,7 +98,30 @@ For now (***v1.0***) the list of supported algorithms are:
 
 ### I2C
 
-*Description of i2c. To include photo.*
+The **I2C Slave Interface** enables communication between a master device (such as a **Raspberry Pi 4B**) and the SE-QUBIP platform, allowing for read and write operations with the cryptographic IP cores. It supports several key features including glitch filtering and dynamic configuration.
+
+#### Key Features
+- **Device Address**: The I2C address is set to `0x1A` by default.
+- **Supported Cryptographic Cores**: SHA-3, SHA-2, AES, EDDSA, X25519, TRNG, MLKEM.
+- **Glitch Filtering**: Configurable filtering for cleaner signal transmission, with dynamic adjustments possible via registers:
+  - **Register `0xFD`**: Zero-threshold filter value.
+  - **Register `0xFE`**: One-threshold filter value.
+  - **Register `0xFF`**: Filter width value.
+
+#### I2C Communication and Configuration
+- **SCL & SDA Lines**: The I2C communication takes place over the **SCL** (clock) and **SDA** (data) lines, which are synchronized and filtered to detect start/stop conditions and maintain stable data exchange.
+- **State Machine (FSM)**: Manages the I2C protocol flow, including address recognition, data transmission, and synchronization with the Raspberry Pi.
+- **Data Registers**: Internal registers store data from the master writes and provide output for read operations.
+- **Configuration Registers**: Support dynamic adjustments in communication behavior and glitch filtering.
+
+#### Raspberry Pi 4B as Master
+The Raspberry Pi 4B, acting as the I2C master, controls the communication via its built-in Linux I2C libraries. It generates the clock signals and manages data transmission, sending start conditions, addressing the FPGA, and performing read/write operations according to the I2C protocol.
+
+#### Pin Connections
+
+The following diagram shows the I/O connections between the **Raspberry Pi 4B** and the **Genesys Board II**:
+
+![Alt text](I2C_Diagram.jpg)
 
 ## Installation
 
