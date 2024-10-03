@@ -319,7 +319,7 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         free(recovered_msg_256);
 
     }
-    #ifdef AXI
+#ifdef AXI
     set_clk_frequency = FREQ_TYPICAL;
     Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
 #endif

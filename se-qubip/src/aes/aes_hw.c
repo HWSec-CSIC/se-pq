@@ -185,7 +185,7 @@ void aes_op(unsigned char *data_in, unsigned char *data_out, INTF interface)
 // ADDITIONAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void aes_block_padding(unsigned int len, unsigned int *complete_len, unsigned int *blocks, unsigned char *data, unsigned char **data_padded)
+static void aes_block_padding(unsigned int len, unsigned int *complete_len, unsigned int *blocks, unsigned char *data, unsigned char **data_padded)
 {
     *blocks = (len + AES_BLOCK - 1) / AES_BLOCK; 
     *complete_len = *blocks * AES_BLOCK;
@@ -204,7 +204,7 @@ void aes_block_padding(unsigned int len, unsigned int *complete_len, unsigned in
 * @param[in] rb Representation of the irreducible binary polynomial
 **/
 
-void cmacMul(uint8_t* x, const uint8_t* a, size_t n, uint8_t rb)
+static void cmacMul(uint8_t* x, const uint8_t* a, size_t n, uint8_t rb)
 {
     size_t i;
     uint8_t c;
@@ -226,7 +226,7 @@ void cmacMul(uint8_t* x, const uint8_t* a, size_t n, uint8_t rb)
     x[i] ^= rb & ~(c - 1);
 }
 
-void GenSubKeys(unsigned char *key, unsigned int key_len, unsigned char K1[AES_BLOCK], unsigned char K2[AES_BLOCK], INTF interface)
+static void GenSubKeys(unsigned char *key, unsigned int key_len, unsigned char K1[AES_BLOCK], unsigned char K2[AES_BLOCK], INTF interface)
 {
     size_t len = 0;
 
@@ -344,7 +344,7 @@ static void ccmFormatCounter0(const uint8_t *n, size_t nLen, uint8_t *ctr)
  * @param[in] n Size in bytes of the specific part of the block to be incremented
  **/
 
-void ccmIncCounter(uint8_t *ctr, size_t n)
+static void ccmIncCounter(uint8_t *ctr, size_t n)
 {
     size_t i;
     uint16_t temp;

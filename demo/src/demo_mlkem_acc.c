@@ -65,6 +65,13 @@
 
 void test_mlkem_acc(unsigned int mode, unsigned int n_test, unsigned int verb, time_result* tr_kg_hw, time_result* tr_en_hw, time_result* tr_de_hw, time_result* tr_kg_sw, time_result* tr_en_sw, time_result* tr_de_sw, INTF interface) {
 
+#ifdef AXI
+	unsigned int clk_index = 0;
+	float clk_frequency;
+	float set_clk_frequency = FREQ_MLKEM;
+	Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
+
 	uint64_t start_t_hw, stop_t_hw;
 	uint64_t start_t_sw, stop_t_sw;
 
@@ -458,6 +465,11 @@ void test_mlkem_acc(unsigned int mode, unsigned int n_test, unsigned int verb, t
 	free(sk_1024_sw);
 	free(pk_1024_sw);
 	free(ct_1024_sw);
+
+#ifdef AXI
+	set_clk_frequency = FREQ_TYPICAL;
+	Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
 
 
 }

@@ -181,12 +181,13 @@ void aes_init(unsigned long long aes_control, unsigned char *key, INTF interface
 void aes_op(unsigned char *data_in, unsigned char *data_out, INTF interface);
 
 //-- ADDITIONAL FUCNTIONS
-void aes_block_padding(unsigned int len, unsigned int *complete_len, unsigned int *blocks, unsigned char *data, unsigned char **data_padded);
-void cmacMul(uint8_t* x, const uint8_t* a, size_t n, uint8_t rb);
+static void aes_block_padding(unsigned int len, unsigned int *complete_len, unsigned int *blocks, unsigned char *data, unsigned char **data_padded);
+static void cmacMul(uint8_t* x, const uint8_t* a, size_t n, uint8_t rb);
+static void GenSubKeys(unsigned char* key, unsigned int key_len, unsigned char K1[AES_BLOCK], unsigned char K2[AES_BLOCK], INTF interface);
 static void ccmFormatBlock0(size_t q, const uint8_t *n, size_t nLen, size_t aLen, size_t tLen, uint8_t *b);
 static void ccmXorBlock(uint8_t *x, const uint8_t *a, const uint8_t *b, size_t n);
 static void ccmFormatCounter0(const uint8_t *n, size_t nLen, uint8_t *ctr);
-void ccmIncCounter(uint8_t *ctr, size_t n);
+static void ccmIncCounter(uint8_t *ctr, size_t n);
 static void gf_mult(const unsigned char *x, const unsigned char *y, unsigned char *z);
 static void ghash(const unsigned char *h, const unsigned char *x, size_t xlen, unsigned char *y);
 static void aes_gctr(const unsigned char *icb, const unsigned char *x, size_t xlen, unsigned char *y, INTF interface);

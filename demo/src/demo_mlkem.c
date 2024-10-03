@@ -63,6 +63,13 @@
 
 void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface) {
 
+#ifdef AXI
+    unsigned int clk_index = 0;
+    float clk_frequency;
+    float set_clk_frequency = FREQ_MLKEM;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
+
     if (mode == 512) {
         // ---- MLKEM-512 ---- //
         unsigned char *pk_512;
@@ -192,5 +199,10 @@ void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface) {
 		free(ct_1024);
 
     }
+
+#ifdef AXI
+    set_clk_frequency = FREQ_TYPICAL;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
 
 }

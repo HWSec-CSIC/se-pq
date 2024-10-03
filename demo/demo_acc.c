@@ -135,27 +135,27 @@ void main(int argc, char** argv) {
 		test_aes_acc("cmac", 128, data_conf.n_test, verb, &tr_en_hw, &tr_de_hw, &tr_en_sw, &tr_de_sw, interface);
 		print_results_str_1_tab_1_acc(data_conf.n_test, "AES-128-CMAC", tr_en_hw, tr_en_sw);
 
-		test_aes_acc("gcm", 128, data_conf.n_test, verb, &tr_en, &tr_de, interface);
-		print_results_str_1_tab_2(data_conf.n_test, "AES-128-GCM", tr_en, tr_de);
+		test_aes_acc("gcm", 128, data_conf.n_test, verb, &tr_en_hw, &tr_de_hw, &tr_en_sw, &tr_de_sw, interface);
+		print_results_str_1_tab_2_acc(data_conf.n_test, "AES-128-GCM", tr_en_hw, tr_de_hw, tr_en_sw, tr_de_sw);
 
-		test_aes_acc("ccm", 128, data_conf.n_test, verb, &tr_en, &tr_de, interface);
-		print_results_str_1_tab_2(data_conf.n_test, "AES-128-CCM-8", tr_en, tr_de);
+		test_aes_acc("ccm", 128, data_conf.n_test, verb, &tr_en_hw, &tr_de_hw, &tr_en_sw, &tr_de_sw, interface);
+		print_results_str_1_tab_2_acc(data_conf.n_test, "AES-128-CCM-8", tr_en_hw, tr_de_hw, tr_en_sw, tr_de_sw);
 
 		// 192
-		test_aes_acc("ecb", 192, data_conf.n_test, verb, &tr_en, &tr_de, interface);
-		print_results_str_1_tab_2(data_conf.n_test, "AES-192-ECB", tr_en, tr_de);
+		test_aes_acc("ecb", 192, data_conf.n_test, verb, &tr_en_hw, &tr_de_hw, &tr_en_sw, &tr_de_sw, interface);
+		print_results_str_1_tab_2_acc(data_conf.n_test, "AES-192-ECB", tr_en_hw, tr_de_hw, tr_en_sw, tr_de_sw);
 
-		test_aes_acc("cbc", 192, data_conf.n_test, verb, &tr_en, &tr_de, interface);
-		print_results_str_1_tab_2(data_conf.n_test, "AES-192-CBC", tr_en, tr_de);
+		test_aes_acc("cbc", 192, data_conf.n_test, verb, &tr_en_hw, &tr_de_hw, &tr_en_sw, &tr_de_sw, interface);
+		print_results_str_1_tab_2_acc(data_conf.n_test, "AES-192-CBC", tr_en_hw, tr_de_hw, tr_en_sw, tr_de_sw);
 
-		test_aes_acc("cmac", 192, data_conf.n_test, verb, &tr_en, &tr_de, interface);
-		print_results_str_1_tab_1(data_conf.n_test, "AES-192-CMAC", tr_en);
+		test_aes_acc("cmac", 192, data_conf.n_test, verb, &tr_en_hw, &tr_de_hw, &tr_en_sw, &tr_de_sw, interface);
+		print_results_str_1_tab_1_acc(data_conf.n_test, "AES-192-CMAC", tr_en_hw, tr_en_sw);
 
-		test_aes_acc("gcm", 192, data_conf.n_test, verb, &tr_en, &tr_de, interface);
-		print_results_str_1_tab_2(data_conf.n_test, "AES-192-GCM", tr_en, tr_de);
+		test_aes_acc("gcm", 192, data_conf.n_test, verb, &tr_en_hw, &tr_de_hw, &tr_en_sw, &tr_de_sw, interface);
+		print_results_str_1_tab_2_acc(data_conf.n_test, "AES-192-GCM", tr_en_hw, tr_de_hw, tr_en_sw, tr_de_sw);
 
-		test_aes_acc("ccm", 192, data_conf.n_test, verb, &tr_en, &tr_de, interface);
-		print_results_str_1_tab_2(data_conf.n_test, "AES-192-CCM-8", tr_en, tr_de);
+		test_aes_acc("ccm", 192, data_conf.n_test, verb, &tr_en_hw, &tr_de_hw, &tr_en_sw, &tr_de_sw, interface);
+		print_results_str_1_tab_2_acc(data_conf.n_test, "AES-192-CCM-8", tr_en_hw, tr_de_hw, tr_en_sw, tr_de_sw);
 
 		// 256
 		test_aes_acc("ecb", 256, data_conf.n_test, verb, &tr_en_hw, &tr_de_hw, &tr_en_sw, &tr_de_sw, interface);
@@ -167,11 +167,11 @@ void main(int argc, char** argv) {
 		test_aes_acc("cmac", 256, data_conf.n_test, verb, &tr_en_hw, &tr_de_hw, &tr_en_sw, &tr_de_sw, interface);
 		print_results_str_1_tab_1_acc(data_conf.n_test, "AES-256-CMAC", tr_en_hw, tr_en_sw);
 		
-		test_aes_acc("gcm", 256, data_conf.n_test, verb, &tr_en, &tr_de, interface);
-		print_results_str_1_tab_2(data_conf.n_test, "AES-256-GCM", tr_en, tr_de);
+		test_aes_acc("gcm", 256, data_conf.n_test, verb, &tr_en_hw, &tr_de_hw, &tr_en_sw, &tr_de_sw, interface);
+		print_results_str_1_tab_2_acc(data_conf.n_test, "AES-256-GCM", tr_en_hw, tr_de_hw, tr_en_sw, tr_de_sw);
 
-		test_aes_acc("ccm", 256, data_conf.n_test, verb, &tr_en, &tr_de, interface);
-		print_results_str_1_tab_2(data_conf.n_test, "AES-256-CCM-8", tr_en, tr_de);
+		test_aes_acc("ccm", 256, data_conf.n_test, verb, &tr_en_hw, &tr_de_hw, &tr_en_sw, &tr_de_sw, interface);
+		print_results_str_1_tab_2_acc(data_conf.n_test, "AES-256-CCM-8", tr_en_hw, tr_de_hw, tr_en_sw, tr_de_sw);
 		
 	}
 	else {

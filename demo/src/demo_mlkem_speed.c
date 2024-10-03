@@ -63,6 +63,13 @@
 
 void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, time_result* tr_kg, time_result* tr_en, time_result* tr_de, INTF interface) {
 
+#ifdef AXI
+	unsigned int clk_index = 0;
+	float clk_frequency;
+	float set_clk_frequency = FREQ_MLKEM;
+	Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
+
 	uint64_t start_t, stop_t;
 
 	//-- Initialize to avoid 1st measure error
@@ -307,5 +314,9 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 	free(pk_1024);
 	free(ct_1024);
 	
+#ifdef AXI
+	set_clk_frequency = FREQ_TYPICAL;
+	Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
 
 }

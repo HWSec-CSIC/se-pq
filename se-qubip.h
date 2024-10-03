@@ -177,12 +177,14 @@
         #define FREQ_TYPICAL       100.0
         #define FREQ_EDDSA          60.0
         #define FREQ_X25519         90.0
+        #define FREQ_MLKEM          90.0
         #define FREQ_AES           100.0
     #elif ZCU104
-        #define FREQ_TYPICAL       100.0
-        #define FREQ_EDDSA         200.0
-        #define FREQ_X25519        200.0
-        #define FREQ_AES           100.0
+        #define FREQ_TYPICAL       400.0
+        #define FREQ_EDDSA         300.0
+        #define FREQ_X25519        350.0
+        #define FREQ_MLKEM         300.0
+        #define FREQ_AES           450.0
     #endif
 #endif
 
