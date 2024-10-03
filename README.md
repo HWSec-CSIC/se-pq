@@ -22,7 +22,7 @@ The content of the SE-QUBIP library is depicted in the next container tree:
 	        ├── x25519      # X25519 files
  		├── trng        # TRNG files
             ├── AES         # AES files
-		└── MLKEM	    # MLKEM files 	    	
+		└── MLKEM       # MLKEM files 	    	
         └── src             # folder that contains the sources files of the library
             .
             ├── common      # common files 
@@ -206,6 +206,9 @@ For any demo it is possible to type `-v` or `-vv` for different verbose level. F
 
 ## Results of Performance
 
+***Results of SE will be published soon.***
+
+<!-- 
 The next section describe the average Execution Time of different platforms and libraries of the cryptography algorithms after ***1000*** tests. This results are shown in the `results` folder.  
 
 | Plattform         | Speed Test                                | acc vs OpenSSL 3                          | acc vs MbedTLS                            | acc vs ALT                                    |
@@ -215,6 +218,7 @@ The next section describe the average Execution Time of different platforms and 
 | **Genesys2** *(I2C)*           | TBD                                            | TBD                                        | TBD      | TBD                                           |
 
 \* _TBD: To Be Done_
+-->
 
 ## Contact
 
@@ -226,19 +230,7 @@ _Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevi
 
 ## Developers
 
-Eros Camacho-Ruiz
-
-_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
-
-Pablo Navarro-Torrero
-
-_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
-
-Pau Ortega-Castro
-
-_Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
-
-Apurba Karmakar
+Eros Camacho-Ruiz, Pablo Navarro-Torrero, Pau Ortega-Castro, Apurba Karmakar
 
 _Instituto de Microelectrónica de Sevilla (IMSE-CNM), CSIC, Universidad de Sevilla, Seville, Spain_
 
