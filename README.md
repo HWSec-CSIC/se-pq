@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is the repository of the Secure Element (SE) developed by CSIC-IMSE team within QUBIP project. 
+This is the repository of the Secure Element (SE) developed by CSIC-IMSE team within QUBIP project.  
 
 ## Description
 
