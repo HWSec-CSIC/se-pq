@@ -184,7 +184,7 @@
         #define FREQ_EDDSA         300.0
         #define FREQ_X25519        350.0
         #define FREQ_MLKEM         300.0
-        #define FREQ_AES           450.0
+        #define FREQ_AES           350.0
     #endif
 #endif
 
