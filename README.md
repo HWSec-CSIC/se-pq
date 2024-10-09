@@ -20,19 +20,19 @@ The content of the SE-QUBIP library is depicted in the next container tree:
             ├── sha2        # SHA2 files 
 	        ├── eddsa       # EdDSA files
 	        ├── x25519      # X25519 files
- 		    ├── trng        # TRNG files
+            ├── trng        # TRNG files
             ├── AES         # AES files
-		    └── MLKEM       # MLKEM files 	    	
+            └── MLKEM       # MLKEM files 	    	
         └── src             # folder that contains the sources files of the library
             .
             ├── common      # common files 
             ├── sha3        # SHA3 files 
 	        ├── sha2        # SHA2 files 
-		    ├── eddsa       # EdDSA files
+            ├── eddsa       # EdDSA files
 	        ├── x25519      # X25519 files
- 		    ├── trng        # TRNG files
+            ├── trng        # TRNG files
             ├── AES         # AES files
-		    └── MLKEM	    # MLKEM files 
+            └── MLKEM       # MLKEM files 
     ├── demo                # folder that contains the demo
     ├── se-qubip.h          # header of the library
     ├── Makefile            # To compile the library
@@ -114,7 +114,7 @@ For **ZCU104 platform** include the Zynq UltraScale+ MPSoC IP in the block diagr
 
 #### Genesys II Block Diagram
 
-For **Genesys II platform** include the Clocking Wizard IP, together with the constraint file **genesys_ii.xdc**, can be found at **/se-qubip/rtl/common/** folder.
+For **Genesys II platform** include the Clocking Wizard IP, together with the constraint file **genesys_ii.xdc** which can be found at **/se-qubip/rtl/common/** folder.
 
 <img src="img/GENESYS_II_block_diagram.jpg" width="1000">
 
