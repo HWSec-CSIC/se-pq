@@ -20,19 +20,19 @@ The content of the SE-QUBIP library is depicted in the next container tree:
             ├── sha2        # SHA2 files 
 	        ├── eddsa       # EdDSA files
 	        ├── x25519      # X25519 files
- 		├── trng        # TRNG files
+ 		    ├── trng        # TRNG files
             ├── AES         # AES files
-		└── MLKEM       # MLKEM files 	    	
+		    └── MLKEM       # MLKEM files 	    	
         └── src             # folder that contains the sources files of the library
             .
             ├── common      # common files 
             ├── sha3        # SHA3 files 
 	        ├── sha2        # SHA2 files 
-		├── eddsa       # EdDSA files
+		    ├── eddsa       # EdDSA files
 	        ├── x25519      # X25519 files
- 		├── trng        # TRNG files
+ 		    ├── trng        # TRNG files
             ├── AES         # AES files
-		└── MLKEM	# MLKEM files 
+		    └── MLKEM	    # MLKEM files 
     ├── demo                # folder that contains the demo
     ├── se-qubip.h          # header of the library
     ├── Makefile            # To compile the library
@@ -92,9 +92,35 @@ For now (***v1.0***) the list of supported algorithms are:
 
 ## Interface
 
+### Vivado IP Integrator
+
+#### SE-QUBIP Interface
+
+The SE-QUBIP IP module (**SE_QUBIP_1.0.rar**) can be configured to use either the AXI-Lite or I2C interface. Additionally, each cryptographic algorithm can be independently selected for implementation. The following figure illustrates the interface in Vivado IP Integrator:
+
+<img src="img/SE_QUBIP_Vivado_Interface.jpg" width="1000">
+
+#### PYNQZ2 Block Diagram
+
+For **PYNQZ2 platform** include the ZYNQ7 Processing System IP in the block diagram.
+
+<img src="img/PYNQZ2_block_diagram.jpg" width="1000">
+
+#### ZCU104 Block Diagram
+
+For **ZCU104 platform** include the Zynq UltraScale+ MPSoC IP in the block diagram.
+
+<img src="img/ZCU104_block_diagram.jpg" width="1000">
+
+#### Genesys II Block Diagram
+
+For **Genesys II platform** include the Clocking Wizard IP, together with the constraint file **genesys_ii.xdc**, can be found at **/se-qubip/rtl/common/** folder.
+
+<img src="img/GENESYS_II_block_diagram.jpg" width="1000">
+
 ### AXI-Lite (MPU flavour)
 
-The AXI-Lite drivers are described using the PYNQ API interface. To use the SE in the MPU IoT device, it is mandatory to have installed this interface. In the case, the developers desire to test the SE in **PynqZ2 platform** should follow the next steps to install the PYNQ API repository:  
+The AXI-Lite drivers are described using the PYNQ API interface. To use the SE in the MPU IoT device, it is mandatory to have installed this interface. In the case, the developers desire to test the SE in **PYNQZ2 platform** should follow the next steps to install the PYNQ API repository:  
 
 1. Download the PYNQ C-API from [here](https://github.com/mesham/pynq_api/). 
 
@@ -134,7 +160,7 @@ The Raspberry Pi 4B, acting as the I2C master, controls the communication via it
 
 The following diagram shows the I/O connections between the **Raspberry Pi 4B** and the **Genesys Board II**:
 
-![Alt text](I2C_Diagram.jpg)
+<img src="img/I2C_Diagram.jpg" width="1000">
 
 ## Installation
 

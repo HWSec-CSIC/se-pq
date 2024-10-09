@@ -176,7 +176,7 @@
     #ifdef PYNQZ2
         #define FREQ_TYPICAL       100.0
         #define FREQ_EDDSA          60.0
-        #define FREQ_X25519         90.0
+        #define FREQ_X25519         80.0
         #define FREQ_MLKEM          90.0
         #define FREQ_AES           100.0
     #elif ZCU104

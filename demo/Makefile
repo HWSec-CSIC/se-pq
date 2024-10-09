@@ -1,5 +1,5 @@
 # COMPILER
-CC=/usr/bin/cc -fPIC -g
+CC=/usr/bin/cc -fPIC
 
 # INTERFACE (AXI or I2C)
 INTERFACE = AXI
