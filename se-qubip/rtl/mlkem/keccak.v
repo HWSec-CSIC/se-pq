@@ -62,6 +62,7 @@
 
 
 module sha3_shake_keccak#(
+    parameter COUNTER = 1,
     parameter LENGTH = 1600,
     parameter D_WIDTH = 64
     )(
@@ -220,9 +221,18 @@ module sha3_shake_keccak#(
     );
     
     // ini_shake only put round = 0, ONLY FUNCTION
-     keccak_op    keccak     
-     (.clk(i_clk), .rst(reset), .S(P), .S_o(P_o), .reset_round(fsm_reset_round), .ini(fsm_start), 
-     .shake(fsm_en_shake), .fin(fin));
+    generate
+        if(COUNTER) begin
+            keccak_op_counter    keccak     
+            (.clk(i_clk), .rst(reset), .S(P), .S_o(P_o), .reset_round(fsm_reset_round), .ini(fsm_start), 
+            .shake(fsm_en_shake), .fin(fin));
+        end
+        else begin
+            keccak_op    keccak     
+            (.clk(i_clk), .rst(reset), .S(P), .S_o(P_o), .reset_round(fsm_reset_round), .ini(fsm_start), 
+            .shake(fsm_en_shake), .fin(fin));
+        end
+    endgenerate
      
      pad_module pad_module     
      (.clk(i_clk), .rst(reset), 
@@ -624,7 +634,7 @@ module keccak_op_ctl(
     output  reg         ope,
     output  reg [7:0]   round 
     );
-    
+    	  
     always @(posedge clk) begin
         if(!rst) begin
             ope     <= 0;
@@ -635,7 +645,113 @@ module keccak_op_ctl(
             else            ope <= ope;
         end
     end
+   
+    always @(posedge clk) begin
+        if(!rst) begin
+            round     <= 0;
+        end
+        else begin
+            if      (reset_round)   round <= 0;
+            else if (ope)           round <= round + 1;
+            else                    round <= round;
+        end			  
+    end
+
+    //assign round_shift = round >> 2;
+    //assign fin = (round_shift == 8'b00010111) ? 1 : 0; //23
+    assign fin = (round >= 8'b00010111) ? 1 : 0; //23
+    //assign fin = 0;    
+endmodule
+
+module keccak_op_counter #(
+    parameter LENGTH = 1600
+    )
+    (
+    input                           clk,
+    input                           rst,
+    input                           shake,
+    input   [LENGTH - 1:0]          S,
+    output  [LENGTH - 1:0]          S_o,
+    input                           reset_round,
+    input                           ini,
+    output                          fin
+    );
     
+    wire    [7:0]               round;
+    wire    [7:0]               round_keccak;
+    reg     [7:0]               round_clk;
+    wire    [LENGTH - 1:0]      S_o_au;
+    wire    [LENGTH - 1:0]      S_input;
+    wire    [LENGTH - 1:0]      S_in;
+    reg                         ope_clk;
+    
+    reg  [1599:0] S_REG;
+    
+    assign S_o      = S_REG;
+    
+    assign S_input  = (ope_clk | shake) ? S_o_au : (S ^ S_REG);
+    assign S_in     = S_REG;
+    
+    assign round_keccak = (shake) ? round : round_clk; 
+    
+    keccak_op_au   keccak_op_au   (.S(S_in), .S_o(S_o_au),  .round(round_clk));
+    
+    wire    [63:0]  M_out [0:(LENGTH/64)-1];
+    genvar i;
+    generate            
+    for (i = 0; i < (LENGTH/64); i = i + 1) begin
+        assign M_out[i] = S_o[(((i+1)*64)-1):(i*64)];
+    end
+    endgenerate
+    
+    
+    always @(posedge clk) begin
+                    if(rst & reset_round & !shake & !ini) begin // !rst
+                        S_REG    <= 0;
+                    end
+                    else begin
+                        if(!shake) begin 
+                            if(ope | ope_clk)    S_REG <= S_input;
+                            else                 S_REG <= S_REG;
+                        end
+                        else begin
+                            if(ope_clk)         S_REG <= S_input;
+                            else                S_REG <= S_REG;
+                        end
+                    end
+                        
+                    round_clk <= round;
+                    ope_clk <= ope;
+     end
+    
+
+    keccak_op_ctl_counter keccak_op_ctl_counter (.clk(clk), .rst(rst), .reset_round(reset_round), .ini(ini),  .fin(fin), .ope(ope), .round(round));
+   
+endmodule
+
+module keccak_op_ctl_counter(
+    input               clk,
+    input               rst,
+    input               reset_round,
+    input               ini,
+    output  reg         fin,
+    output  reg         ope,
+    output  reg [7:0]   round 
+    );
+    
+    /*
+    always @(posedge clk) begin
+        if(!rst) begin
+            ope     <= 0;
+        end
+        else begin
+            if      (fin)   ope <= 0;
+            else if (ini)   ope <= 1;
+            else            ope <= ope;
+        end
+    end
+    */
+    /*
     always @(posedge clk) begin
         if(!rst) begin
             round     <= 0;
@@ -646,12 +762,41 @@ module keccak_op_ctl(
             else                    round <= round;
         end
     end
+    */
+    always @(posedge clk) begin
+        if(rst) begin
+            if      (reset_round)   ope <= 0;
+            else if (fin)           ope <= 0;
+            else if (ini)           ope <= 1;
+            else                    ope <= ope;
+        end
+        else ope <= 1;
+    end
     
+    always @(posedge clk) begin
+        if(rst) begin // normal operation
+            if      (reset_round)   round <= 0;
+            else if (ope)           round <= round + 1;
+            else                    round <= round;
+        end
+        else round  <= (round + 1) & 8'h0F; // countermeasure
+    end
+    
+    always @(posedge clk) begin
+        if(rst) begin // normal operation
+           if(reset_round)                  fin <= 0;
+           else if (round == 8'b00010110)   fin <= 1; // 22
+           else                             fin <= fin;
+        end
+        else fin <= 0; // countermeasure
+    end
+    
+    /*
     //assign round_shift = round >> 2;
     //assign fin = (round_shift == 8'b00010111) ? 1 : 0; //23
     assign fin = (round >= 8'b00010111) ? 1 : 0; //23
     //assign fin = 0;
-    
+    */
 endmodule
 
 module keccak_op_au(

@@ -62,7 +62,7 @@
 #include "test_func.h"
 
 static void demo_sha3_perf_hw(unsigned int sel, unsigned char* input, unsigned int len_input, unsigned char* md, unsigned int len_shake, INTF interface) {
-
+ 
     if (sel == 0)           sha3_256_hw(input, len_input, md, interface);
     else if (sel == 1)      sha3_512_hw(input, len_input, md, interface);
     else if (sel == 2)      shake_128_hw(input, len_input, md, len_shake, interface);
@@ -74,6 +74,13 @@ static void demo_sha3_perf_hw(unsigned int sel, unsigned char* input, unsigned i
 
 
 void test_sha3_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsigned int verb, INTF interface) {
+
+#ifdef AXI
+    unsigned int clk_index = 0;
+    float clk_frequency;
+    float set_clk_frequency = FREQ_SHA3;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
 
     srand(time(NULL));   // Initialization, should only be called once.
 
@@ -140,5 +147,9 @@ void test_sha3_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsign
     // free(md);
     // free(md1);
 
+#ifdef AXI
+    set_clk_frequency = FREQ_TYPICAL;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
 
 }

@@ -757,7 +757,7 @@ void print_title_demo() {
 	printf("\n\t╚════██║██╔══╝╚════╝██║▄▄ ██║██║   ██║██╔══██╗██║██╔═══╝ ");
 	printf("\n\t███████║███████╗    ╚██████╔╝╚██████╔╝██████╔╝██║██║     ");
 	printf("\n\t╚══════╝╚══════╝     ╚══▀▀═╝  ╚═════╝ ╚═════╝ ╚═╝╚═╝     ");
-	printf("\n\t Developers:                                         v1.0");
+	printf("\n\t Developers:                                         v2.0");
 	printf("\n\t \t\t Eros Camacho-Ruiz");
 	printf("\n\t \t\t Pablo Navarro-Torrero");
 	printf("\n\t \t\t Pau Ortega-Castro");

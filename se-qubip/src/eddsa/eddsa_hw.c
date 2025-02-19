@@ -153,9 +153,6 @@ void eddsa25519_read(unsigned long long address, unsigned long long size, void *
 void eddsa25519_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, unsigned int *pri_len, unsigned int *pub_len, INTF interface)
 {
 
-    //-- Set the seed for RNG
-    seed_rng();
-    
     *pri_len = EDDSA_BYTES;
     *pub_len = EDDSA_BYTES;
 

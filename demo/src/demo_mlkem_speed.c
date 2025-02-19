@@ -182,7 +182,7 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 				printf("\n ss recover: \t");   show_array(ss1, 32, 32);
 			}
 
-			if (!result) tr_de->val_result++;
+			if ((result >> 1) & !memcmp(ss, ss1, 32)) tr_de->val_result++; // 01: bad result; 11: good result
 
 		}
 
@@ -238,7 +238,7 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 				printf("\n ss recover: \t");   show_array(ss1, 32, 32);
 			}
 
-			if (!result) tr_de->val_result++;
+			if ((result >> 1)) tr_de->val_result++; // 01: bad result; 11: good result
 
 		}
 		else if (mode == 1024) {
@@ -293,7 +293,7 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 				printf("\n ss recover: \t");   show_array(ss1, 32, 32);
 			}
 
-			if (!result) tr_de->val_result++;
+			if ((result >> 1)) tr_de->val_result++; // 01: bad result; 11: good result
 
 		}
 	}

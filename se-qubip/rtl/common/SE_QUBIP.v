@@ -76,7 +76,7 @@ module SE_QUBIP #(
                    input  wire [63:0] i_add,
                    input  wire [63:0] i_control,
                    output wire [63:0] o_data_out,
-                   output wire o_end_op
+                   output wire [1:0] o_end_op
                    );
     
     
@@ -143,18 +143,18 @@ module SE_QUBIP #(
     wire o_end_op_x25519;
     wire o_end_op_trng;
     wire o_end_op_aes;
-    wire o_end_op_mlkem;
-    reg  o_end_op_reg;
+    wire [1:0] o_end_op_mlkem;
+    reg  [1:0] o_end_op_reg;
     
     always @* begin
-                if(sel_sha2)    o_end_op_reg = o_end_op_sha2;
-        else    if(sel_sha3)    o_end_op_reg = o_end_op_sha3;
-        else    if(sel_eddsa)   o_end_op_reg = o_end_op_eddsa;
-        else    if(sel_x25519)  o_end_op_reg = o_end_op_x25519;
-        else    if(sel_trng)    o_end_op_reg = o_end_op_trng;
-        else    if(sel_aes)     o_end_op_reg = o_end_op_aes;
+                if(sel_sha2)    o_end_op_reg = {1'b0,o_end_op_sha2};
+        else    if(sel_sha3)    o_end_op_reg = {1'b0,o_end_op_sha3};
+        else    if(sel_eddsa)   o_end_op_reg = {1'b0,o_end_op_eddsa};
+        else    if(sel_x25519)  o_end_op_reg = {1'b0,o_end_op_x25519};
+        else    if(sel_trng)    o_end_op_reg = {1'b0,o_end_op_trng};
+        else    if(sel_aes)     o_end_op_reg = {1'b0,o_end_op_aes};
         else    if(sel_mlkem)   o_end_op_reg = o_end_op_mlkem;
-        else                    o_end_op_reg = 1'b1;
+        else                    o_end_op_reg = 2'b11;
     end
     
     assign o_end_op = o_end_op_reg;
@@ -366,17 +366,15 @@ module SE_QUBIP #(
     // --- MLKEM DEFINITION --- //
     generate 
         if(IMP_MLKEM) begin
-        
-            CORE_MLKEM
+            TOP_MLKEM 
             mlkem_xl
-            (
-                .clk(i_clk),
-                .rst(i_rst & sel_mlkem),
+            (   .clk(i_clk), 
+                .rst(i_rst & sel_mlkem), 
                 .data_in(i_data_in),
-                .add(i_add),
-                .control(control_module),
-                .data_out(o_data_out_mlkem),
-                .end_op(o_end_op_mlkem)
+                .add(i_add[15:0]),
+                .control(control_module[7:0]),
+                .end_op(o_end_op_mlkem),
+                .data_out(o_data_out_mlkem)
             );
             
         end

@@ -36,10 +36,10 @@ The content of the SE-QUBIP library is depicted in the next container tree:
     ├── demo                # folder that contains the demo
     ├── se-qubip.h          # header of the library
     ├── Makefile            # To compile the library
-    ├── SE_QUBIP_1.0.rar    # The IP Module of the Secure Element
+    ├── SE_QUBIP_2_0.rar    # The IP Module of the Secure Element
     └── README.md  
 
-For now (***v1.0***) the list of supported algorithms are:
+For now (***v2.0***) the list of supported algorithms are:
 
 | Sym. Enc. I   | Sym. Enc. II   | Hash          | EC            | RNG           | PQC           |
 | --------      | --------       | ---------     | -------       | -------       | -------       |
@@ -96,7 +96,7 @@ For now (***v1.0***) the list of supported algorithms are:
 
 #### SE-QUBIP Interface
 
-The SE-QUBIP IP module (**SE_QUBIP_1.0.rar**) can be configured to use either the AXI-Lite or I2C interface. Additionally, each cryptographic algorithm can be independently selected for implementation. The following figure illustrates the interface in Vivado IP Integrator:
+The SE-QUBIP IP module (**SE_QUBIP_2_0.rar**) can be configured to use either the AXI-Lite or I2C interface. Additionally, each cryptographic algorithm can be independently selected for implementation. The following figure illustrates the interface in Vivado IP Integrator:
 
 <img src="img/SE_QUBIP_Vivado_Interface.jpg" width="1000">
 

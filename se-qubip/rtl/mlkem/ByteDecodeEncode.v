@@ -74,17 +74,30 @@ module ByteEncDec (
     wire [3:0] d;
     assign d = control[7:4];
     
-    wire sel_enc_dec        = (control[2] == 1'b0) ? 1 : 0; // 0 : ENC, 1: DEC,
+    wire sel_enc_dec        = (control[2] == 1'b0) ? 1 : 0; // sel_enc_dec = 1 : ENC, sel_enc_dec = 0 : DEC,
     wire sel_comp_decomp    = (control[3] == 1'b1) ? 1 : 0; // 0 : no, 1: yes,
     
     wire reset;
     wire load;
     wire start;
     wire read;
+    
     assign reset    =   !control[1] & !control[0]; 
     assign load     =   !control[1] &  control[0];        
     assign start    =    control[1] & !control[0];      
-    assign read     =    control[1] &  control[0];      
+    assign read     =    control[1] &  control[0]; 
+    
+    wire load_16; 
+    reg load_16_reg;
+    assign load_16 = load_16_reg;
+    
+    always @(posedge clk) begin
+        if(!rst | reset)             load_16_reg <= 0;
+        else begin
+            if (!sel_enc_dec & read) load_16_reg <= 1;
+            else                     load_16_reg <= load_16_reg;
+        end
+    end    
     
     wire [15:0] data_out_dec;
     wire [7:0] data_out_enc;
@@ -117,10 +130,10 @@ module ByteEncDec (
         .rst(rst & !reset),
         .load(load),
         .start(start),
-        .read(read),
+        .load_16(load_16),
         .sel_comp_decomp(sel_comp_decomp),
         .d(d),
-        .data_in(data_in[7:0]),
+        .data_in(data_in),
         .add(add),
         .data_out(data_out_dec),
         .end_op(end_op_dec)
@@ -128,6 +141,240 @@ module ByteEncDec (
     
 endmodule
 
+module ByteDecode #(
+    parameter Q = 3329
+    )(
+    input           clk,
+    input           rst,
+    input           load,
+    input           start,
+    input           read,
+    input           sel_comp_decomp,
+    input           load_16,
+    input   [3:0]   d,
+    input   [15:0]  data_in,
+    input   [15:0]  add,
+    output  [15:0]  data_out,
+    output          end_op
+    );
+    
+    reg    [15:0]     REG_IN;
+    // reg     [7:0]       DECO        [384-1:0];
+    // reg     [15:0]      RES         [256-1:0];
+    
+    wire    [15:0] data_deco;
+    reg     [15:0] add_deco;
+    
+    RAM #(.SIZE(384) ,.WIDTH(16))
+    RAM_DECO 
+    (.clk(clk), .en_write(load), .en_read(1), 
+    .addr_write(add), .addr_read(add_deco),
+    .data_in(data_in), .data_out(data_deco));
+    
+    wire    [15:0] data_res;
+    reg     [15:0] data_au;
+    wire    [15:0] add_reg;
+    reg     [7:0]  l;
+    reg     [7:0]  add_res;
+    reg en_w_res;
+    
+    always @(posedge clk) add_res <= l;
+    
+    RAM #(.SIZE(256) ,.WIDTH(16))
+    RAM_RES 
+    (.clk(clk), .en_write(en_w_res), .en_read(1), 
+    .addr_write(add_res), .addr_read(add),
+    .data_in(data_au), .data_out(data_res));
+    
+    reg                 end_op_reg;
+    assign  end_op = end_op_reg;
+    
+    // ---- DECO RAM operation --- //
+    reg [3:0] counter;
+    reg [1:0] update_deco;
+    
+    reg [1:0] update_deco_reg;
+    always @(posedge clk) update_deco_reg <= update_deco;
+    
+    always @(posedge clk) begin
+        if(!rst) counter <= 0;
+        else begin
+            if(start & !end_op_reg) begin
+                if(update_deco == 2'b00)    counter <= counter + 1;
+                else                        counter <= 0;
+            end
+            else                            counter <= 0;          
+        end
+    end
+    
+    always @(posedge clk) begin
+        if(!rst)                            update_deco <= 2'b00;
+        else begin
+                 if(load_16  & counter == 4'b1111)   update_deco <= 2'b01;
+            else if(!load_16 & counter == 4'b0111)   update_deco <= 2'b01; 
+            else if(update_deco == 2'b01)           update_deco <= 2'b10;  
+            else if(update_deco == 2'b10)           update_deco <= 2'b11;   
+            else                                    update_deco <= 2'b00;   
+        end
+    end
+    
+    always @(posedge clk) begin
+        if(!rst)                            add_deco <= 0;
+        else begin
+            if(update_deco == 2'b01)        add_deco <= add_deco + 1;   
+            else                            add_deco <= add_deco;   
+        end
+    end
+    
+    reg [15:0] reg_data_deco;
+    always @(posedge clk) begin
+        if(!rst)                reg_data_deco <= 0;
+        else begin
+            if(counter == 0 & add_deco < 384)       reg_data_deco <= data_deco;
+            else                                    reg_data_deco <= reg_data_deco >> 1;        
+        end
+    end
+    
+    // -- Operation --- //
+    
+    reg [3:0] j;
+    reg en_j;
+
+    always @(posedge clk) begin
+        if(!rst) j <= 0;
+        else begin
+            if(start & !end_op_reg & en_j & update_deco_reg == 2'b00) begin 
+                if(j < (d-1))   j <= j + 1;    
+                else            j <= 0;
+            end
+            else if(load)           j <= 0;
+            else                    j <= j;          
+        end
+    end
+    
+    always @(posedge clk) begin
+        if(!rst) l <= 0;
+        else begin
+            if(start & !end_op_reg & en_j) begin 
+                if(l <= 255) begin 
+                    if(d == 1)  begin                        
+                        if(update_deco_reg == 2'b00)    l <= l + 1;
+                        else                            l <= l;
+                    end 
+                    else begin
+                        if(j == (d-1) & update_deco_reg == 2'b00)                       l <= l + 1;
+                        else                                                            l <= l;
+                    end
+                end
+                else                            l <= 0;
+            end
+            else if(load)           l <= 0;
+            else                    l <= l;          
+        end
+    end
+    
+    always @(posedge clk) begin
+        if(!rst)                                            end_op_reg <= 0;
+        else begin
+            if(load)                                        end_op_reg <= 0;
+            else if(start & l == 255 & j == (d-1))          end_op_reg <= 1;
+            else                                            end_op_reg <= end_op_reg;
+        
+        end
+    end
+    
+    always @(posedge clk) begin
+        if(!rst | load)                                                         en_j <= 0;
+        else begin
+                    if(load_16  & add_deco == 1 & update_deco[1] == 1'b0)        en_j <= 1;
+            else    if(!load_16 & add_deco == 2 & update_deco[1] == 1'b0)        en_j <= 1;
+            else                                                                 en_j <= en_j;               
+        end
+    end
+    
+    always @(posedge clk) en_w_res <= en_j & !end_op_reg;
+    
+    // --- RES RAM operation --- //
+    
+    always @(posedge clk) begin
+        if(!rst) data_au <= 0;
+        else begin
+            if(start) begin 
+                        if(j == 0)                      data_au <= REG_IN[0];
+                else    if(update_deco_reg == 2'b00)    data_au <= (REG_IN[0] << j) + data_au;
+                else                                    data_au <= data_au;
+            end
+            else if(load)           data_au <= 0;
+            else                    data_au <= data_au;          
+        end
+    end
+    
+    assign add_reg = l*d + j;
+    
+    /*
+    always @(posedge clk) begin
+        if(!rst) DECO[0] <= 0;
+        else begin
+            if(load) DECO[add]  <= data_in;
+            else     DECO[0]    <= DECO[0];   
+        end
+    end
+    */
+    
+    reg [15:0] mod;
+    always @* begin
+                if (d == 1)     mod = 16'h0001;
+        else    if (d == 2)     mod = 16'h0003;
+        else    if (d == 3)     mod = 16'h0007;
+        else    if (d == 4)     mod = 16'h000F;
+        else    if (d == 5)     mod = 16'h001F;
+        else    if (d == 6)     mod = 16'h003F;
+        else    if (d == 7)     mod = 16'h007F;
+        else    if (d == 8)     mod = 16'h00FF;
+        else    if (d == 9)     mod = 16'h01FF;
+        else    if (d == 10)    mod = 16'h03FF;
+        else    if (d == 11)    mod = 16'h07FF;
+        else    if (d == 12)    mod = 16'h0FFF; // not - standard
+        else                    mod = 16'h0001;
+    end
+    
+    wire [15:0] data_out_res;
+    assign data_out_res = data_res & mod;
+    
+    genvar gen_i; 
+    generate
+        for(gen_i = 0; gen_i < 16; gen_i = gen_i + 1) begin
+            if(gen_i == 15) begin
+                always @(posedge clk) begin
+                    if(!rst | load)                           REG_IN[gen_i] <= 0;
+                    else begin
+                        if(update_deco_reg == 2'b00)          REG_IN[gen_i] <= reg_data_deco[0];
+                        else                                  REG_IN[gen_i] <= REG_IN[gen_i];
+                    end
+                    
+                end
+            end
+            else begin
+                always @(posedge clk) begin
+                    if(!rst | load)                     REG_IN[gen_i] <= 0;
+                    else begin
+                        if(update_deco_reg == 2'b00)    REG_IN[gen_i] <= REG_IN[gen_i+1];
+                        else                            REG_IN[gen_i] <= REG_IN[gen_i];
+                    end
+                end
+            end
+        end
+    endgenerate
+    
+    wire [15:0] data_out_decomp;
+    
+    decompress decompress (.d(d), .data_in(data_out_res), .data_out(data_out_decomp));
+    
+    assign data_out = (sel_comp_decomp) ? data_out_decomp : data_out_res;
+    
+endmodule
+
+/*
 module ByteDecode #(
     parameter Q = 3329
     )(
@@ -305,6 +552,7 @@ module ByteDecode #(
     end
     */
     
+    /*
     reg [15:0] mod;
     always @* begin
                 if (d == 1)     mod = 16'h0001;
@@ -357,7 +605,7 @@ module ByteDecode #(
     assign data_out = (sel_comp_decomp) ? data_out_decomp : data_out_res;
     
 endmodule
-
+*/
 
 module ByteEncode #(
     parameter Q = 3329

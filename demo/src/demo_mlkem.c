@@ -106,7 +106,7 @@ void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface) {
         if (verb >= 3) printf("\n ss1_len: %d (bytes)", 32);
         if (verb >= 1) { printf("\n ss1: ");    show_array(ss1, 32, 32); }
 
-        print_result_valid("MLKEM-512", result);
+        print_result_valid("MLKEM-512", !(result >> 1)); // 01: bad result; 11: good result
 
         free(sk_512);
 		free(pk_512);
@@ -149,7 +149,7 @@ void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface) {
         if (verb >= 3) printf("\n ss1_len: %d (bytes)", 32);
         if (verb >= 1) { printf("\n ss1: ");    show_array(ss1, 32, 32); }
 
-        print_result_valid("MLKEM-768", result);
+        print_result_valid("MLKEM-768", !(result >> 1)); // 01: bad result; 11: good result
 
         free(sk_768);
 		free(pk_768);
@@ -192,7 +192,7 @@ void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface) {
         if (verb >= 3) printf("\n ss1_len: %d (bytes)", 32);
         if (verb >= 1) { printf("\n ss1: ");    show_array(ss1, 32, 32); }
 
-        print_result_valid("MLKEM-1024", result);
+        print_result_valid("MLKEM-1024", !(result >> 1)); // 01: bad result; 11: good result
 
         free(sk_1024);
 		free(pk_1024);

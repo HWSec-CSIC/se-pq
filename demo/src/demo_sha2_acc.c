@@ -88,6 +88,13 @@ static void demo_sha2_perf_sw(unsigned int sel, unsigned char* input, unsigned i
 
 void test_sha2_acc(unsigned int sel, unsigned int n_test, time_result* tr_hw, time_result* tr_sw, unsigned int verb, INTF interface) {
 
+#ifdef AXI
+    unsigned int clk_index = 0;
+    float clk_frequency;
+    float set_clk_frequency = FREQ_SHA2;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
+
     srand(time(NULL));   // Initialization, should only be called once.
 
     uint64_t start_t_hw, stop_t_hw;
@@ -176,5 +183,9 @@ void test_sha2_acc(unsigned int sel, unsigned int n_test, time_result* tr_hw, ti
     // free(md);
     // free(md1);
 
+#ifdef AXI
+    set_clk_frequency = FREQ_TYPICAL;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
 
 }

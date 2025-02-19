@@ -307,7 +307,7 @@ void sha3_shake_hw(unsigned char* in, unsigned char* out, unsigned int length, u
 			hb_shake++;
 			for (int i = 0; i < (SIZE_BLOCK / 64); i++) {
 				ind = i * 8 + hb_shake * (SIZE_BLOCK / 8);
-				if(ind < (length_out/8)) memcpy(out + ind, buffer_out + i, 8 * sizeof(unsigned char));
+				memcpy(out + ind, buffer_out + i, 8 * sizeof(unsigned char));
 			}
 		}
 	}

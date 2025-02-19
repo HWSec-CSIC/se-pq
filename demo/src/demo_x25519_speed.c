@@ -70,6 +70,8 @@ void test_x25519_hw(unsigned int mode, unsigned int n_test, unsigned int verb, t
     Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int) verb);
 #endif
 
+    seed_rng();
+
     uint64_t start_t, stop_t;
 
     //-- Initialize to avoid 1st measure error

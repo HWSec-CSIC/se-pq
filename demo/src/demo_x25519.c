@@ -70,6 +70,8 @@ void demo_x25519_hw(unsigned int mode, unsigned int verb, INTF interface) {
     Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int) verb);
 #endif
 
+    seed_rng();
+
     // ---- KEY GEN ---- //
     unsigned char* pub_key_A;
     unsigned char* pri_key_A;

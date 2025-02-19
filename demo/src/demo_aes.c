@@ -69,7 +69,7 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
     float clk_frequency;
     float set_clk_frequency = FREQ_AES;
     Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
-#endif
+#endif 
 
     unsigned char msg[128] = "Hello, this is the SE of QUBIP project";
 

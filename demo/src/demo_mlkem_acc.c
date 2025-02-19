@@ -259,7 +259,7 @@ void test_mlkem_acc(unsigned int mode, unsigned int n_test, unsigned int verb, t
 				printf("\n ss recover: \t");   show_array(ss1, 32, 32);
 			}
 
-			if (!result) tr_de_hw->val_result++;
+			if ((result >> 1) & !memcmp(ss, ss1, 32)) tr_de_hw->val_result++;
 
 		}
 
@@ -345,7 +345,7 @@ void test_mlkem_acc(unsigned int mode, unsigned int n_test, unsigned int verb, t
 				printf("\n ss recover: \t");   show_array(ss1, 32, 32);
 			}
 
-			if (!result) tr_de_hw->val_result++;
+			if ((result >> 1) & !memcmp(ss, ss1, 32)) tr_de_hw->val_result++;
 
 		}
 		else if (mode == 1024) {
@@ -430,7 +430,7 @@ void test_mlkem_acc(unsigned int mode, unsigned int n_test, unsigned int verb, t
 				printf("\n ss recover: \t");   show_array(ss1, 32, 32);
 			}
 
-			if (!result) tr_de_hw->val_result++;
+			if ((result >> 1) & !memcmp(ss, ss1, 32)) tr_de_hw->val_result++;
 
 		}
 	}

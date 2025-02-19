@@ -70,6 +70,8 @@ void demo_eddsa_hw(unsigned int mode, unsigned int verb, INTF interface) {
     Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int) verb);
 #endif
 
+    seed_rng();
+
     // ---- EDDSA ---- //
     if (mode == 25519) {
         unsigned char* pub_key;

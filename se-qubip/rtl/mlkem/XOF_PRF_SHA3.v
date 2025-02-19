@@ -62,6 +62,7 @@
 
 
 module XOF_PRF_SHA3 #(
+    parameter COUNTER = 1,
     parameter RATE_SHAKE_128 = 168,
     parameter RATE_SHAKE_256 = 136
     )(
@@ -93,14 +94,17 @@ module XOF_PRF_SHA3 #(
     wire prf_eta2;
     
     assign sel_alg = control[7:4];
-    assign sha3_512     = (sel_alg == 4'b0000) ? 1 : 0;
-    assign sha3_256     = (sel_alg == 4'b0001) ? 1 : 0;
-    assign shake128     = (sel_alg == 4'b0010) ? 1 : 0;
-    assign shake256     = (sel_alg == 4'b0011) ? 1 : 0;
-    assign ntt_xof      = (sel_alg == 4'b0100) ? 1 : 0;
-    assign prf_eta1_3   = (sel_alg == 4'b0101) ? 1 : 0;
-    assign prf_eta1_2   = (sel_alg == 4'b0110) ? 1 : 0;
-    assign prf_eta2     = (sel_alg == 4'b0111) ? 1 : 0;
+    assign sha3_512     = (sel_alg[2:0] == 3'b000) ? 1 : 0;
+    assign sha3_256     = (sel_alg[2:0] == 3'b001) ? 1 : 0;
+    assign shake128     = (sel_alg[2:0] == 3'b010) ? 1 : 0;
+    assign shake256     = (sel_alg[2:0] == 3'b011) ? 1 : 0;
+    assign ntt_xof      = (sel_alg[2:0] == 3'b100) ? 1 : 0;
+    assign prf_eta1_3   = (sel_alg[2:0] == 3'b101) ? 1 : 0;
+    assign prf_eta1_2   = (sel_alg[2:0] == 3'b110) ? 1 : 0;
+    assign prf_eta2     = (sel_alg[2:0] == 3'b111) ? 1 : 0;
+    
+    wire load_16;
+    assign load_16 = sel_alg[3];
     
     wire std_alg;
     wire ext_alg;
@@ -129,19 +133,21 @@ module XOF_PRF_SHA3 #(
     localparam KYBER_SYMBYTES                = 32;
     localparam KYBER_SYMBYTES_2              = 64;
     
+    localparam KYBER_RANDOMNESS              = 33;
+    
     localparam KYBER_PUBLICKEYBYTES_512     = 800;
     localparam KYBER_PUBLICKEYBYTES_768     = 1184;
     localparam KYBER_PUBLICKEYBYTES_1024    = 1568;
     
-    localparam KYBER_CIPHERTEXTBYTES_512    = 768;
-    localparam KYBER_CIPHERTEXTBYTES_768    = 1088;
-    localparam KYBER_CIPHERTEXTBYTES_1024   = 1568;
+    localparam KYBER_CIPHERTEXTBYTES_512    = 768 + 32;
+    localparam KYBER_CIPHERTEXTBYTES_768    = 1088 + 32;
+    localparam KYBER_CIPHERTEXTBYTES_1024   = 1568 + 32;
     
     localparam BLOCK_SIZE_128 = 1344 / 8;
     localparam BLOCK_SIZE_256 = 1088 / 8;
     localparam BLOCK_SIZE_512 = 576 / 8;
     
-    reg [63:0] data_length; 
+    reg [63:0] data_length;
     always @* begin
         if(sha3_512) begin
                     if(operation == 4'b0100) data_length = (KYBER_SYMBYTES)               % BLOCK_SIZE_512;
@@ -152,6 +158,7 @@ module XOF_PRF_SHA3 #(
             else    if(operation == 4'b1001) data_length = (KYBER_CIPHERTEXTBYTES_512)    % BLOCK_SIZE_512;
             else    if(operation == 4'b1010) data_length = (KYBER_CIPHERTEXTBYTES_768)    % BLOCK_SIZE_512;
             else    if(operation == 4'b1011) data_length = (KYBER_CIPHERTEXTBYTES_1024)   % BLOCK_SIZE_512;
+            else    if(operation == 4'b1100) data_length = (KYBER_RANDOMNESS)             % BLOCK_SIZE_512;
             else                             data_length = 0;
         end
         else if(sha3_256 | shake256) begin
@@ -163,6 +170,7 @@ module XOF_PRF_SHA3 #(
             else    if(operation == 4'b1001) data_length = (KYBER_CIPHERTEXTBYTES_512)    % BLOCK_SIZE_256;
             else    if(operation == 4'b1010) data_length = (KYBER_CIPHERTEXTBYTES_768)    % BLOCK_SIZE_256;
             else    if(operation == 4'b1011) data_length = (KYBER_CIPHERTEXTBYTES_1024)   % BLOCK_SIZE_256;
+            else    if(operation == 4'b1100) data_length = (KYBER_RANDOMNESS)             % BLOCK_SIZE_256;
             else                             data_length = 0;
         end
         else if(shake128) begin
@@ -174,6 +182,7 @@ module XOF_PRF_SHA3 #(
             else    if(operation == 4'b1001) data_length = (KYBER_CIPHERTEXTBYTES_512)    % BLOCK_SIZE_128;
             else    if(operation == 4'b1010) data_length = (KYBER_CIPHERTEXTBYTES_768)    % BLOCK_SIZE_128;
             else    if(operation == 4'b1011) data_length = (KYBER_CIPHERTEXTBYTES_1024)   % BLOCK_SIZE_128;
+            else    if(operation == 4'b1100) data_length = (KYBER_RANDOMNESS)             % BLOCK_SIZE_128;
             else                             data_length = 0;
         end
         else 
@@ -202,9 +211,12 @@ module XOF_PRF_SHA3 #(
                 else    if(add[7:2] == 4 & add[1:0] == 0)   REG_DATA_IN[add[1:0]]   <= {{4'h00,y},{4'h00,x}};
                 else                                        REG_DATA_IN[add[1:0]]   <= 16'h0000;
             end 
+            else if (load_16) begin
+                        REG_DATA_IN[add[1:0]]   <= data_in;
+            end
             else if(load) begin
-                if(!add[0])                 REG_DATA_IN[add[2:1]]   <= data_in[7:0];
-                else                        REG_DATA_IN[add[2:1]]   <= (data_in[7:0] << 8) + REG_DATA_IN[add[3:2]];
+                if(!add[0])                 REG_DATA_IN[add[2:1]]   <= {8'h00, data_in[7:0]};
+                else                        REG_DATA_IN[add[2:1]]   <= {data_in[7:0], REG_DATA_IN[add[2:1]][7:0]};
             end                  
             else                            begin 
             REG_DATA_IN[0]          <= REG_DATA_IN[0];
@@ -231,17 +243,22 @@ module XOF_PRF_SHA3 #(
     .data_in(REG_IN), .data_out(data_in_xof_prf));
     
     // ---- SHA-3 definition ---- //
-    reg  [63:0] data_in_sha3;
-    reg [7:0]  add_sha3;
-    reg [7:0]  control_sha3;
-    wire [63:0] data_out_sha3;
-    wire        end_op_sha3;
+    wire    [63:0]  data_in_sha3;
+    reg     [63:0]  data_in_sha3_reg;
+    reg     [7:0]   add_sha3;
+    reg     [7:0]   control_sha3;
+    wire    [63:0]  data_out_sha3;
+    wire            end_op_sha3;
     
-    sha3_shake_keccak 
+    // assign data_in_sha3 = (load_seed & std_alg) ? REG_IN : data_in_sha3_reg;
+    
+    sha3_shake_keccak #(
+    .COUNTER(COUNTER)
+    )
     sha3_shake_keccak
     (
     .i_clk(clk),
-    .i_rst(rst & !reset),
+    .i_rst(rst & !reset),                // rst & !reset
     .i_data_in(data_in_sha3),
     .i_add(add_sha3),
     .i_control(control_sha3),
@@ -251,16 +268,16 @@ module XOF_PRF_SHA3 #(
     
     always @(posedge clk) begin
         if(std_alg) begin
-            if(load_length) data_in_sha3 <= data_length;
-            else            data_in_sha3 <= data_in_xof_prf;         
+            if(load_length) data_in_sha3_reg <= data_length;
+            else            data_in_sha3_reg <= REG_IN;         
         end
         else begin
-            if(!ctl_xof_prf[1] & ctl_xof_prf[0]) begin // load_length
-                if(ntt_alg) data_in_sha3 <= ((KYBER_SYMBYTES+2)) % BLOCK_SIZE_256;
-                else        data_in_sha3 <= ((KYBER_SYMBYTES+1)) % BLOCK_SIZE_256;
+            if(load_length) begin // load_length
+                if(ntt_alg) data_in_sha3_reg <= ((KYBER_SYMBYTES+2)) % BLOCK_SIZE_256;
+                else        data_in_sha3_reg <= ((KYBER_SYMBYTES+1)) % BLOCK_SIZE_256;
             end
             else begin
-                data_in_sha3 <= data_in_xof_prf;
+                data_in_sha3_reg <= data_in_xof_prf;
             end
         end
     end
@@ -268,25 +285,48 @@ module XOF_PRF_SHA3 #(
     wire [1:0] op;
     wire [1:0] al;
     
-    assign op = (start)     ? 2'b11 : ( (load_length)   ?  2'b01 : ( (load)     ? 2'b10 : 2'b00) );
+    assign op = (start)     ? 2'b11 : ( (load_length)   ?  2'b01 : ( (load)     ? 2'b10 : 2'b00) ); // 00
     assign al = (shake128)  ? 2'b00 : ( (shake256)      ?  2'b01 : ( (sha3_256) ? 2'b10 : 2'b11) );
     
     wire         load_alg;
     wire [15:0]  add_alg;
+    
+    reg [3:0] seed_add;
+    always @(posedge clk) begin
+        if(!rst | reset)                                                seed_add <= 0;
+        else if(load_length) begin
+                    if(operation == 4'b0110 | operation == 4'b1001)     seed_add <= 11;
+            else    if(operation == 4'b0111 | operation == 4'b1010)     seed_add <= 8;
+            else    if(operation == 4'b1000 | operation == 4'b1011)     seed_add <= 5;
+            else    if(operation == 4'b0101)                            seed_add <= 4;
+            else                                                        seed_add <= seed_add;
+        end
+        else                                    seed_add <= seed_add;
+    end
+    
+    assign data_in_sha3 = (load_length) ? data_in_sha3_reg : REG_IN;
     
     always @(posedge clk) begin
         if(!rst | reset)        add_sha3 <= 0;
         else begin
             if(ext_alg) begin
                 if(load_alg)    add_sha3 <= add_alg[10:3];
-                else            add_sha3 <= add_xof_prf;
+                else            add_sha3 <= {4'b000,add[7:2]}; // add_sha3 <= add_xof_prf;
             end
-            else                add_sha3 <= {3'b000,add[7:3]};
+            else begin
+                if(load_seed) begin
+                    add_sha3 <= {4'b000,add[7:2]} + seed_add;
+                end
+                else begin
+                    if(load & !load_16)              add_sha3 <= {4'b000,add[7:3]};
+                    else                             add_sha3 <= {4'b000,add[7:2]};
+                end
+            end              
         end
     end
     
     always @* begin
-        if(!rst | reset)        control_sha3 <= 0;
+        if(!rst | reset)        control_sha3 <= {al,op}; // 0
         else begin
             if(ext_alg)         control_sha3 <= ctl_xof_prf[3:0];
             else                control_sha3 <= {al,op};
@@ -406,21 +446,20 @@ module XOF_PRF_SHA3 #(
     assign in_sample_cbd = data_out_sha3 >> (8 * add_alg[2:0]);
     
     // --- out signals --- //
-    wire [7:0] out_sha3 [7:0];
+    wire [15:0] out_sha3 [3:0];
     generate 
-        for(i = 0; i < 8; i = i + 1) begin
-            assign out_sha3[i] = data_out_sha3[(8*(i+1) - 1):(8*i)];
+        for(i = 0; i < 4; i = i + 1) begin
+            assign out_sha3[i] = data_out_sha3[(16*(i+1) - 1):(16*i)];
         end
     endgenerate
     
     assign end_op_xof_prf = ( (ntt_alg) ? end_op_sample_ntt : end_op_sample_cbd);
     
-    assign data_out = (std_alg) ? (out_sha3[add[2:0]]) : ( (ntt_alg) ? data_out_sample_ntt : data_out_sample_cbd);
+    assign data_out = (std_alg) ? (out_sha3[add[1:0]]) : ( (ntt_alg) ? data_out_sample_ntt : data_out_sample_cbd);
     assign end_op   = (std_alg) ? (end_op_sha3) : end_op_xof_prf;
     
     
 endmodule
-
 
 module sample_ntt #(
     parameter Q = 3329,
@@ -582,7 +621,6 @@ module sample_ntt #(
     assign cond_2 = (d2 < Q) ? ( ((j > 254) & cond_1) ? 0 : 1 ) : 0;
 
 endmodule
-
 
 module sample_cbd #(
     parameter Q = 3329,
@@ -845,7 +883,6 @@ module REG_IN_MOD (
 
 endmodule
 
-
 module CONTROL_XOR_PRF_2 (
         input clk,
         input rst,
@@ -924,10 +961,7 @@ module CONTROL_XOR_PRF_2 (
     
     // --- Control signals --- //
     wire           ns;
-	reg    [7:0]   counter_add;
-	reg    [7:0]   counter_ins;
 	reg    [1:0]   counter_cycles;
-	wire           end_counter;
 	
 	assign ns      = (counter_cycles[0] == 1'b1)   ? 1 : 0;
 	always @(posedge clk) begin
@@ -959,7 +993,7 @@ module CONTROL_XOR_PRF_2 (
 	
     // Synchronous logic
     always @(posedge clk) begin
-        if (!(rst & !reset)) begin
+        if (!rst | reset) begin
             state <= IDLE;
         end else begin
             state <= next_state;
@@ -967,39 +1001,27 @@ module CONTROL_XOR_PRF_2 (
     end
 
     // Combinational logic
-    always @(*) begin
+    always @* begin
         case (state)
             IDLE: begin
-                if (start & ext_alg & ns) next_state = LOAD_LENGTH;
-                else next_state = IDLE;
-            end
-            LOAD_LENGTH: begin
-                if (ns) next_state = LOAD_SHA3;
-                else next_state = LOAD_LENGTH;
-            end
-            LOAD_SHA3: begin
-                if (end_load & ns) next_state = START_SHA3;
-                else next_state = LOAD_SHA3;
-            end
-            START_SHA3: begin
-                if (end_op_sha3 & ns) next_state = READ_SHA3;
-                else next_state = START_SHA3;
+                if (end_op_sha3 & ext_alg & ns) next_state = READ_SHA3;
+                else                            next_state = IDLE;
             end
             READ_SHA3: begin
-                if (end_read & ns) next_state = UPDATE_BLOCK;
-                else next_state = READ_SHA3;
+                if (end_read & ns)              next_state = UPDATE_BLOCK;
+                else                            next_state = READ_SHA3;
             end
             UPDATE_BLOCK: begin
                 if(ns)  next_state = START_SHAKE;
                 else    next_state = UPDATE_BLOCK;
             end
             START_SHAKE: begin
-                if (end_op_sha3 & ns) next_state = READ_SHAKE;
-                else next_state = START_SHAKE;
+                if (end_op_sha3 & ns)   next_state = READ_SHAKE;
+                else                    next_state = START_SHAKE;
             end
             READ_SHAKE: begin
-                if (end_read & ns) next_state = END_BLOCK;
-                else next_state = READ_SHAKE;
+                if (end_read & ns)  next_state = END_BLOCK;
+                else                next_state = READ_SHAKE;
             end
             END_BLOCK: begin
                 if (end_block & ns)         next_state = LOAD_XOF_PRF;
@@ -1007,16 +1029,16 @@ module CONTROL_XOR_PRF_2 (
                 else                        next_state = END_BLOCK;
             end
             LOAD_XOF_PRF: begin
-                if (ns) next_state = START_XOF_PRF;
-                else next_state = LOAD_XOF_PRF;
+                if (ns)     next_state = START_XOF_PRF;
+                else        next_state = LOAD_XOF_PRF;
             end
             START_XOF_PRF: begin
-                if (end_op_xof_prf & ns) next_state = END_OP;
-                else next_state = START_XOF_PRF;
+                if (end_op_xof_prf & ns)    next_state = END_OP;
+                else                        next_state = START_XOF_PRF;
             end
             END_OP: begin
-                if (reset) next_state = IDLE;
-                else next_state = END_OP;
+                if (reset)  next_state = IDLE;
+                else        next_state = END_OP;
             end
         endcase
     end
@@ -1031,10 +1053,11 @@ module CONTROL_XOR_PRF_2 (
     end
     
     always @(posedge clk) begin
-        if(state == IDLE | state == START_SHAKE) add_alg_reg <= 0;
+        if( state == IDLE | state == START_SHAKE | state == UPDATE_BLOCK ) 
+                                                add_alg_reg <= 0;
         else begin
-            if(load_alg_reg & ns & !end_read) add_alg_reg <= add_alg_reg + 1;
-            else                              add_alg_reg <= add_alg_reg;
+            if(load_alg_reg & ns & !end_read)   add_alg_reg <= add_alg_reg + 1;
+            else                                add_alg_reg <= add_alg_reg;
         end
     end
     
@@ -1062,24 +1085,19 @@ module CONTROL_XOR_PRF_2 (
         end
     end
     
+    wire [1:0] op;
+    wire [1:0] al;
+    
+    assign op = (start)                 ? 2'b11 : ( (load_length)               ?  2'b01 : ( (load)     ? 2'b10 : 2'b00) ); // 00
+    assign al = (shake128 | ntt_alg)    ? 2'b00 : ( (shake256 | !ntt_alg)       ?  2'b01 : ( (sha3_256) ? 2'b10 : 2'b11) );
+    
+    
     // Output assignment
-    always @(state) begin
+    always @* begin
         case (state)
             IDLE: begin
-                if(ntt_alg) ctl_xof_prf_reg = {4'b0001,4'b0000};
-                else        ctl_xof_prf_reg = {4'b0001,4'b0100};
-            end
-            LOAD_LENGTH: begin
-                if(ntt_alg) ctl_xof_prf_reg = {4'b0001,4'b0001};
-                else        ctl_xof_prf_reg = {4'b0001,4'b0101};
-            end
-            LOAD_SHA3: begin
-                if(ntt_alg) ctl_xof_prf_reg = {4'b0001,4'b0010};
-                else        ctl_xof_prf_reg = {4'b0001,4'b0110};
-            end
-            START_SHA3: begin
-                if(ntt_alg) ctl_xof_prf_reg = {4'b0001,4'b0011};
-                else        ctl_xof_prf_reg = {4'b0001,4'b0111};
+                if(ntt_alg) ctl_xof_prf_reg = {al,op}; // 0000
+                else        ctl_xof_prf_reg = {al,op};
             end
             READ_SHA3: begin
                 if(ntt_alg) ctl_xof_prf_reg = {4'b0010,4'b0011};
@@ -1114,8 +1132,8 @@ module CONTROL_XOR_PRF_2 (
                 else        ctl_xof_prf_reg = {4'b1000,4'b0111};
             end
             default: begin
-                if(ntt_alg) ctl_xof_prf_reg = {4'b0001,4'b0000};
-                else        ctl_xof_prf_reg = {4'b0001,4'b0100};
+                if(ntt_alg) ctl_xof_prf_reg = {al,op};
+                else        ctl_xof_prf_reg = {al,op};
             end
         endcase
     end
