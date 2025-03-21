@@ -118,8 +118,9 @@ void test_sha2_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsign
     // md1 = malloc(256);
 
     for (unsigned int test = 1; test <= n_test; test++) {
-        int r = rand() % buf_len;// 100000;
-        
+        // int r = rand() % buf_len;// 100000;
+        int r = 64;
+
         for (int i = 0; i < r; i++)
         {
             buf[i] = rand();
