@@ -22,6 +22,7 @@
  MLKEM     : yes
  DRBG      : yes
  Number of Tests:       10
+ I2C Baudrate:          1 Mb/s
 
 
  Algorithm                      | Execution Time (ms)            | Execution Time (us)            | Validation Test
