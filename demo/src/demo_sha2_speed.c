@@ -108,17 +108,25 @@ void test_sha2_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsign
     else if (sel == 5)   printf("\n\n -- Test SHA-512/224 --");
     */
 
+    int buf_len = 1000;
+
     unsigned char md[64];
-    unsigned char buf[100000];
+    unsigned char buf[buf_len];
 
     // buf = malloc(1024);
     // md  = malloc(256);
     // md1 = malloc(256);
 
     for (unsigned int test = 1; test <= n_test; test++) {
-        int r = rand() % 100000; // ;
+        int r = rand() % buf_len;// 100000;
+        
+        for (int i = 0; i < r; i++)
+        {
+            buf[i] = rand();
+        }
+
         // ctr_drbg(buf, r);
-        trng_hw(buf, r, interface);
+        // trng_hw(buf, r, interface);
 
         memset(md, 0, 64);
 

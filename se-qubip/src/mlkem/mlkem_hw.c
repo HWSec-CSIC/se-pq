@@ -64,7 +64,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#if defined(I2C)
+#if defined(I2C_STM32)
 
 static void randombytes(uint8_t* out, size_t outlen) {
 

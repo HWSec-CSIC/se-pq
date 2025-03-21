@@ -107,19 +107,29 @@ void test_sha3_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsign
     else if (sel == 5)   printf("\n\n -- Test SHA3-384 --");
     */
 
+    int buf_len = 1000;
+
     unsigned char md[64];
-    unsigned char buf[100000];
+    unsigned char buf[buf_len];
     unsigned int mod = 1000;
     int ls;
+
+    seed_rng();
 
     // buf = malloc(1024);
     // md  = malloc(256);
     // md1 = malloc(256);
 
     for (unsigned int test = 1; test <= n_test; test++) {
-        int r = rand() % 100000;// 100000;
+        int r = rand() % buf_len;// 100000;
+        
+        for (int i = 0; i < r; i++)
+        {
+            buf[i] = rand();
+        }
+        
         // ctr_drbg(buf, r);
-        trng_hw(buf, r, interface);
+        // trng_hw(buf, r, interface);
 
         if (sel == 0 | sel == 1)    ls = 64;
         else                        ls = 64;
