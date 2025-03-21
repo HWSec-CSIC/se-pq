@@ -90,9 +90,9 @@ void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, 
     uint64_t time_total_en_hw = 0;
     uint64_t time_total_de_hw = 0;
 
-    int msg_len = 128;
+    int msg_len = 64;
 
-    unsigned char msg_test[128] = "Hello, this is the SE of QUBIP project"; 
+    unsigned char msg_test[64] = "Hello, this is the SE of QUBIP project"; 
 
     unsigned char msg[msg_len];
     memcpy(msg, msg_test, msg_len);
