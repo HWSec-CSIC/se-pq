@@ -88,6 +88,13 @@ static void demo_sha2_perf_sw(unsigned int sel, unsigned char* input, unsigned i
 
 void test_sha2_acc(unsigned int sel, unsigned int n_test, time_result* tr_hw, time_result* tr_sw, unsigned int verb, INTF interface) {
 
+#ifdef AXI
+    unsigned int clk_index = 0;
+    float clk_frequency;
+    float set_clk_frequency = FREQ_SHA2;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
+
     srand(time(NULL));   // Initialization, should only be called once.
 
     uint64_t start_t_hw, stop_t_hw;
@@ -123,9 +130,11 @@ void test_sha2_acc(unsigned int sel, unsigned int n_test, time_result* tr_hw, ti
     else if (sel == 5)   printf("\n\n -- Test SHA3-384 --");
     */
 
+    int buf_len = 1000;
+
     unsigned char md_hw[64];
     unsigned char md_sw[64];
-    unsigned char buf[100000];
+    unsigned char buf[buf_len];
     unsigned int mod = 1000;
 
     // buf = malloc(1024);
@@ -133,7 +142,7 @@ void test_sha2_acc(unsigned int sel, unsigned int n_test, time_result* tr_hw, ti
     // md1 = malloc(256);
 
     for (unsigned int test = 1; test <= n_test; test++) {
-        int r = rand() % 100000;// 100000;
+        int r = rand() % buf_len;// 100000;
         ctr_drbg(buf, r); // from crypto_api_sw
 
 
@@ -176,5 +185,9 @@ void test_sha2_acc(unsigned int sel, unsigned int n_test, time_result* tr_hw, ti
     // free(md);
     // free(md1);
 
+#ifdef AXI
+    set_clk_frequency = FREQ_TYPICAL;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
 
 }

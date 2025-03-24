@@ -141,7 +141,7 @@ module I2C_QUBIP #(
 	wire [63:0] i_add;
 	wire [63:0] i_control;
 	wire [63:0] o_data_out;
-	wire o_end_op;
+	wire [1:0] o_end_op;
 
 	reg [7:0] reg_00, reg_01, reg_02, reg_03, reg_04, reg_05, reg_06,   reg_07,     //-- i_data_in   
 	          reg_08, reg_09, reg_0A, reg_0B, reg_0C, reg_0D, reg_0E,   reg_0F,     //-- i_add       
@@ -592,7 +592,7 @@ module I2C_QUBIP #(
 	    //-- SE-QUBIP Output
 	    else begin
 	       {reg_18, reg_19, reg_1A, reg_1B, reg_1C, reg_1D, reg_1E, reg_1F} <= o_data_out;
-           reg_27                                                           <= {7'b0, o_end_op};
+           reg_27                                                           <= {6'b0, o_end_op};
 	    end
 	end
 	

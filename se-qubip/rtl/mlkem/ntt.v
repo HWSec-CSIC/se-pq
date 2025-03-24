@@ -548,7 +548,10 @@ module NTT_core(
     wire [15:0] c_ntt, d_ntt; 
 
     // NTT_cell_v2 NTT_cell (.a(a_ntt), .b(b_ntt), .zeta(zeta_ntt), .c(c_ntt), .d(d_ntt), .mux_sel(mux_sel));
-    NTT_cell NTT_cell (.clk(clk), .a(a_ntt), .b(b_ntt), .zeta(zeta_ntt), .c(c_ntt), .d(d_ntt), .mux_sel(mux_sel));
+    // NTT_cell NTT_cell (.clk(clk), .a(a_ntt), .b(b_ntt), .zeta(zeta_ntt), .c(c_ntt), .d(d_ntt), .mux_sel(mux_sel));
+    
+    NTT_cell_2 NTT_cell_2 (.clk(clk), .invntt(intt), .a(a_ntt), .b(b_ntt), .zeta(zeta_ntt), .c(c_ntt), .d(d_ntt), .mux_sel(mux_sel));
+    
     
     assign a_ntt = rj[15:00];
     assign b_ntt = (mult | ops) ? rj[31:16] : rjlen[15:00];
@@ -604,6 +607,45 @@ module NTT_cell(
     assign c = (mux_sel[1] & !mux_sel[0]) ? mux_sub0 : mux_add2;
     assign d = mux_sub2;
 
+endmodule
+
+module NTT_cell_2(
+    input clk,
+    input invntt,
+    input [15:0] a,
+    input [15:0] b,
+    input [15:0] zeta,
+    output [15:0] c,
+    output [15:0] d,
+    input [3:0] mux_sel //[add2,sub2,add0,sub0];
+
+    );
+    
+    wire [15:0] mux_add0; 
+    wire [15:0] mux_add2;
+    wire [15:0] mux_sub0;
+    wire [15:0] mux_sub2;
+    
+    wire [15:0] mux_add0_2;
+    wire [15:0] br;
+    
+    wire [15:0] xor_zeta;
+    
+    // fqmult fqmult (.a(zeta), .b(mux_sub0), .t(xor_zeta));
+    fqmult_pipe fqmult (.clk(clk), .a(zeta), .b(mux_sub0), .t(xor_zeta));
+    
+    assign mux_add0 = (mux_sel[0]) ? (a + b) : a;
+    assign mux_sub0 = (mux_sel[1]) ? (b - a) : b;
+    assign mux_add2 = (mux_sel[2]) ? (mux_add0 + xor_zeta) : mux_add0_2;
+    assign mux_sub2 = (mux_sel[3]) ? (mux_add0 - xor_zeta) : xor_zeta;
+    
+    assign c = (mux_sel[1] & !mux_sel[0]) ? mux_sub0 : mux_add2;
+    assign d = mux_sub2;
+    
+    assign mux_add0_2 = (invntt) ? br : mux_add0; 
+    
+    barret_reduce_pipe barret_reduce(.clk(clk), .a(mux_add0), .t(br));
+    
 endmodule
 
 module PWM_cell(

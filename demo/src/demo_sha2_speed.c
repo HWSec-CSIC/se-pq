@@ -76,6 +76,13 @@ static void demo_sha2_perf_hw(unsigned int sel, unsigned char* input, unsigned i
 
 void test_sha2_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsigned int verb, INTF interface) {
 
+#ifdef AXI
+    unsigned int clk_index = 0;
+    float clk_frequency;
+    float set_clk_frequency = FREQ_SHA2;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
+
     srand(time(NULL));   // Initialization, should only be called once.
 
     uint64_t start_t, stop_t;
@@ -101,17 +108,26 @@ void test_sha2_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsign
     else if (sel == 5)   printf("\n\n -- Test SHA-512/224 --");
     */
 
+    int buf_len = 1000;
+
     unsigned char md[64];
-    unsigned char buf[100000];
+    unsigned char buf[buf_len];
 
     // buf = malloc(1024);
     // md  = malloc(256);
     // md1 = malloc(256);
 
     for (unsigned int test = 1; test <= n_test; test++) {
-        int r = rand() % 100000; // ;
+        // int r = rand() % buf_len;// 100000;
+        int r = 64;
+
+        for (int i = 0; i < r; i++)
+        {
+            buf[i] = rand();
+        }
+
         // ctr_drbg(buf, r);
-        trng_hw(buf, r, interface);
+        // trng_hw(buf, r, interface);
 
         memset(md, 0, 64);
 
@@ -138,5 +154,9 @@ void test_sha2_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsign
     // free(md);
     // free(md1);
 
+#ifdef AXI
+    set_clk_frequency = FREQ_TYPICAL;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
 
 }

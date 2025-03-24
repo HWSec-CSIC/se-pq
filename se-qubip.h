@@ -142,7 +142,6 @@
 #define mlkem768_enc_hw             mlkem_768_enc_hw
 #define mlkem1024_enc_hw            mlkem_1024_enc_hw
 #define mlkem_enc_hw                mlkem_enc_hw
-#define mlkem_enc_coins_hw          mlkem_enc_coins_hw
 
 #define mlkem512_dec_hw             mlkem_512_dec_hw 
 #define mlkem768_dec_hw             mlkem_768_dec_hw 
@@ -167,25 +166,29 @@
 
     // ------- BITSTREAM_FILE ------- //
     #ifdef PYNQZ2
-        #define BITSTREAM_AXI       "../se-qubip/bit/PYNQZ2_SE_QUBIP_1.0.bit"
+        #define BITSTREAM_AXI       "../se-qubip/bit/PYNQZ2_SE_QUBIP_2.0.bit"
     #elif ZCU104
-        #define BITSTREAM_AXI       "../se-qubip/bit/ZCU104_SE_QUBIP_1.0.bit"
+        #define BITSTREAM_AXI       "../se-qubip/bit/ZCU104_SE_QUBIP_2.0.bit"
     #endif
 
     /* ------- FREQUENCIES DEFINITION ------- */
     #ifdef PYNQZ2
         #define FREQ_TYPICAL       100.0
+        #define FREQ_SHA2          100.0
+        #define FREQ_SHA3          100.0
         #define FREQ_EDDSA          60.0
-        #define FREQ_X25519         90.0
-        #define FREQ_MLKEM          90.0
+        #define FREQ_X25519         80.0
+        #define FREQ_MLKEM         100.0
         #define FREQ_AES           100.0
     #elif ZCU104
-        #define FREQ_TYPICAL       400.0
-        #define FREQ_EDDSA         300.0
-        #define FREQ_X25519        350.0
-        #define FREQ_MLKEM         300.0
-        #define FREQ_AES           450.0
+        #define FREQ_TYPICAL       450.0
+        #define FREQ_SHA2          375.0
+        #define FREQ_SHA3          450.0
+        #define FREQ_EDDSA         320.0
+        #define FREQ_X25519        320.0
+        #define FREQ_MLKEM         320.0
+        #define FREQ_AES           375.0
     #endif
 #endif
 
-#endif // SE_QUBIP_H_INCLUDED
+#endif // SE_QUBIP_H_INCLUDED 

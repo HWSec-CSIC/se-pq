@@ -59,208 +59,216 @@
   **/
 #include "mlkem_hw.h"
 
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#if defined(I2C_STM32)
+
+static void randombytes(uint8_t* out, size_t outlen) {
+
+	srand(HAL_GetTick());
+
+	for (int i = 0; i < outlen; i++) {
+		out[i] = (uint8_t)rand();
+	}
+}
+
+#else
+static void randombytes(uint8_t* out, size_t outlen) {
+	static int fd = -1;
+	size_t ret;
+
+	while (fd == -1) {
+		fd = open("/dev/urandom", O_RDONLY);
+		if (fd == -1)
+			continue;
+		else if (fd == -1)
+			abort();
+	}
+
+	while (outlen > 0) {
+		ret = read(fd, out, outlen);
+		if (ret == -1)
+			continue;
+		else if (ret == -1)
+			abort();
+
+		out += ret;
+		outlen -= ret;
+	}
+}
+#endif
+
 void mlkem_512_gen_keys_hw(unsigned char* pk, unsigned char* sk, INTF interface) {
 
 	mlkem_gen_keys_hw(2, pk, sk, interface);
-	for (int i = 0; i < 800; i++)
-		sk[i + 768] = pk[i];
 
-	sha3_256_hw(pk, 800, sk + 1568, interface);
-
-	trng_hw(sk + 1568 + 32, 32, interface);
 }
 void mlkem_768_gen_keys_hw(unsigned char* pk, unsigned char* sk, INTF interface) {
 
 	mlkem_gen_keys_hw(3, pk, sk, interface);
-	for (int i = 0; i < 1184; i++)
-		sk[i + 1152] = pk[i];
- 
-	sha3_256_hw(pk, 1184, sk + 2336, interface);
-
-	trng_hw(sk + 2336 + 32, 32, interface);
 
 }
 void mlkem_1024_gen_keys_hw(unsigned char* pk, unsigned char* sk, INTF interface) {
 
 	mlkem_gen_keys_hw(4, pk, sk, interface);
-	for (int i = 0; i < 1568; i++)
-		sk[i + 1536] = pk[i];
-
-	sha3_256_hw(pk, 1568, sk + 3104, interface);
-
-	trng_hw(sk + 3104 + 32, 32, interface);
 
 }
 
 void mlkem_512_enc_hw(unsigned char* pk, unsigned char* ct, unsigned char* ss, INTF interface) {
 
-	unsigned char buf[64];
-	unsigned char kr[64];
-
-	trng_hw(buf, 32, interface);
-	sha3_256_hw(pk, 800, buf + 32, interface);
-	sha3_512_hw(buf, 64, kr, interface);
-
-	mlkem_enc_coins_hw(2, pk, ct, buf, kr + 32, interface);
-
-	memcpy(ss, buf, 32);
+	mlkem_enc_hw(2, pk, ct, ss, interface);
 
 }
 void mlkem_768_enc_hw(unsigned char* pk, unsigned char* ct, unsigned char* ss, INTF interface) {
 
-	unsigned char buf[64];
-	unsigned char kr[64];
-
-	trng_hw(buf, 32, interface);
-	sha3_256_hw(pk, 1184, buf + 32, interface);
-	sha3_512_hw(buf, 64, kr, interface);
-
-	mlkem_enc_coins_hw(3, pk, ct, buf, kr + 32, interface);
-
-	memcpy(ss, buf, 32);
+	mlkem_enc_hw(3, pk, ct, ss, interface);
 
 }
 void mlkem_1024_enc_hw(unsigned char* pk, unsigned char* ct, unsigned char* ss, INTF interface) {
 
-	unsigned char buf[64];
-	unsigned char kr[64];
-
-	trng_hw(buf, 32, interface);
-	sha3_256_hw(pk, 1568, buf + 32, interface);
-	sha3_512_hw(buf, 64, kr, interface);
-
-	mlkem_enc_coins_hw(4, pk, ct, buf, kr + 32, interface);
-
-	memcpy(ss, buf, 32);
+	mlkem_enc_hw(4, pk, ct, ss, interface);
 
 }
 
 void mlkem_512_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface) {
 
-	unsigned char buf[64];
-	unsigned char kr[64];
-
-	unsigned char cmp[768];
-	unsigned char* pk = sk + 768;
-
-	mlkem_dec_hw(2, sk, ct, buf, interface);
-	for (int i = 0; i < 32; i++)
-		buf[i + 32] = sk[1568 + i];
-
-	sha3_512_hw(buf, 64, kr, interface);
-
-	mlkem_enc_coins_hw(2, pk, cmp, buf, kr + 32, interface);
-
-	*result = memcmp(ct, cmp, 768);
-
-	memcpy(ss, buf, 32);
+	mlkem_dec_hw(2, sk, ct, ss, result, interface);
 	
 }
 void mlkem_768_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface) {
-
-	unsigned char buf[64];
-	unsigned char kr[64];
-
-	unsigned char cmp[1088];
-	unsigned char* pk = sk + 1152;
-
-	mlkem_dec_hw(3, sk, ct, buf, interface);
-	for (int i = 0; i < 32; i++)
-		buf[i + 32] = sk[2336 + i];
-
-	sha3_512_hw(buf, 64, kr, interface);
-
-	mlkem_enc_coins_hw(3, pk, cmp, buf, kr + 32, interface);
-
-	*result = memcmp(ct, cmp, 1088);
-
-	memcpy(ss, buf, 32);
+	
+	mlkem_dec_hw(3, sk, ct, ss, result, interface);
 
 }
 void mlkem_1024_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface) {
-
-	unsigned char buf[64];
-	unsigned char kr[64];
-
-	unsigned char cmp[1568];
-	unsigned char* pk = sk + 1536;
-
-	mlkem_dec_hw(4, sk, ct, buf, interface);
-	for (int i = 0; i < 32; i++)
-		buf[i + 32] = sk[3104 + i];
-
-	sha3_512_hw(buf, 64, kr, interface);
-
-	mlkem_enc_coins_hw(4, pk, cmp, buf, kr + 32, interface);
-
-	*result = memcmp(ct, cmp, 1568);
-
-	memcpy(ss, buf, 32);
+	
+	mlkem_dec_hw(4, sk, ct, ss, result, interface);
 
 }
 
 void mlkem_gen_keys_hw(int k, unsigned char* pk, unsigned char* sk, INTF interface) {
+
+	
+	uint8_t d[32]; unsigned long long int d64[4];
+	uint8_t z[32]; unsigned long long int z64[4];
+	randombytes(d, 32); memcpy(d64, d, 32);
+	randombytes(z, 32); memcpy(z64, z, 32);
+	
+
+	/*
+	unsigned long long int d64[4];
+	d64[0] = 0x519d62010a40b41e;
+	d64[1] = 0xf5deb985cde27479;
+	d64[2] = 0x2b9c6f8e50de8290;
+	d64[3] = 0xca555996121e340e;
+
+	unsigned long long int z64[4];
+	z64[0] = 0xfe0338161141391a;
+	z64[1] = 0x7586a635c319852e;
+	z64[2] = 0x5f2ba2afad8e3356;
+	z64[3] = 0x93d6cc60054357c5;
+	*/
+
+	unsigned long long int reg_addr;
+	unsigned long long int reg_data_out;
+	unsigned long long int reg_data_in;
 	
 	unsigned long long int op;
 	unsigned long long int op_mode;
 
 	if (k == 2)				op_mode = MLKEM_GEN_KEYS_512	<< 4; 
 	else if (k == 3)		op_mode = MLKEM_GEN_KEYS_768	<< 4; 
-	else if (k == 4)		op_mode = MLKEM_GEN_KEYS_1024 << 4; 
+	else if (k == 4)		op_mode = MLKEM_GEN_KEYS_1024	<< 4; 
 	else					op_mode = MLKEM_GEN_KEYS_512	<< 4;
+
+	unsigned int LEN_EK;
+	unsigned int LEN_DK;
+
+	if (k == 2)			LEN_EK = 800;
+	else if (k == 3)	LEN_EK = 1184;
+	else if (k == 4)	LEN_EK = 1568;
+	else				LEN_EK = 800;
+
+	if (k == 2)			LEN_DK = 1632;
+	else if (k == 3)	LEN_DK = 2400;
+	else if (k == 4)	LEN_DK = 3168;
+	else				LEN_DK = 1632;
 
 	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_RESET) & 0xFFFFFFFF);
 	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_START) & 0xFFFFFFFF);
+	// -- load seed (d) -- //
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_COINS) & 0xFFFFFFFF); // LOAD_D
+	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
+
+	for (int i = 0; i < 4; i++) {
+		reg_addr = (unsigned long long int)(i);
+		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
+		reg_data_in = d64[i];
+		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
+	}
+
+	// -- load z -- //
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_SS) & 0xFFFFFFFF); // LOAD_Z
+	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
+
+	for (int i = 0; i < 4; i++) {
+		reg_addr = (unsigned long long int)(i);
+		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
+		reg_data_in = z64[i];
+		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
+	}
+
+	// -- start -- //
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_START) & 0xFFFFFFFF); // START
 	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
 	unsigned long long int end_op = 0;
 	// wait END_OP
 	while (!end_op) read_INTF(interface, &end_op, END_OP, sizeof(unsigned long long int));
 
-	// read pk
-	unsigned long long int reg_addr;
-	unsigned long long int reg_data_out;
-
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_PK) & 0xFFFFFFFF);; // MLKEM_START
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < (k * 384); i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		read_INTF(interface, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
-		pk[i] = reg_data_out & 0xFF;
-	}
-
-	int ind = k*384;
-
-	for (int i = (4*384); i < (4 * 384) + 16; i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		read_INTF(interface, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
-
-		pk[ind]		= reg_data_out & 0x00FF;
-		pk[ind + 1] = (reg_data_out & 0xFF00) >> 8;
-
-		ind += 2;
-	}
-
 	// read sk
 	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_SK) & 0xFFFFFFFF);; // MLKEM_START
 	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
-	for (int i = 0; i < (k * 384); i++) {
+	for (int i = 0; i < (LEN_DK / 8); i++) {
+		reg_addr = (unsigned long long int)(i + (LEN_EK / 8));
+		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
+		read_INTF(interface, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
+		memcpy(sk + 8*i, &reg_data_out, 8);
+	}
+
+	// read pk
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_PK) & 0xFFFFFFFF);; // MLKEM_READ_EK
+	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
+
+	for (int i = 0; i < (LEN_EK / 8); i++) {
 		reg_addr = (unsigned long long int)(i);
 		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
 		read_INTF(interface, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
-		sk[i] = reg_data_out & 0xFF;
+		memcpy(pk + 8 * i, &reg_data_out, 8);
 	}
 
 
 }
 
 void mlkem_enc_hw(int k, unsigned char* pk, unsigned char* ct, unsigned char* ss, INTF interface) {
+
+	
+	uint8_t m[32]; unsigned long long int m64[4];
+	randombytes(m, 32); memcpy(m64, m, 32);
+	
+
+	/*
+	unsigned long long int m64[4];
+	m64[0] = 0x72407c18ae6c9baf;
+	m64[1] = 0x1070e33b3f9dfc56;
+	m64[2] = 0x28a187e6d055afff;
+	m64[3] = 0xd38468eb627f7cf1;
+	*/
 
 	unsigned long long int op;
 	unsigned long long int op_mode;
@@ -271,34 +279,58 @@ void mlkem_enc_hw(int k, unsigned char* pk, unsigned char* ct, unsigned char* ss
 
 	if (k == 2)				op_mode = MLKEM_ENCAP_512		<< 4;
 	else if (k == 3)		op_mode = MLKEM_ENCAP_768		<< 4;
-	else if (k == 4)		op_mode = MLKEM_ENCAP_1024	<< 4;
+	else if (k == 4)		op_mode = MLKEM_ENCAP_1024		<< 4;
 	else					op_mode = MLKEM_ENCAP_512		<< 4;
+
+	unsigned int LEN_EK;
+	unsigned int LEN_CT;
+
+	if (k == 2)			LEN_EK = 800;
+	else if (k == 3)	LEN_EK = 1184;
+	else if (k == 4)	LEN_EK = 1568;
+	else				LEN_EK = 800;
+
+	if (k == 2)			LEN_CT = 768;
+	else if (k == 3)	LEN_CT = 1088;
+	else if (k == 4)	LEN_CT = 1568;
+	else				LEN_CT = 768;
 
 	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_RESET) & 0xFFFFFFFF); // MLKEM_RESET ON
 	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
 	// load_pk
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_PK) & 0xFFFFFFFF);  // MLKEM_START 
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_PK) & 0xFFFFFFFF);  // MLKEM_LOAD_PK 
 	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
-	for (int i = 0; i < (4 * 384); i++) {
+	for (int i = 0; i < ((LEN_EK - 32) / 8); i++) {
 		reg_addr = (unsigned long long int)(i);
 		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		if (i < k * 384)	reg_data_in = (unsigned long long int)(pk[i]);
-		else				reg_data_in = 0;
+		memcpy(&reg_data_in, pk + (8*i), 8);
 		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
 	}
 
-	int ind = k * 384;
+	// load_seed
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_COINS) & 0xFFFFFFFF);  // MLKEM_LOAD_SEED
+	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
-	for (int i = (4 * 384); i < (4 * 384) + 16; i++) {
+	for (int i = 0; i < 4; i++) {
 		reg_addr = (unsigned long long int)(i);
 		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		reg_data_in = (unsigned long long int)(pk[ind+1] << 8 | pk[ind]);
+		memcpy(&reg_data_in, pk + (8*i + (LEN_EK-32)), 8);
 		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
-
-		ind += 2;
 	}
+
+	// -- load msg (m) -- //
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_SS) & 0xFFFFFFFF); // LOAD_M
+	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
+
+	for (int i = 0; i < 4; i++) {
+		reg_addr = (unsigned long long int)(i);
+		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
+		reg_data_in = m64[i];
+		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
+	}
+
 
 	// start
 	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_START) & 0xFFFFFFFF); // MLKEM_START
@@ -309,128 +341,34 @@ void mlkem_enc_hw(int k, unsigned char* pk, unsigned char* ct, unsigned char* ss
 	while (!end_op) read_INTF(interface, &end_op, END_OP, sizeof(unsigned long long int));
 
 	// read ct
-	unsigned int i_end;
-
-	if (k == 4) i_end = (k * 352 + 160);
-	else		i_end = (k * 320 + 128);
-
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_CT) & 0xFFFFFFFF); // MLKEM_START
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_CT) & 0xFFFFFFFF);; // MLKEM_READ_CT
 	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
-	for (int i = 0; i < i_end; i++) {
+	for (int i = 0; i < (LEN_CT / 8); i++) {
 		reg_addr = (unsigned long long int)(i);
 		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
 		read_INTF(interface, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
-		// printf("\n %lld %llx", reg_addr, reg_data_out);
-		ct[i] = reg_data_out & 0xFF;
+		memcpy(ct + 8 * i, &reg_data_out, 8);
 	}
 
 	// read ss
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_SS) & 0xFFFFFFFF); // MLKEM_START
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_SS) & 0xFFFFFFFF); // MLKEM_READ_K(SS)
 	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
-	for (int i = 0; i < 32; i++) {
-		reg_addr = (unsigned long long int)(i);
+	for (int i = 0; i < 4; i++) {
+		reg_addr = (unsigned long long int)(i + (LEN_CT / 8));
 		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
 		read_INTF(interface, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
-		ss[i] = reg_data_out & 0xFF;
+		memcpy(ss + 8 * i, &reg_data_out, 8);
 	}
 
 }
 
-void mlkem_enc_coins_hw(int k, unsigned char* pk, unsigned char* ct, unsigned char* ss, unsigned char* coins, INTF interface) {
+void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface) {
 
 	unsigned long long int op;
 	unsigned long long int op_mode;
 
-	unsigned long long int reg_addr;
-	unsigned long long int reg_data_out;
-	unsigned long long int reg_data_in;
-
-	if (k == 2)				op_mode = MLKEM_ENCAP_512 << 4;
-	else if (k == 3)		op_mode = MLKEM_ENCAP_768 << 4;
-	else if (k == 4)		op_mode = MLKEM_ENCAP_1024 << 4;
-	else					op_mode = MLKEM_ENCAP_512 << 4;
-
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_RESET) & 0xFFFFFFFF); // MLKEM_RESET ON
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	// load_pk
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_PK) & 0xFFFFFFFF);  // MLKEM_START 
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < (4 * 384); i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		if (i < k * 384)	reg_data_in = (unsigned long long int)(pk[i]);
-		else				reg_data_in = 0;
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
-	}
-
-	int ind = k * 384;
-
-	for (int i = (4 * 384); i < (4 * 384) + 16; i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		reg_data_in = (unsigned long long int)(pk[ind + 1] << 8 | pk[ind]);
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
-
-		ind += 2;
-	}
-
-	// load ss
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_SS) & 0xFFFFFFFF);  // MLKEM_START 
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < 32; i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		reg_data_in = (unsigned long long int)(ss[i]);
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
-	}
-
-	// load coins
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_COINS) & 0xFFFFFFFF);  // MLKEM_START 
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < 32; i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		reg_data_in = (unsigned long long int)(coins[i]);
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
-	}
-
-	// start
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_START) & 0xFFFFFFFF); // MLKEM_START
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	unsigned long long int end_op = 0;
-	// wait END_OP
-	while (!end_op) read_INTF(interface, &end_op, END_OP, sizeof(unsigned long long int));
-
-	// read ct
-	unsigned int i_end;
-
-	if (k == 4) i_end = (k * 352 + 160);
-	else		i_end = (k * 320 + 128);
-
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_CT) & 0xFFFFFFFF); // MLKEM_START
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < i_end; i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		read_INTF(interface, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
-		// printf("\n %lld %llx", reg_addr, reg_data_out);
-		ct[i] = reg_data_out & 0xFF;
-	}
-
-}
-
-void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss, INTF interface) {
-
-	unsigned long long int op;
-	unsigned long long int op_mode;
 	unsigned long long int reg_addr;
 	unsigned long long int reg_data_out;
 	unsigned long long int reg_data_in;
@@ -440,36 +378,96 @@ void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss
 	else if (k == 4)		op_mode = MLKEM_DECAP_1024 << 4;
 	else					op_mode = MLKEM_DECAP_512 << 4;
 
+	unsigned int LEN_EK;
+	unsigned int LEN_DK;
+	unsigned int LEN_CT;
+
+	if (k == 2)			LEN_EK = 800;
+	else if (k == 3)	LEN_EK = 1184;
+	else if (k == 4)	LEN_EK = 1568;
+	else				LEN_EK = 800;
+
+	if (k == 2)			LEN_DK = 1632;
+	else if (k == 3)	LEN_DK = 2400;
+	else if (k == 4)	LEN_DK = 3168;
+	else				LEN_DK = 1632;
+
+	if (k == 2)			LEN_CT = 768;
+	else if (k == 3)	LEN_CT = 1088;
+	else if (k == 4)	LEN_CT = 1568;
+	else				LEN_CT = 768;
+
+	unsigned int LEN_PKE = LEN_DK - LEN_EK - 32 - 32;
+
 	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_RESET) & 0xFFFFFFFF);; // MLKEM_RESET ON
 	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
 	// load_sk
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_SK) & 0xFFFFFFFF);; // MLKEM_START
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_SK) & 0xFFFFFFFF);; // MLKEM_LOAD_SK
 	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
-	for (int i = 0; i < (k * 384); i++) {
+	for (int i = 0; i < (LEN_PKE / 8); i++) {
 		reg_addr = (unsigned long long int)(i);
 		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		if (i < k * 384)	reg_data_in = (unsigned long long int)(sk[i]);
-		else				reg_data_in = 0;
+		memcpy(&reg_data_in, sk + (8 * i), 8);
+		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
+	}
+
+	// load_pk
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_PK) & 0xFFFFFFFF);; // MLKEM_LOAD_PK
+	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
+
+	for (int i = 0; i < (LEN_PKE / 8); i++) {
+		reg_addr = (unsigned long long int)(i);
+		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
+		memcpy(&reg_data_in, sk + ((8 * i) + LEN_PKE), 8);
 		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
 	}
 
 	// load_ct
-	unsigned int i_end;
-
-	if (k == 4) i_end = (k * 352 + 160);
-	else		i_end = (k * 320 + 128);
-
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_CT) & 0xFFFFFFFF);; // MLKEM_START
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_CT) & 0xFFFFFFFF);; // MLKEM_LOAD_CT
 	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
-	for (int i = 0; i < i_end; i++) {
+	for (int i = 0; i < (LEN_CT / 8); i++) {
 		reg_addr = (unsigned long long int)(i);
 		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		reg_data_in = (unsigned long long int)(ct[i]);
+		memcpy(&reg_data_in, ct + (8 * i), 8);
 		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
 	}
+
+	// load_seed
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_COINS) & 0xFFFFFFFF);; // MLKEM_LOAD_SEED
+	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
+
+	for (int i = 0; i < 4; i++) {
+		reg_addr = (unsigned long long int)(i);
+		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
+		memcpy(&reg_data_in, sk + (8*i + (LEN_DK - 32 - 32 - 32)), 8);
+		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
+	}
+
+	// load_hek
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_HEK) & 0xFFFFFFFF);; // MLKEM_LOAD_SEED
+	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
+
+	for (int i = 0; i < 4; i++) {
+		reg_addr = (unsigned long long int)(i);
+		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
+		memcpy(&reg_data_in, sk + (8 * i + (LEN_DK - 32 - 32)), 8);
+		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
+	}
+
+	// load_z
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_PS) & 0xFFFFFFFF);; // MLKEM_LOAD_SEED
+	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
+
+	for (int i = 0; i < 4; i++) {
+		reg_addr = (unsigned long long int)(i);
+		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
+		memcpy(&reg_data_in, sk + (8 * i + (LEN_DK - 32)), 8);
+		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
+	}
+
 
 	// start
 	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_START) & 0xFFFFFFFF);; // MLKEM_START
@@ -479,16 +477,18 @@ void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss
 	// wait END_OP
 	while (!end_op) read_INTF(interface, &end_op, END_OP, sizeof(unsigned long long int));
 
+	*result = end_op; // 01: bad result, 11: good result
+	
 	// read ss
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_SS) & 0xFFFFFFFF);; // MLKEM_START
+	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_SS) & 0xFFFFFFFF); // MLKEM_READ_K(SS)
 	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
 
-	for (int i = 0; i < 32; i++) {
+	for (int i = 0; i < 4; i++) {
 		reg_addr = (unsigned long long int)(i);
 		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
 		read_INTF(interface, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
-		// printf("\n %llx", reg_data_out);
-		ss[i] = reg_data_out & 0xFF;
+		memcpy(ss + 8 * i, &reg_data_out, 8);
 	}
 
 }
+

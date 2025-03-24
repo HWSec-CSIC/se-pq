@@ -62,7 +62,7 @@
 #include "test_func.h"
 
 static void demo_sha3_perf_hw(unsigned int sel, unsigned char* input, unsigned int len_input, unsigned char* md, unsigned int len_shake, INTF interface) {
-
+ 
     if (sel == 0)           sha3_256_hw(input, len_input, md, interface);
     else if (sel == 1)      sha3_512_hw(input, len_input, md, interface);
     else if (sel == 2)      shake_128_hw(input, len_input, md, len_shake, interface);
@@ -74,6 +74,13 @@ static void demo_sha3_perf_hw(unsigned int sel, unsigned char* input, unsigned i
 
 
 void test_sha3_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsigned int verb, INTF interface) {
+
+#ifdef AXI
+    unsigned int clk_index = 0;
+    float clk_frequency;
+    float set_clk_frequency = FREQ_SHA3;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
 
     srand(time(NULL));   // Initialization, should only be called once.
 
@@ -100,19 +107,30 @@ void test_sha3_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsign
     else if (sel == 5)   printf("\n\n -- Test SHA3-384 --");
     */
 
+    int buf_len = 1000;
+
     unsigned char md[64];
-    unsigned char buf[100000];
+    unsigned char buf[buf_len];
     unsigned int mod = 1000;
     int ls;
+
+    seed_rng();
 
     // buf = malloc(1024);
     // md  = malloc(256);
     // md1 = malloc(256);
 
     for (unsigned int test = 1; test <= n_test; test++) {
-        int r = rand() % 100000;// 100000;
+        // int r = rand() % buf_len;// 100000;
+        int r = 64;
+
+        for (int i = 0; i < r; i++)
+        {
+            buf[i] = rand();
+        }
+        
         // ctr_drbg(buf, r);
-        trng_hw(buf, r, interface);
+        // trng_hw(buf, r, interface);
 
         if (sel == 0 | sel == 1)    ls = 64;
         else                        ls = 64;
@@ -140,5 +158,9 @@ void test_sha3_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsign
     // free(md);
     // free(md1);
 
+#ifdef AXI
+    set_clk_frequency = FREQ_TYPICAL;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
 
 }

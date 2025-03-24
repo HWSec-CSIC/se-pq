@@ -60,16 +60,18 @@
 
 `timescale 1ns / 1ps
 
-module AU_CORE(
+module AU_CORE #(
+    parameter COUNTER = 1
+    )(
     input               clk,
     input               rst,
+    input               fixed,
     input    [47:0]     control,
     input    [31:0]     data_in,
     output   [15:0]     data_out,
     input    [15:0]     add,
-    output              end_op
-    // output   [7:0]      len_rg,
-    // output              fail_rej_rg
+    output              end_op,
+    output              check_ct
     );
     
     wire [7:0] control_ntt;
@@ -92,27 +94,10 @@ module AU_CORE(
     assign start_au                             = (state_au[7:4] == 4'h3)   ? 1 : 0;
     assign read_au                              = (state_au[7:4] == 4'h4)   ? 1 : 0;
     assign reset_sha3                           = (state_au[7:4] == 4'h5)   ? 1 : 0;
-    assign gen_random_0                         = (state_au[7:4] == 4'h6)   ? 1 : 0;
-    assign gen_random_1                         = (state_au[7:4] == 4'h7)   ? 1 : 0;
-    assign gen_random_2                         = (state_au[7:4] == 4'h8)   ? 1 : 0;
+    assign load_ct                              = (state_au[7:4] == 4'h6)   ? 1 : 0;
+    assign comp_ct                              = (state_au[7:4] == 4'h7)   ? 1 : 0;
     assign end_program                          = (state_au[7:4] == 4'hF)   ? 1 : 0; 
     
-    /*
-    wire [255:0] seed;
-    reg  [15:0] REG_SEED [15:0];
-    
-    genvar i;
-    always @(posedge clk) begin
-        if(!rst | reset_au)     REG_SEED[0] <= 0;
-        else if(load_seed)      REG_SEED[add[3:0]] <= data_in;
-        else                    REG_SEED[0] <= REG_SEED[0];
-    end
-    generate 
-        for(i = 0; i < 16; i = i + 1) begin
-            assign seed[(16*(i+1) - 1):(16*i)] = REG_SEED[i];
-        end
-    endgenerate
-    */
     
      // --- NTT + INVNTT + ACC + ADD + SUB --- //
     
@@ -128,14 +113,6 @@ module AU_CORE(
         .r_out(data_out_ntt),    .control(control_ntt),
         .end_op(end_op_ntt)
     );
-    /*
-    poly_ntt_acc_add_sub poly_ntt_acc_add_sub
-     (  .clk(clk),              .rst(rst & !reset_au), 
-        .r_in(data_in_ntt),      .add(add_ntt),
-        .r_out(),    .control(control_ntt),
-        .end_op()
-    );
-    */
     
     assign data_in_ntt  =   data_in;
     assign add_ntt      =   add[7:0];
@@ -146,15 +123,12 @@ module AU_CORE(
     wire  [15:0]          data_in_sha3;
     wire  [15:0]          data_out_sha3;
     wire  [7:0]           add_sha3;
-    // wire  [7:0]           control_sha3;
     wire                  end_op_sha3;
-    
-    // wire [7:0]             x;
-    // wire [7:0]             y;
-    // assign x = control[19:16];
-    // assign y = control[23:20];
    
-     XOF_PRF_SHA3 XOF_PRF_SHA3
+     XOF_PRF_SHA3 #(
+     .COUNTER(COUNTER)
+     )
+     XOF_PRF_SHA3
      (  .clk(clk),              .rst(rst & !reset_au), 
         .load_seed(load_seed),  .x(x), .y(y),  
         .data_in(data_in_sha3),      .add(add_sha3),
@@ -170,7 +144,6 @@ module AU_CORE(
     wire  [15:0]          data_in_enc_dec;
     wire  [15:0]          data_out_enc_dec;
     wire  [15:0]          add_enc_dec;
-    // wire  [7:0]           control_enc_dec;
     wire                  end_op_enc_dec;
    
      ByteEncDec ByteEncDec
@@ -183,24 +156,31 @@ module AU_CORE(
     assign data_in_enc_dec  =   data_in;
     assign add_enc_dec      =   add;
     
-    // --- * GEN RANDOM * --- //
-     
-     wire   [15:0] rand_value;
-     reg    [15:0] rand_value_reg;
-     
-     random_gen RND (.clk(clk), .rst(rst), .rand(rand_value));
-     
-     assign gen_random = gen_random_0 | gen_random_1;
-     
-     always @(posedge clk) begin
-        if (!rst | reset_au)    rand_value_reg <= 0;
-        else begin
-            if(gen_random)          rand_value_reg <= rand_value;
-            else if(gen_random_2)   rand_value_reg <= rand_value & 16'h00FF;
-            else                    rand_value_reg <= rand_value_reg; 
-        end 
-     end
+    // --- 8 to 16 --- //
     
+    wire [15:0] data_out_8_16;
+    
+    X_to_Y #(.X(8), .Y(16)) 
+    adap_8_to_16 (
+        .clk(clk),
+        .rst(rst & !reset_au),
+        .enable(load_au),
+        .data_in(data_in),
+        .add(add),
+        .data_out(data_out_8_16)
+    );
+    
+    // --- CHECK_CT --- //
+    CHECK_CT
+    CHECK_CT (
+        .clk(clk),
+        .rst(rst & !reset_au),
+        .enable(load_ct),
+        .enable_comp(comp_ct),
+        .data_in(data_in),
+        .add_in(add),
+        .check_ct(check_ct)
+    );
     
     // --- Common outputs --- //
     wire sel_ntt;
@@ -215,7 +195,7 @@ module AU_CORE(
                 if(sel_ntt)         data_out_reg = data_out_ntt;
         else    if(sel_sha3)        data_out_reg = data_out_sha3;
         else    if(sel_enc_dec)     data_out_reg = data_out_enc_dec;
-        else                        data_out_reg = rand_value_reg;
+        else                        data_out_reg = data_out_8_16;
     end
     assign data_out     =   data_out_reg;
     
@@ -231,4 +211,85 @@ module AU_CORE(
     
    
       
+endmodule
+
+
+module X_to_Y #(
+    parameter X = 8,
+    parameter Y = 16
+)(
+    input clk,
+    input rst,
+    input enable,
+    input [X-1:0] data_in,
+    input [15:0] add,
+    output [Y-1:0] data_out
+);
+    generate
+        if(X == 8 & Y == 16) begin
+        
+        reg [15:0] reg_in;
+        
+        RAM #(.SIZE(256) ,.WIDTH(Y))
+        RAM 
+        (.clk(clk), .en_write(enable), .en_read(1), 
+        .addr_write(add >> 1), .addr_read(add),
+        .data_in(reg_in), .data_out(data_out));
+        /*
+        always @(posedge clk) begin
+            if(!rst) reg_in <= 0;
+            else begin
+                if(!add_in[0])  reg_in[07:00] <= data_in;
+                else            reg_in[15:08] <= data_in;
+            end
+        end
+        */
+         always @* begin
+                if(!add[0])  reg_in[07:00] = data_in;
+                else         reg_in[15:08] = data_in;
+        end
+        end
+    endgenerate
+endmodule
+
+module CHECK_CT 
+(
+    input clk,
+    input rst,
+    input enable,
+    input enable_comp,
+    input [7:0] data_in,
+    input [15:0] add_in,
+    output check_ct
+);
+    
+    reg check_ct_reg;
+    assign check_ct = check_ct_reg;
+    
+    wire [7:0] data_out;
+    RAM #(.SIZE(1600) ,.WIDTH(8))
+        RAM 
+        (.clk(clk), .en_write(enable), .en_read(1), 
+        .addr_write(add_in), .addr_read(add_in),
+        .data_in(data_in), .data_out(data_out));
+    
+    reg start;
+    
+    always @(posedge clk) begin
+        if(!rst | !start) check_ct_reg <= 0;
+        else begin
+            if((data_out ^ data_in) == 8'h0)  check_ct_reg <= check_ct_reg;
+            else                              check_ct_reg <= 1;
+        end 
+    
+    end
+    
+    always @(posedge clk) begin
+        if(!rst | !enable_comp) start <= 0;
+        else begin
+            if(add_in == 0)     start <= 1;
+            else                start <= 0;
+        end 
+    end
+    
 endmodule
