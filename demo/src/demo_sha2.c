@@ -70,6 +70,13 @@
 
 void demo_sha2_hw(unsigned int verb, INTF interface) {
 
+#ifdef AXI
+    unsigned int clk_index = 0;
+    float clk_frequency;
+    float set_clk_frequency = FREQ_SHA2;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
+
     // ---- SHA2 ---- //
     unsigned char* input;
     unsigned int len_input;
@@ -156,4 +163,8 @@ void demo_sha2_hw(unsigned int verb, INTF interface) {
     print_result_valid("SHA-512/256", memcmp(md, res_512_256, SHA256_DIGEST_LENGTH));
     free(md);
 
+#ifdef AXI
+    set_clk_frequency = FREQ_TYPICAL;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
 }

@@ -109,8 +109,14 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
     uint64_t time_total_en_hw = 0;
     uint64_t time_total_de_hw = 0;
 
-    // unsigned char msg[128] = "Hello, this is the SE of QUBIP project";
-    unsigned char msg[1024];
+    int msg_len = 128;
+
+    unsigned char msg_test[128] = "Hello, this is the SE of QUBIP project"; 
+
+    unsigned char msg[msg_len];
+    memcpy(msg, msg_test, msg_len);
+
+    // unsigned char msg[msg_len];
 
     // Variable declaration 
     // 128
@@ -127,8 +133,8 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
     unsigned char* ciphertext_128;
     unsigned int ciphertext_128_len;
 
-    ciphertext_128 = malloc(1080); memset(ciphertext_128, 0, 1080); // It is neccesary to add some bytes more
-    recovered_msg_128 = malloc(1024); memset(recovered_msg_128, 0, 1024);
+    ciphertext_128 = malloc(msg_len + 64); memset(ciphertext_128, 0, msg_len + 64); // It is neccesary to add some bytes more
+    recovered_msg_128 = malloc(msg_len); memset(recovered_msg_128, 0, msg_len);
 
     unsigned char* mac_128_sw;
     unsigned char* mac_128_hw;
@@ -150,8 +156,8 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
     unsigned char* ciphertext_192;
     unsigned int ciphertext_192_len;
 
-    ciphertext_192 = malloc(1080); memset(ciphertext_192, 0, 1080);
-    recovered_msg_192 = malloc(1024); memset(recovered_msg_192, 0, 1024);
+    ciphertext_192 = malloc(msg_len + 64); memset(ciphertext_192, 0, msg_len + 64);
+    recovered_msg_192 = malloc(msg_len); memset(recovered_msg_192, 0, msg_len);
 
     unsigned char* mac_192_sw;
     unsigned char* mac_192_hw;
@@ -173,8 +179,8 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
     unsigned char* ciphertext_256;
     unsigned int ciphertext_256_len;
 
-    ciphertext_256 = malloc(1080);  memset(ciphertext_256, 0, 1080);
-    recovered_msg_256 = malloc(1024); memset(recovered_msg_256, 0, 1024);
+    ciphertext_256 = malloc(msg_len + 64);  memset(ciphertext_256, 0, msg_len + 64);
+    recovered_msg_256 = malloc(msg_len); memset(recovered_msg_256, 0, msg_len);
 
     unsigned char* mac_256_sw;
     unsigned char* mac_256_hw;
@@ -215,39 +221,39 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
 
     for (int test = 1; test <= n_test; test++) {
 
-        ctr_drbg(msg, 1024);
+        ctr_drbg(msg, msg_len);
 
         if (verb >= 1) printf("\n test: %d", test);
 
         if (ecb) {
             if (bits == 128) {
                 start_t_sw = timeInMicroseconds();
-                aes_128_ecb_encrypt(key_128, ciphertext_128, &ciphertext_128_len, msg, 1024);
+                aes_128_ecb_encrypt(key_128, ciphertext_128, &ciphertext_128_len, msg, msg_len);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
                 
                 start_t_hw = timeInMicroseconds();
-                aes_128_ecb_encrypt_hw(key_128, ciphertext_128, &ciphertext_128_len, msg, 1024, interface);
+                aes_128_ecb_encrypt_hw(key_128, ciphertext_128, &ciphertext_128_len, msg, msg_len, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
             
             else if (bits == 192) {
                 start_t_sw = timeInMicroseconds();
-                aes_192_ecb_encrypt(key_192, ciphertext_192, &ciphertext_192_len, msg, 1024);
+                aes_192_ecb_encrypt(key_192, ciphertext_192, &ciphertext_192_len, msg, msg_len);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_192_ecb_encrypt_hw(key_192, ciphertext_192, &ciphertext_192_len, msg, 1024, interface);
+                aes_192_ecb_encrypt_hw(key_192, ciphertext_192, &ciphertext_192_len, msg, msg_len, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
             
 
             else if (bits == 256) {
                 start_t_sw = timeInMicroseconds();
-                aes_256_ecb_encrypt(key_256, ciphertext_256, &ciphertext_256_len, msg, 1024);
+                aes_256_ecb_encrypt(key_256, ciphertext_256, &ciphertext_256_len, msg, msg_len);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_256_ecb_encrypt_hw(key_256, ciphertext_256, &ciphertext_256_len, msg, 1024, interface);
+                aes_256_ecb_encrypt_hw(key_256, ciphertext_256, &ciphertext_256_len, msg, msg_len, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
 
@@ -310,51 +316,51 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
             if (tr_de_hw->time_max_value < time_hw)				tr_de_hw->time_max_value = time_hw;
 
             if (bits == 128) {
-                if (verb >= 3) { printf("\n original msg: "); show_array(msg, 1024, 32); }
-                if (verb >= 3) { printf("\n recover msg: "); show_array(recovered_msg_128, 1024, 32); }
-                if (!memcmp(msg, recovered_msg_128, 1024)) tr_de_hw->val_result++;
+                if (verb >= 3) { printf("\n original msg: "); show_array(msg, msg_len, 32); }
+                if (verb >= 3) { printf("\n recover msg: "); show_array(recovered_msg_128, msg_len, 32); }
+                if (!memcmp(msg, recovered_msg_128, msg_len)) tr_de_hw->val_result++;
             }
             else if (bits == 192) {
-                if (verb >= 3) { printf("\n original msg: "); show_array(msg, 1024, 32); }
-                if (verb >= 3) { printf("\n recover msg: "); show_array(recovered_msg_192, 1024, 32); }
-                if (!memcmp(msg, recovered_msg_192, 1024)) tr_de_hw->val_result++;
+                if (verb >= 3) { printf("\n original msg: "); show_array(msg, msg_len, 32); }
+                if (verb >= 3) { printf("\n recover msg: "); show_array(recovered_msg_192, msg_len, 32); }
+                if (!memcmp(msg, recovered_msg_192, msg_len)) tr_de_hw->val_result++;
             }
             else if (bits == 256) {
-                if (verb >= 3) { printf("\n original msg: "); show_array(msg, 1024, 32); }
-                if (verb >= 3) { printf("\n recover msg: "); show_array(recovered_msg_256, 1024, 32); }
-                if (!memcmp(msg, recovered_msg_256, 1024)) tr_de_hw->val_result++;
+                if (verb >= 3) { printf("\n original msg: "); show_array(msg, msg_len, 32); }
+                if (verb >= 3) { printf("\n recover msg: "); show_array(recovered_msg_256, msg_len, 32); }
+                if (!memcmp(msg, recovered_msg_256, msg_len)) tr_de_hw->val_result++;
             }
 
         }
         else if (cbc) {
             if (bits == 128) {
                 start_t_sw = timeInMicroseconds();
-                aes_128_cbc_encrypt(key_128, iv_128, ciphertext_128, &ciphertext_128_len, msg, 1024);
+                aes_128_cbc_encrypt(key_128, iv_128, ciphertext_128, &ciphertext_128_len, msg, msg_len);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_128_cbc_encrypt_hw(key_128, iv_128, ciphertext_128, &ciphertext_128_len, msg, 1024, interface);
+                aes_128_cbc_encrypt_hw(key_128, iv_128, ciphertext_128, &ciphertext_128_len, msg, msg_len, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
             
             else if (bits == 192) {
                 start_t_sw = timeInMicroseconds();
-                aes_192_cbc_encrypt(key_192, iv_192, ciphertext_192, &ciphertext_192_len, msg, 1024);
+                aes_192_cbc_encrypt(key_192, iv_192, ciphertext_192, &ciphertext_192_len, msg, msg_len);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_192_cbc_encrypt_hw(key_192, iv_192, ciphertext_192, &ciphertext_192_len, msg, 1024, interface);
+                aes_192_cbc_encrypt_hw(key_192, iv_192, ciphertext_192, &ciphertext_192_len, msg, msg_len, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
             
 
             else if (bits == 256) {
                 start_t_sw = timeInMicroseconds();
-                aes_256_cbc_encrypt(key_256, iv_256, ciphertext_256, &ciphertext_256_len, msg, 1024);
+                aes_256_cbc_encrypt(key_256, iv_256, ciphertext_256, &ciphertext_256_len, msg, msg_len);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_256_cbc_encrypt_hw(key_256, iv_256, ciphertext_256, &ciphertext_256_len, msg, 1024, interface);
+                aes_256_cbc_encrypt_hw(key_256, iv_256, ciphertext_256, &ciphertext_256_len, msg, msg_len, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
 
@@ -416,19 +422,19 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
             if (tr_de_hw->time_max_value < time_hw)				tr_de_hw->time_max_value = time_hw;
 
             if (bits == 128) {
-                if (verb >= 3) { printf("\n original msg: "); show_array(msg, 1024, 32); }
-                if (verb >= 3) { printf("\n recover msg: "); show_array(recovered_msg_128, 1024, 32); }
-                if (!memcmp(msg, recovered_msg_128, 1024)) tr_de_hw->val_result++;
+                if (verb >= 3) { printf("\n original msg: "); show_array(msg, msg_len, 32); }
+                if (verb >= 3) { printf("\n recover msg: "); show_array(recovered_msg_128, msg_len, 32); }
+                if (!memcmp(msg, recovered_msg_128, msg_len)) tr_de_hw->val_result++;
             }
             else if (bits == 192) {
-                if (verb >= 3) { printf("\n original msg: "); show_array(msg, 1024, 32); }
-                if (verb >= 3) { printf("\n recover msg: "); show_array(recovered_msg_192, 1024, 32); }
-                if (!memcmp(msg, recovered_msg_192, 1024)) tr_de_hw->val_result++;
+                if (verb >= 3) { printf("\n original msg: "); show_array(msg, msg_len, 32); }
+                if (verb >= 3) { printf("\n recover msg: "); show_array(recovered_msg_192, msg_len, 32); }
+                if (!memcmp(msg, recovered_msg_192, msg_len)) tr_de_hw->val_result++;
             }
             else if (bits == 256) {
-                if (verb >= 3) { printf("\n original msg: "); show_array(msg, 1024, 32); }
-                if (verb >= 3) { printf("\n recover msg: "); show_array(recovered_msg_256, 1024, 32); }
-                if (!memcmp(msg, recovered_msg_256, 1024)) tr_de_hw->val_result++;
+                if (verb >= 3) { printf("\n original msg: "); show_array(msg, msg_len, 32); }
+                if (verb >= 3) { printf("\n recover msg: "); show_array(recovered_msg_256, msg_len, 32); }
+                if (!memcmp(msg, recovered_msg_256, msg_len)) tr_de_hw->val_result++;
             }
 
         }
@@ -436,29 +442,29 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
         else if (gcm) {
             if (bits == 128) {
                 start_t_sw = timeInMicroseconds();
-                aes_128_gcm_encrypt(key_128, iv_128, 16, ciphertext_128, &ciphertext_128_len, msg, 1024, add_128, 16, tag);
+                aes_128_gcm_encrypt(key_128, iv_128, 16, ciphertext_128, &ciphertext_128_len, msg, msg_len, add_128, 16, tag);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_128_gcm_encrypt_hw(key_128, iv_128, 16, ciphertext_128, &ciphertext_128_len, msg, 1024, add_128, 16, tag, interface);
+                aes_128_gcm_encrypt_hw(key_128, iv_128, 16, ciphertext_128, &ciphertext_128_len, msg, msg_len, add_128, 16, tag, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
             else if (bits == 192) {
                 start_t_sw = timeInMicroseconds();
-                aes_192_gcm_encrypt(key_192, iv_192, 16, ciphertext_192, &ciphertext_192_len, msg, 1024, add_192, 16, tag);
+                aes_192_gcm_encrypt(key_192, iv_192, 16, ciphertext_192, &ciphertext_192_len, msg, msg_len, add_192, 16, tag);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_192_gcm_encrypt_hw(key_192, iv_192, 16, ciphertext_192, &ciphertext_192_len, msg, 1024, add_192, 16, tag, interface);
+                aes_192_gcm_encrypt_hw(key_192, iv_192, 16, ciphertext_192, &ciphertext_192_len, msg, msg_len, add_192, 16, tag, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
             else if (bits == 256) {
                 start_t_sw = timeInMicroseconds();
-                aes_256_gcm_encrypt(key_256, iv_256, 16, ciphertext_256, &ciphertext_256_len, msg, 1024, add_256, 16, tag);
+                aes_256_gcm_encrypt(key_256, iv_256, 16, ciphertext_256, &ciphertext_256_len, msg, msg_len, add_256, 16, tag);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_256_gcm_encrypt_hw(key_256, iv_256, 16, ciphertext_256, &ciphertext_256_len, msg, 1024, add_256, 16, tag, interface);
+                aes_256_gcm_encrypt_hw(key_256, iv_256, 16, ciphertext_256, &ciphertext_256_len, msg, msg_len, add_256, 16, tag, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
 
@@ -536,29 +542,29 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
         else if (ccm) {
             if (bits == 128) {
                 start_t_sw = timeInMicroseconds();
-                aes_128_ccm_8_encrypt(key_128, iv_128, 8, ciphertext_128, &ciphertext_128_len, msg, 1024, add_128, 16, tag_8);
+                aes_128_ccm_8_encrypt(key_128, iv_128, 8, ciphertext_128, &ciphertext_128_len, msg, msg_len, add_128, 16, tag_8);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_128_ccm_8_encrypt_hw(key_128, iv_128, 8, ciphertext_128, &ciphertext_128_len, msg, 1024, add_128, 16, tag_8, interface);
+                aes_128_ccm_8_encrypt_hw(key_128, iv_128, 8, ciphertext_128, &ciphertext_128_len, msg, msg_len, add_128, 16, tag_8, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
             else if (bits == 192) {
                 start_t_sw = timeInMicroseconds();
-                aes_192_ccm_8_encrypt(key_192, iv_192, 8, ciphertext_192, &ciphertext_192_len, msg, 1024, add_192, 16, tag_8);
+                aes_192_ccm_8_encrypt(key_192, iv_192, 8, ciphertext_192, &ciphertext_192_len, msg, msg_len, add_192, 16, tag_8);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_192_ccm_8_encrypt_hw(key_192, iv_192, 8, ciphertext_192, &ciphertext_192_len, msg, 1024, add_192, 16, tag_8, interface);
+                aes_192_ccm_8_encrypt_hw(key_192, iv_192, 8, ciphertext_192, &ciphertext_192_len, msg, msg_len, add_192, 16, tag_8, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
             else if (bits == 256) {
                 start_t_sw = timeInMicroseconds();
-                aes_256_ccm_8_encrypt(key_256, iv_256, 8, ciphertext_256, &ciphertext_256_len, msg, 1024, add_256, 16, tag_8);
+                aes_256_ccm_8_encrypt(key_256, iv_256, 8, ciphertext_256, &ciphertext_256_len, msg, msg_len, add_256, 16, tag_8);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_256_ccm_8_encrypt_hw(key_256, iv_256, 8, ciphertext_256, &ciphertext_256_len, msg, 1024, add_256, 16, tag_8, interface);
+                aes_256_ccm_8_encrypt_hw(key_256, iv_256, 8, ciphertext_256, &ciphertext_256_len, msg, msg_len, add_256, 16, tag_8, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW ENCRYPT: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
 
@@ -637,31 +643,31 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
         else if (cmac) {
             if (bits == 128) {
                 start_t_sw = timeInMicroseconds();
-                aes_128_cmac(key_128, mac_128_sw, &mac_128_len, msg, 1024);
+                aes_128_cmac(key_128, mac_128_sw, &mac_128_len, msg, msg_len);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW CMAC: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_128_cmac_hw(key_128, mac_128_hw, &mac_128_len, msg, 1024, interface);
+                aes_128_cmac_hw(key_128, mac_128_hw, &mac_128_len, msg, msg_len, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW CMAC: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
             
             else if (bits == 192) {
                 start_t_sw = timeInMicroseconds();
-                aes_192_cmac(key_192, mac_192_sw, &mac_192_len, msg, 1024, interface);
+                aes_192_cmac(key_192, mac_192_sw, &mac_192_len, msg, msg_len, interface);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW CMAC: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_192_cmac_hw(key_192, mac_192_hw, &mac_192_len, msg, 1024, interface);
+                aes_192_cmac_hw(key_192, mac_192_hw, &mac_192_len, msg, msg_len, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW CMAC: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
             
             else if (bits == 256) {
                 start_t_sw = timeInMicroseconds();
-                aes_256_cmac(key_256, mac_256_sw, &mac_256_len, msg, 1024);
+                aes_256_cmac(key_256, mac_256_sw, &mac_256_len, msg, msg_len);
                 stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW CMAC: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
                 start_t_hw = timeInMicroseconds();
-                aes_256_cmac_hw(key_256, mac_256_hw, &mac_256_len, msg, 1024, interface);
+                aes_256_cmac_hw(key_256, mac_256_hw, &mac_256_len, msg, msg_len, interface);
                 stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW CMAC: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
             }
 

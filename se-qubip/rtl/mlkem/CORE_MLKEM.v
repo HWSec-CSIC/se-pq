@@ -55,25 +55,29 @@
   *
   *
   * @author Eros Camacho-Ruiz (camacho@imse-cnm.csic.es)
-  * @version 1.0
+  * @version 2.0
   **/
 
 `timescale 1ns / 1ps
 
-module CORE_MLKEM(
+module CORE_MLKEM #(
+    parameter COUNTERMEASURES = 0
+    )(
     input           clk,
     input           rst,
+    input           fixed,
     input   [7:0]   control,
     input   [15:0]  data_in,
     input   [15:0]  add,
     output  [15:0]  data_out,
-    output          end_op
+    output  [1:0]   end_op
     );
     // -- Control signals -- //
     wire [3:0] op;
     assign op = control[3:0];
-    
+   
     wire reset;
+    wire load_coins;
     wire load_sk;
     wire read_sk;
     wire load_pk;
@@ -82,23 +86,35 @@ module CORE_MLKEM(
     wire read_ct;
     wire load_ss;
     wire read_ss;
+    wire load_hek;
+    wire read_hek;
+    wire load_ps;
+    wire read_ps;
     wire start;
     
-    assign reset        = (op == 4'b0000) ? 1 : 0;
-    assign load_sk      = (op == 4'b0100) ? 1 : 0;
-    assign read_sk      = (op == 4'b0101) ? 1 : 0;
-    assign load_pk      = (op == 4'b0110) ? 1 : 0;
-    assign read_pk      = (op == 4'b0111) ? 1 : 0;
-    assign load_ct      = (op == 4'b1000) ? 1 : 0;
-    assign read_ct      = (op == 4'b1001) ? 1 : 0;
-    assign load_ss      = (op == 4'b1010) ? 1 : 0;
-    assign read_ss      = (op == 4'b1011) ? 1 : 0;
-    assign start        = (op == 4'b1100) ? 1 : 0;
+    assign reset        = (op == 4'b0001) ? 1 : 0;
+    assign load_coins   = (op == 4'b0010) ? 1 : 0;
+    assign load_sk      = (op == 4'b0011) ? 1 : 0;
+    assign read_sk      = (op == 4'b0100) ? 1 : 0;
+    assign load_pk      = (op == 4'b0101) ? 1 : 0;
+    assign read_pk      = (op == 4'b0110) ? 1 : 0;
+    assign load_ct      = (op == 4'b0111) ? 1 : 0;
+    assign read_ct      = (op == 4'b1000) ? 1 : 0;
+    assign load_ss      = (op == 4'b1001) ? 1 : 0;
+    assign read_ss      = (op == 4'b1010) ? 1 : 0;
+    assign load_hek     = (op == 4'b1011) ? 1 : 0;
+    assign read_hek     = (op == 4'b1100) ? 1 : 0;
+    assign load_ps      = (op == 4'b1101) ? 1 : 0;
+    assign read_ps      = (op == 4'b1110) ? 1 : 0;
+    assign start        = (op == 4'b1111) ? 1 : 0;
     
     wire load_data; 
-    assign load_data = load_sk | load_pk | load_ct | load_ss;
+    assign load_data = load_sk | load_pk | load_ct | load_ss | load_coins | load_hek | load_ps;
     wire read_data;
-    assign read_data = read_sk | read_pk | read_ct | read_ss;
+    assign read_data = read_sk | read_pk | read_ct | read_ss | read_hek | read_ps;
+    
+    wire [15:0] data_in_dmu;
+    wire load_fifo;
     
     // -- Mode signals -- //
     wire [3:0] mode;
@@ -125,13 +141,17 @@ module CORE_MLKEM(
     wire [15:0] add_core;
     wire        end_op_core; 
     
-    AU_CORE    AU_CORE
-    (   .clk(clk), .rst(rst),
+    AU_CORE #(
+        .COUNTER(COUNTERMEASURES)
+    )   
+    AU_CORE
+    (   .clk(clk), .rst(rst), .fixed(fixed),
         .control(control_core),
         .data_in(data_in_core),
         .data_out(data_out_core),
         .add(add_core),
-        .end_op(end_op_core)
+        .end_op(end_op_core),
+        .check_ct(check_ct)
      );
     
     // --- MEM CORE --- // 
@@ -166,12 +186,12 @@ module CORE_MLKEM(
     
     // --- CONTROL CORE --- //
     wire [7:0] deco_concat;
+    wire end_op_control;
     
     wire [2:0] en_w;
     assign en_w_0 = en_w[0];
     assign en_w_1 = en_w[1];
     assign en_w_2 = en_w[2];
-    
     
     CONTROL_CORE  CONTROL_CORE
     (
@@ -186,8 +206,16 @@ module CORE_MLKEM(
     .add_1(add_1),
     .add_2(add_2),
     .en_w(en_w),
-    .end_op(end_op)
+    .end_op(end_op_control)
     );
+    
+    reg [1:0] end_op_reg;
+    always @* begin
+                if(end_op_control &  check_ct)  end_op_reg = 2'b01; // Bad End
+        else    if(end_op_control & !check_ct)  end_op_reg = 2'b11; // Good End
+        else                                    end_op_reg = 2'b00; // Not end
+    end
+    assign end_op = end_op_reg;
     
     // --- DMU CORE  --- //
     DMU_CORE DMU_CORE (
@@ -207,12 +235,13 @@ module CORE_MLKEM(
     reg [15:0] data_out_reg;
     
     always @* begin
-        if(read_pk | (read_sk & !gen_keys))                 data_out_reg = data_out_1;
-        else if(read_ct | read_ss | (read_sk & gen_keys))   data_out_reg = data_out_2;
-        else                                                data_out_reg = data_out_0; 
+        if(read_pk | (read_sk & !gen_keys) | read_ps)                           data_out_reg = data_out_1;
+        else if(read_ct | read_ss | (read_sk & gen_keys) | read_hek)            data_out_reg = data_out_2;
+        else                                                                    data_out_reg = data_out_0; 
     
     end
     assign data_out = data_out_reg;
+
 
 endmodule
 
@@ -245,24 +274,32 @@ module CONTROL_CORE (
     wire read_ct;
     wire load_ss;
     wire read_ss;
+    wire load_hek;
+    wire read_hek;
+    wire load_ps;
+    wire read_ps;
     wire start;
     
     assign reset        = (op == 4'b0001) ? 1 : 0;
     assign load_coins   = (op == 4'b0010) ? 1 : 0;
-    assign load_sk      = (op == 4'b0100) ? 1 : 0;
-    assign read_sk      = (op == 4'b0101) ? 1 : 0;
-    assign load_pk      = (op == 4'b0110) ? 1 : 0;
-    assign read_pk      = (op == 4'b0111) ? 1 : 0;
-    assign load_ct      = (op == 4'b1000) ? 1 : 0;
-    assign read_ct      = (op == 4'b1001) ? 1 : 0;
-    assign load_ss      = (op == 4'b1010) ? 1 : 0;
-    assign read_ss      = (op == 4'b1011) ? 1 : 0;
-    assign start        = (op == 4'b1100) ? 1 : 0;
+    assign load_sk      = (op == 4'b0011) ? 1 : 0;
+    assign read_sk      = (op == 4'b0100) ? 1 : 0;
+    assign load_pk      = (op == 4'b0101) ? 1 : 0;
+    assign read_pk      = (op == 4'b0110) ? 1 : 0;
+    assign load_ct      = (op == 4'b0111) ? 1 : 0;
+    assign read_ct      = (op == 4'b1000) ? 1 : 0;
+    assign load_ss      = (op == 4'b1001) ? 1 : 0;
+    assign read_ss      = (op == 4'b1010) ? 1 : 0;
+    assign load_hek     = (op == 4'b1011) ? 1 : 0;
+    assign read_hek     = (op == 4'b1100) ? 1 : 0;
+    assign load_ps      = (op == 4'b1101) ? 1 : 0;
+    assign read_ps      = (op == 4'b1110) ? 1 : 0;
+    assign start        = (op == 4'b1111) ? 1 : 0;
     
     wire load_data; 
-    assign load_data = load_sk | load_pk | load_ct | load_ss | load_coins;
+    assign load_data = load_sk | load_pk | load_ct | load_ss | load_coins | load_hek | load_ps;
     wire read_data;
-    assign read_data = read_sk | read_pk | read_ct | read_ss;
+    assign read_data = read_sk | read_pk | read_ct | read_ss | read_hek | read_ps | end_op;
     
     // -- Mode signals -- //
     wire [3:0] mode;
@@ -291,9 +328,9 @@ module CONTROL_CORE (
     reg  [15:0] reg_add1;
     reg  [15:0] reg_add2;
     
-    assign add_0 = (load_data | read_data) ? (ini_add0 + add) : (reg_add0);
-    assign add_1 = (load_data | read_data) ? (ini_add1 + add) : (reg_add1);
-    assign add_2 = (load_data | read_data) ? (ini_add2 + add) : (reg_add2);
+    assign add_0 = (load_data | read_data | end_op) ? (ini_add0 + add) : (reg_add0);
+    assign add_1 = (load_data | read_data | end_op) ? (ini_add1 + add) : (reg_add1);
+    assign add_2 = (load_data | read_data | end_op) ? (ini_add2 + add) : (reg_add2);
     
     assign deco_concat = concaten;
     
@@ -319,27 +356,24 @@ module CONTROL_CORE (
     wire read_au;
     wire end_program;
     wire reset_sha3;
-    wire gen_random_0;
-    wire gen_random_1;
-    wire gen_random_2;
-    wire gen_random;
+    wire load_au_ct;
+    wire comp_ct;
     reg save_ss;
     reg save_coins;
-    assign gen_random = gen_random_0 | (gen_random_1 & !save_coins) | (gen_random_2 & !save_ss);
     
     always @(posedge clk) begin
-        if(!rst | end_op)   save_ss <= 0;
+        if(!rst | end_op | reset)   save_ss <= 0;
         else begin
-            if(load_ss)     save_ss <= 1;
-            else            save_ss <= save_ss;
+            if(load_ss)             save_ss <= 1;
+            else                    save_ss <= save_ss;
         end
     end
     
     always @(posedge clk) begin
-        if(!rst | end_op)   save_coins <= 0;
+        if(!rst | end_op | reset)   save_coins <= 0;
         else begin
-            if(load_coins)  save_coins <= 1;
-            else            save_coins <= save_coins;
+            if(load_coins)          save_coins <= 1;
+            else                    save_coins <= save_coins;
         end
     end
     
@@ -357,9 +391,6 @@ module CONTROL_CORE (
 	localparam READ_INI_ADD        = 8'h31; 
 	localparam READ_ADD_COUNT      = 8'h32; 
 	localparam READ_END            = 8'h33;
-	localparam START_RANDOM        = 8'h40;
-	localparam OP_RANDOM           = 8'h41;
-	localparam LOAD_RANDOM         = 8'h42;
 	localparam UPDATE_INSTRUCTION  = 8'hF0;
 	localparam END_OP              = 8'hFF;
 	
@@ -376,15 +407,15 @@ module CONTROL_CORE (
 	wire           end_counter;
 	wire           end_random;
 	
-	assign ns          = (counter_cycles[0] == 1'b1)   ? 1 : 0;
-	assign fs          = (counter_cycles == 0)         ? 1 : 0;
-	assign end_op      = (current_state == END_OP)     ? 1 : 0;
+	assign ns          = (counter_cycles[0] == 1'b1)                           ? 1 : 0;
+	assign fs          = (counter_cycles == 0)                                 ? 1 : 0;
+	assign end_op      = (current_state == END_OP | current_state == READ)     ? 1 : 0;
 	assign add_core    = counter_add;
 	
 	//--*** STATE initialization **--//
 	 always @(posedge clk)
 		begin
-			if (!rst)    
+			if (!rst | reset)    
 			     current_state <= IDLE;
 			else
 			     current_state <= next_state;
@@ -411,13 +442,14 @@ module CONTROL_CORE (
 				        next_state = START;
 			    LOAD_INSTRUCTION:
 					if (ns) begin
-					   if      (load_au | load_seed | reset_sha3)      next_state = LOAD_INI_ADD;
-					   else if (start_au)                              next_state = START_OP;
-					   else if (read_au | gen_random)                  next_state = READ_INI_ADD;
-					   else if (end_program)                           next_state = END_OP;
-					   else                                            next_state = UPDATE_INSTRUCTION;
+					   if      (   load_au | load_seed | reset_sha3 | 
+					               load_au_ct | comp_ct)                           next_state = LOAD_INI_ADD;
+					   else if (start_au)                                          next_state = START_OP;
+					   else if (read_au)                                           next_state = READ_INI_ADD;
+					   else if (end_program)                                       next_state = END_OP;
+					   else                                                        next_state = UPDATE_INSTRUCTION;
 					end
-					else                                               next_state = LOAD_INSTRUCTION;
+					else                                                           next_state = LOAD_INSTRUCTION;
 				LOAD_INI_ADD:
 				    if (ns)
 						next_state = LOAD_ADD_COUNT;
@@ -482,9 +514,9 @@ module CONTROL_CORE (
 	wire load_ram0;
 	wire load_ram1;
 	wire load_ram2;
-	assign load_ram0 = 0;
-	assign load_ram1 = (gen_keys) ? load_pk : (load_sk | load_pk);
-	assign load_ram2 = (gen_keys) ? load_sk : (load_ct | load_ss);
+	assign load_ram0 = load_ct;
+	assign load_ram1 = (gen_keys) ? (load_coins)   : (load_pk | load_coins | load_ps);
+	assign load_ram2 = (gen_keys) ? (load_ss)      : (load_sk | load_ss | load_hek);
 	assign en_w0 = (((current_state == READ_ADD_COUNT) & (concaten[7:4] == 4'h0)) | load_ram0 ) ? 1 : 0;
 	assign en_w1 = (((current_state == READ_ADD_COUNT) & (concaten[7:4] == 4'h1)) | load_ram1 ) ? 1 : 0;
 	assign en_w2 = (((current_state == READ_ADD_COUNT) & (concaten[7:4] == 4'h2)) | load_ram2 ) ? 1 : 0;
@@ -509,9 +541,9 @@ module CONTROL_CORE (
     assign start_au                             = (state_au[7:4] == 4'h3) ? 1 : 0;
     assign read_au                              = (state_au[7:4] == 4'h4) ? 1 : 0;
     assign reset_sha3                           = (state_au[7:4] == 4'h5) ? 1 : 0;
-    assign gen_random_0                         = (state_au[7:4] == 4'h6) ? 1 : 0;
-    assign gen_random_1                         = (state_au[7:4] == 4'h7) ? 1 : 0;
-    assign gen_random_2                         = (state_au[7:4] == 4'h8) ? 1 : 0;
+    assign load_au_ct                           = (state_au[7:4] == 4'h6) ? 1 : 0;
+    assign comp_ct                              = (state_au[7:4] == 4'h7) ? 1 : 0;
+    assign do_nothing                           = (state_au[7:4] == 4'h9) ? 1 : 0;
     assign end_program                          = (state_au[7:4] == 4'hF) ? 1 : 0; 
     
     assign param_256                            = (state_au[3:0] == 4'h0) ? 1 : 0;
@@ -526,6 +558,10 @@ module CONTROL_CORE (
     assign param_KYBER_CIPHERTEXT_2             = (state_au[3:0] == 4'h9) ? 1 : 0; // 640 - 959 .. 704 - 1055
     assign param_KYBER_CIPHERTEXT_3             = (state_au[3:0] == 4'hA) ? 1 : 0; // 1056 - 1407
     assign param_KYBER_CIPHERTEXT_128           = (state_au[3:0] == 4'hB) ? 1 : 0; // +128
+    assign param_128                            = (state_au[3:0] == 4'hC) ? 1 : 0;
+    assign param_NOISE                          = (state_au[3:0] == 4'hD) ? 1 : 0;
+    assign param_HEK                            = (state_au[3:0] == 4'hE) ? 1 : 0;
+    assign param_NOISE_2                        = (state_au[3:0] == 4'hF) ? 1 : 0;
 
     
     localparam KYBER_PUBLICKEYBYTES_512     = 800 - 32;
@@ -541,6 +577,11 @@ module CONTROL_CORE (
     reg [15:0] val_counter;
     always @* begin
                 if(param_256)                           val_counter = 256;
+        else    if(load_au_ct | comp_ct) begin
+                        if(k_2)                         val_counter = KYBER_CIPHERTEXTBYTES_512;
+                else    if(k_3)                         val_counter = KYBER_CIPHERTEXTBYTES_768;
+                else                                    val_counter = KYBER_CIPHERTEXTBYTES_1024;
+        end
         else    if( param_KYBER_KEY_0 | 
                     param_KYBER_KEY_1 |
                     param_KYBER_KEY_2 | 
@@ -557,7 +598,9 @@ module CONTROL_CORE (
                         else                            val_counter = 128;
                     end                                    
         else    if(param_SEED)                          val_counter = 16;
-        else    if(param_32)                            val_counter = 32;
+        else    if(param_32  | param_NOISE | param_NOISE_2)             val_counter = 32;
+        else    if(param_128)                           val_counter = 128;
+        else    if(param_HEK)                           val_counter = 136;
         else                                            val_counter = 256;                 
     end
     
@@ -613,6 +656,17 @@ module CONTROL_CORE (
     always @(posedge clk) begin
         if(!rst | reset)    counter_cycles <= 0;
         else                counter_cycles <= counter_cycles + 1;
+    end
+    
+    reg [3:0] hek_counter;
+    always @(posedge clk) begin
+        if(!rst | reset)    hek_counter <= 0;
+        else begin
+        if(ns & param_HEK & (current_state == UPDATE_INSTRUCTION) & !do_nothing) 
+                hek_counter <= hek_counter + 1;
+            else
+                hek_counter <= hek_counter;
+        end
     end
     
     // --- * ROM DATA * --- //
@@ -682,50 +736,77 @@ module CONTROL_CORE (
     reg [15:0] ini_add_0_reg;
     
     always @* begin
-                if(gen_keys & (load_sk | read_sk))          ini_add_2_reg = 16'h0900;
-        else    if(load_ct | read_ct)                       ini_add_2_reg = 16'h0900;
-        else    if(load_ss | read_ss)                       ini_add_2_reg = 16'h1000;
-        else    if(gen_random_2)                            ini_add_2_reg = 16'h1000;
-        else    if(param_KYBER_KEY_0)                       ini_add_2_reg = 16'h0900;
-        else    if(param_KYBER_KEY_1)                       ini_add_2_reg = 16'h0A80;
-        else    if(param_KYBER_KEY_2)                       ini_add_2_reg = 16'h0C00;
-        else    if(param_KYBER_KEY_3)                       ini_add_2_reg = 16'h0D80;
-        else    if(param_KYBER_CIPHERTEXT_0)                ini_add_2_reg = 16'h0900;
+                if((gen_keys | decap) & (load_sk | read_sk)) ini_add_2_reg = 16'h0900;
+        else    if(read_ct)                                  ini_add_2_reg = 16'h0900;
+        else    if(load_ss | read_ss)                        ini_add_2_reg = 16'h1000;
+        else    if(load_hek | read_hek)                      ini_add_2_reg = 16'h0F00;
+        else    if(param_KYBER_KEY_0)                        ini_add_2_reg = 16'h0900;
+        else    if(param_KYBER_KEY_1)                        ini_add_2_reg = 16'h0A80;
+        else    if(param_KYBER_KEY_2)                        ini_add_2_reg = 16'h0C00;
+        else    if(param_KYBER_KEY_3)                        ini_add_2_reg = 16'h0D80;
+        else    if(param_KYBER_CIPHERTEXT_0)                 ini_add_2_reg = 16'h0900;
         else    if(param_KYBER_CIPHERTEXT_1) begin
-                if(k_4)                                     ini_add_2_reg = 16'h0A60; //352
-                else                                        ini_add_2_reg = 16'h0A40; //320
+                if(k_4)                                      ini_add_2_reg = 16'h0A60; //352
+                else                                         ini_add_2_reg = 16'h0A40; //320
         end               
         else    if(param_KYBER_CIPHERTEXT_2) begin
-                if(k_4)                                     ini_add_2_reg = 16'h0BC0; //704
-                else                                        ini_add_2_reg = 16'h0B80; //640
+                if(k_4)                                      ini_add_2_reg = 16'h0BC0; //704
+                else                                         ini_add_2_reg = 16'h0B80; //640
         end               
         else    if(param_KYBER_CIPHERTEXT_3) begin
-                if(k_4)                                     ini_add_2_reg = 16'h0D20; //1056
-                else                                        ini_add_2_reg = 16'h0CC0; //960
+                if(k_4)                                      ini_add_2_reg = 16'h0D20; //1056
+                else                                         ini_add_2_reg = 16'h0CC0; //960
         end 
         else    if(param_KYBER_CIPHERTEXT_128) begin
-                     if(k_2)                                ini_add_2_reg = 16'h0B80; //640
-                else if(k_3)                                ini_add_2_reg = 16'h0CC0; //960
-                else                                        ini_add_2_reg = 16'h0E80; //1408
+                     if(k_2)                                 ini_add_2_reg = 16'h0B80; //640
+                else if(k_3)                                 ini_add_2_reg = 16'h0CC0; //960
+                else                                         ini_add_2_reg = 16'h0E80; //1408
         end                  
-        else                                                ini_add_2_reg = (out_rom[15:08] << 8);
+        else                                                 ini_add_2_reg = (out_rom[15:08] << 8);
     end
     
     always @* begin
                 if(load_pk | load_sk | read_pk | read_sk)   ini_add_1_reg = 16'h0900;
-        else    if(gen_random_0)                            ini_add_1_reg = 16'h0F00;
-        else    if(gen_random_1 | load_coins)               ini_add_1_reg = 16'h1000;
+        else    if(load_ps | read_ps)                       ini_add_1_reg = 16'h0F00;
+        else    if(load_coins)                              ini_add_1_reg = 16'h1000;
         else    if(param_KYBER_KEY_0)                       ini_add_1_reg = 16'h0900;
         else    if(param_KYBER_KEY_1)                       ini_add_1_reg = 16'h0A80;
         else    if(param_KYBER_KEY_2)                       ini_add_1_reg = 16'h0C00;
         else    if(param_KYBER_KEY_3)                       ini_add_1_reg = 16'h0D80;
+        else    if(param_NOISE)                             ini_add_1_reg = 16'h0FF0;
+        else    if(param_NOISE_2)                           ini_add_1_reg = 16'h0EF0;
+        else    if(param_HEK)                               ini_add_1_reg = 16'h0900 + hek_counter*136;
         else                                                ini_add_1_reg = (out_rom[23:16] << 8);
+    end
+    
+     always @* begin
+                if(load_ct)                                  ini_add_0_reg = 16'h0900;
+        else    if(param_KYBER_CIPHERTEXT_0)                 ini_add_0_reg = 16'h0900;
+        else    if(param_KYBER_CIPHERTEXT_1) begin                   
+                if(k_4)                                      ini_add_0_reg = 16'h0A60; //352
+                else                                         ini_add_0_reg = 16'h0A40; //320
+        end                                                          
+        else    if(param_KYBER_CIPHERTEXT_2) begin                   
+                if(k_4)                                      ini_add_0_reg = 16'h0BC0; //704
+                else                                         ini_add_0_reg = 16'h0B80; //640
+        end                                                          
+        else    if(param_KYBER_CIPHERTEXT_3) begin                   
+                if(k_4)                                      ini_add_0_reg = 16'h0D20; //1056
+                else                                         ini_add_0_reg = 16'h0CC0; //960
+        end                                                          
+        else    if(param_KYBER_CIPHERTEXT_128) begin                 
+                     if(k_2)                                 ini_add_0_reg = 16'h0B80; //640
+                else if(k_3)                                 ini_add_0_reg = 16'h0CC0; //960
+                else                                         ini_add_0_reg = 16'h0E80; //1408
+        end 
+        else    if(param_HEK)                                ini_add_0_reg = 16'h0900 + hek_counter*136;
+        else                                                 ini_add_0_reg = out_rom[31:24] << 8;
     end
     
     assign concaten     =   out_rom[07:00];
     assign ini_add2     =   ini_add_2_reg;
     assign ini_add1     =   ini_add_1_reg;
-    assign ini_add0     =   out_rom[31:24] << 8;
+    assign ini_add0     =   ini_add_0_reg;
     assign control_ntt  =   out_rom[39:32];
     assign control_sha3 =   out_rom[47:40];
     assign x            =   out_rom[51:48];
@@ -811,19 +892,19 @@ module MEM_CORE (
     input           en_w_2
 );
 
-    RAM #(.SIZE(256*17) ,.WIDTH(16))
+    RAM #(.SIZE(256*18) ,.WIDTH(16))
     RAM_0 
     (.clk(clk), .en_write(en_w_0), .en_read(1), 
     .addr_write(add_0), .addr_read(add_0),
     .data_in(data_in_0), .data_out(data_out_0));
     
-    RAM #(.SIZE(256*17) ,.WIDTH(16))
+    RAM #(.SIZE(256*18) ,.WIDTH(16))
     RAM_1 
     (.clk(clk), .en_write(en_w_1), .en_read(1), 
     .addr_write(add_1), .addr_read(add_1),
     .data_in(data_in_1), .data_out(data_out_1));
     
-    RAM #(.SIZE(256*17) ,.WIDTH(16))
+    RAM #(.SIZE(256*18) ,.WIDTH(16))
     RAM_2 
     (.clk(clk), .en_write(en_w_2), .en_read(1), 
     .addr_write(add_2), .addr_read(add_2),

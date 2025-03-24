@@ -72,6 +72,8 @@ void test_x25519_acc(unsigned int mode, unsigned int n_test, unsigned int verb, 
     Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
 #endif
 
+    seed_rng();
+
     uint64_t start_t_hw, stop_t_hw;
     uint64_t start_t_sw, stop_t_sw;
 

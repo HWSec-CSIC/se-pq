@@ -70,6 +70,13 @@
 
 void demo_sha3_hw(unsigned int verb, INTF interface) {
 
+#ifdef AXI
+    unsigned int clk_index = 0;
+    float clk_frequency;
+    float set_clk_frequency = FREQ_SHA3;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
+
     // ---- SHA3 ---- //
     unsigned char* input;
     unsigned int len_input;
@@ -153,5 +160,11 @@ void demo_sha3_hw(unsigned int verb, INTF interface) {
     }
     print_result_valid("SHAKE-256", memcmp(md, res_s_256, 64));
     free(md);
+
+
+#ifdef AXI
+    set_clk_frequency = FREQ_TYPICAL;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
+#endif
 
 }
