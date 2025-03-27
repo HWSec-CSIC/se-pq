@@ -71,6 +71,7 @@
 #include "se-qubip/src/trng/trng_hw.h"
 #include "se-qubip/src/aes/aes_hw.h"
 #include "se-qubip/src/mlkem/mlkem_hw.h"
+#include "se-qubip/src/mac/mac_hw.h"
 
 //-- SHA-3 / SHAKE
 #define sha3_512_hw			        sha3_512_hw_func
@@ -131,6 +132,16 @@
 #define aes_192_gcm_decrypt_hw      aes_192_gcm_decrypt_hw
 #define aes_256_gcm_encrypt_hw      aes_256_gcm_encrypt_hw
 #define aes_256_gcm_decrypt_hw      aes_256_gcm_decrypt_hw
+
+// --- MAC
+#define hmac_sha2_256_hw            hmac_sha2_256
+#define hmac_sha2_384_hw            hmac_sha2_384
+#define hmac_sha2_512_hw            hmac_sha2_512
+#define hmac_sha2_512_256_hw        hmac_sha2_512_256
+#define hmac_sha3_256_hw            hmac_sha3_256
+#define hmac_sha3_512_hw            hmac_sha3_512
+#define kmac128_hw                  kmac128
+#define kmac256_hw                  kmac256
 
 //-- MLKEM
 #define mlkem512_genkeys_hw         mlkem_512_gen_keys_hw
