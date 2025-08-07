@@ -75,6 +75,9 @@ void demo_sha2_hw(unsigned int verb, INTF interface);
 void demo_sha3_hw(unsigned int verb, INTF interface);
 void demo_trng_hw(unsigned int bits, unsigned verb, INTF interface);
 void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface);
+void demo_mldsa_hw(unsigned int mode, unsigned int verb, INTF interface);
+void demo_mldsa_nist(INTF interface, unsigned int verb);
+void demo_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12], unsigned int verb);
 
 // test - speed
 void test_aes_hw(unsigned char mode[4], unsigned int bits, unsigned int n_test, unsigned int verb, time_result* tr_en, time_result* tr_de, INTF interface);
@@ -84,6 +87,8 @@ void test_eddsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 void test_x25519_hw(unsigned int mode, unsigned int n_test, unsigned int verb, time_result* tr_kg, time_result* tr_ss, INTF interface);
 void test_trng_hw(unsigned int mode, unsigned int bits, unsigned int n_test, time_result* tr, unsigned int verb, INTF interface);
 void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, time_result* tr_kg, time_result* tr_en, time_result* tr_de, INTF interface);
+void test_mldsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, time_result* tr_kg, time_result* tr_si, time_result* tr_ve, INTF interface);
+void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12], unsigned int n_test, unsigned int verb, time_result* tr_kg, time_result* tr_en, time_result* tr_de);
 
 // test - acc
 void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test, unsigned int verb, time_result* tr_en_hw, time_result* tr_de_hw, time_result* tr_en_sw, time_result* tr_de_sw, INTF interface);

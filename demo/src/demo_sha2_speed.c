@@ -76,13 +76,6 @@ static void demo_sha2_perf_hw(unsigned int sel, unsigned char* input, unsigned i
 
 void test_sha2_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsigned int verb, INTF interface) {
 
-#ifdef AXI
-    unsigned int clk_index = 0;
-    float clk_frequency;
-    float set_clk_frequency = FREQ_SHA2;
-    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
-#endif
-
     srand(time(NULL));   // Initialization, should only be called once.
 
     uint64_t start_t, stop_t;
@@ -108,33 +101,28 @@ void test_sha2_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsign
     else if (sel == 5)   printf("\n\n -- Test SHA-512/224 --");
     */
 
-    int buf_len = 1000;
-
     unsigned char md[64];
-    unsigned char buf[buf_len];
+
+    int input_len   = 20000;
+    unsigned char input[input_len];
+
+    memset(md, 0, 64);
 
     // buf = malloc(1024);
     // md  = malloc(256);
     // md1 = malloc(256);
 
     for (unsigned int test = 1; test <= n_test; test++) {
-        // int r = rand() % buf_len;// 100000;
-        int r = 64;
-
-        for (int i = 0; i < r; i++)
+        
+        for (int i = 0; i < input_len; i++)
         {
-            buf[i] = rand();
+            input[i] = rand();
         }
-
-        // ctr_drbg(buf, r);
-        // trng_hw(buf, r, interface);
-
-        memset(md, 0, 64);
-
-        if (verb >= 2) printf("\n test: %d \t bytes: %d", test, r);
+        
+        if (verb >= 2) printf("\n test: %d \t bytes: %d", test, input_len);
 
         start_t = timeInMicroseconds();
-        demo_sha2_perf_hw(sel, buf, r, md, interface);
+        demo_sha2_perf_hw(sel, input, input_len, md, interface);
         stop_t = timeInMicroseconds(); if (verb >= 2) printf("\n SW: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
         if (verb >= 1) show_array(md, 64, 32);
@@ -154,9 +142,5 @@ void test_sha2_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsign
     // free(md);
     // free(md1);
 
-#ifdef AXI
-    set_clk_frequency = FREQ_TYPICAL;
-    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
-#endif
 
 }

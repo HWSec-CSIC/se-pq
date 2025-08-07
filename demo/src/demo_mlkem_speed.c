@@ -108,8 +108,8 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 	unsigned char ss[32];
 	unsigned char ss1[32];
-	unsigned int result = 0;
-
+	unsigned int result;
+ 
 	pk_512 = malloc(800);
 	sk_512 = malloc(1632);
 	ct_512 = malloc(768);

@@ -99,6 +99,10 @@ void main(int argc, char** argv) {
 	load_bitstream(BITSTREAM_AXI);
 #endif
 
+	// --- Load PICORV32 Program --- // 
+	WRITE_PICORV_PROGRAM(interface);
+	// READ_PICORV_PROGRAM(interface);
+
 	data_conf data_conf;
 
 	read_conf(&data_conf);
@@ -112,6 +116,8 @@ void main(int argc, char** argv) {
 	printf("\n %-10s: ", "ECDH");		if (data_conf.ecdh)		printf("yes"); else printf("no");
 	printf("\n %-10s: ", "MLKEM");		if (data_conf.mlkem)	printf("yes"); else printf("no");
 	printf("\n %-10s: ", "DRBG");		if (data_conf.drbg)		printf("yes"); else printf("no");
+	printf("\n %-10s: ", "MLDSA");		if (data_conf.mldsa)	printf("yes"); else printf("no");
+  	printf("\n %-10s: ", "SLHDSA");		if (data_conf.slhdsa)	printf("yes"); else printf("no");
 
 
 	printf("\n\n %-30s | Result ", "Algorithm");
@@ -152,6 +158,30 @@ void main(int argc, char** argv) {
 		demo_trng_hw(512, verb, interface);
 		demo_trng_hw(1024, verb, interface);
 		demo_trng_hw(2048, verb, interface);
+		demo_trng_hw(1048576, verb, interface);
+	}
+
+	if (data_conf.mldsa) {
+    	demo_mldsa_hw(44, verb, interface);
+    	demo_mldsa_hw(65, verb, interface);
+    	demo_mldsa_hw(87, verb, interface);
+		demo_mldsa_nist(interface, verb);
+  	}
+
+	if (data_conf.slhdsa) {
+    	const slh_ph_func_t *ph = &slh_dsa_ph_shake_256;
+		demo_slhdsa_hw(interface, ph, "shake-128-f", verb);
+    	demo_slhdsa_hw(interface, ph, "shake-128-s", verb);
+		demo_slhdsa_hw(interface, ph, "shake-192-f", verb);
+		demo_slhdsa_hw(interface, ph, "shake-192-s", verb);
+		demo_slhdsa_hw(interface, ph, "shake-256-f", verb);
+		demo_slhdsa_hw(interface, ph, "shake-256-s", verb);
+    	demo_slhdsa_hw(interface, ph, "sha-2-128-f", verb);
+		demo_slhdsa_hw(interface, ph, "sha-2-128-s", verb);
+		demo_slhdsa_hw(interface, ph, "sha-2-192-f", verb);
+		demo_slhdsa_hw(interface, ph, "sha-2-192-s", verb);
+		demo_slhdsa_hw(interface, ph, "sha-2-256-f", verb);
+		demo_slhdsa_hw(interface, ph, "sha-2-256-s", verb);
 	}
 	
 

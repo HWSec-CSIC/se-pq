@@ -80,21 +80,47 @@
 
 
 module aes_itf #(
-                 localparam WIDTH      = 64,
-                 localparam IN_REG     = 7,
-                 localparam OUT_REG    = 2
+                 parameter  SWAP_ENDIANNESS     = 0,
+                 localparam WIDTH               = 64,
+                 localparam IN_REG              = 11,
+                 localparam OUT_REG             = 4
                  )
-                 (
+                 ( 
                   input  wire clk,                                    //-- Clock Signal
                   input  wire i_rst,                                  //-- Reset Signal                              
-                  input  wire [3:0] control,                          //-- Control Signal: {read, load, rst_itf, rst} 
+                  input  wire [4:0] control,                          //-- Control Signal: {rst_mul, read, load, rst_itf, rst} 
                   input  wire [WIDTH-1:0] address,                    //-- Address
                   input  wire [WIDTH-1:0] data_in,                    //-- Data Input
-                  output wire [WIDTH-1:0] data_out,                   //-- Data Output
+                  output reg  [WIDTH-1:0] data_out,                   //-- Data Output
                   output wire end_op                                  //-- End Operation Signal
                   );
 
-    
+    //--------------------------------------
+	//-- Change I/O Endianness
+	//--------------------------------------
+	
+	integer i;
+	
+	reg  [WIDTH-1:0] data_in_swap;
+	wire [WIDTH-1:0] data_out_swap;
+	
+	generate if (SWAP_ENDIANNESS) begin
+	   always @(*) begin  
+           for (i = 0; i < 8; i = i + 1) begin 
+               data_in_swap[(7-i)*8+:8]    = data_in[i*8+:8];
+               data_out[(7-i)*8+:8]        = data_out_swap[i*8+:8];
+           end
+       end
+    end
+    else begin
+	   always @(*) begin  
+           data_in_swap = data_in;
+           data_out     = data_out_swap;
+       end
+    end
+    endgenerate  
+
+
     //--------------------------------------
 	//-- Wires & Registers
 	//--------------------------------------
@@ -104,11 +130,13 @@ module aes_itf #(
     wire rst_itf;
     wire load;
     wire read;
+    wire rst_mul;
     
     assign rst      = control[0] | !i_rst;
     assign rst_itf  = control[1] | !i_rst;
     assign load     = control[2];
     assign read     = control[3];
+    assign rst_mul  = control[4] | !i_rst;
     
     //-- Sipo Input
     wire [IN_REG*WIDTH-1:0] data_aes_in;
@@ -130,8 +158,21 @@ module aes_itf #(
 	wire [2*WIDTH-1:0] ciphertext;
 	wire valid;
 	
-	assign data_aes_out = ciphertext;
-    
+	assign data_aes_out[2*WIDTH-1:0] = ciphertext;
+
+    //-- GALOIS MUL Inputs
+    wire [2*WIDTH-1:0] X;
+    wire [2*WIDTH-1:0] Y;
+
+    assign X = data_aes_in[9*WIDTH-1:7*WIDTH];
+    assign Y = data_aes_in[11*WIDTH-1:9*WIDTH];
+
+    //-- GALOIS MUL Outputs
+    wire [2*WIDTH-1:0] Z;
+    wire valid_mul;
+
+    assign data_aes_out[4*WIDTH-1:2*WIDTH] = Z;
+
     
     //--------------------------------------
 	//-- SIPO          
@@ -141,8 +182,8 @@ module aes_itf #(
 	                                                   .clk(clk),
 	                                                   .rst(rst_itf),
 	                                                   .load(load),
-						                               .addr(address),
-						                               .din(data_in),
+						                               .addr(address[31:0]),
+						                               .din(data_in_swap),
 						                               .dout(data_aes_in)
 						                               ); 
                                                       
@@ -150,7 +191,7 @@ module aes_itf #(
     //--------------------------------------
 	//-- AES                        
 	//--------------------------------------
-        
+         
 	aes_core AES(
 				 .clk(clk),
 				 .rst(rst),
@@ -161,7 +202,20 @@ module aes_itf #(
 				 .ciphertext(ciphertext),
 				 .valid(valid)
 				 ); 
+
     
+    //--------------------------------------
+	//-- Galois Multiplier                       
+	//--------------------------------------
+    
+    galois_mul GALOIS_MUL(
+                          .clk(clk),
+                          .rst(rst_mul),
+                          .X(X),
+                          .Y(Y),
+                          .Z(Z),
+                          .valid(valid_mul)
+                          );
     
     //--------------------------------------
 	//-- PISO              
@@ -170,13 +224,13 @@ module aes_itf #(
     piso #(.R_DATA_WIDTH(WIDTH), .N_REG(OUT_REG)) PISO(
 						                               .clk(clk),
 						                               .read(read),
-						                               .addr(address),
+						                               .addr(address[63:32]),
 						                               .din(data_aes_out),
-						                               .dout(data_out)
+						                               .dout(data_out_swap)
 						                               );
     
     
-    assign end_op = valid;
+    assign end_op = valid | valid_mul;
 
 
 endmodule

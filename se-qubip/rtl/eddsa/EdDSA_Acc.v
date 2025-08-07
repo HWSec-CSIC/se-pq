@@ -341,40 +341,40 @@ module EdDSA_Acc #(
 	reg  [WINDOW_SIZE-1:0] window_counter_1;
 	wire [4*BIT_LENGTH-1:0] data_out_ecc_1;      
 	
-	genram #(
-	         .AW(WINDOW_SIZE), 
-	         .DW(4*BIT_LENGTH),
-	         .INIT(1),
-	         .ROMFILE("Base_Point_Powers.mem")
-	         )
-	         RAM_ECC_1
-	         (
-			  .clk(clk),
-			  .wr(wr_1),
-			  .rd(rd_1),
-			  .addr(window_counter_1),
-			  .data_in({R0, R1, R2, R3}),
-			  .data_out(data_out_ecc_1)
-			  );
+	eddsa_genram #(
+	         	   .AW(WINDOW_SIZE), 
+	         	   .DW(4*BIT_LENGTH),
+	         	   .INIT(1),
+	         	   .ROMFILE("rtl/eddsa/Base_Point_Powers.mem")
+	         	   )
+	         	   RAM_ECC_1
+	         	   (
+			 	    .clk(clk),
+			 	    .wr(wr_1),
+			 	    .rd(rd_1),
+			 	    .addr(window_counter_1),
+			 	    .data_in({R0, R1, R2, R3}),
+			 	    .data_out(data_out_ecc_1)
+			 	    );
 	
 	reg  wr_2;
 	reg  rd_2;
 	reg  [WINDOW_SIZE-1:0] window_counter_2;
 	wire [4*BIT_LENGTH-1:0] data_out_ecc_2;     
 	
-	genram #(
-	         .AW(WINDOW_SIZE), 
-	         .DW(4*BIT_LENGTH)
-	         ) 
-	         RAM_ECC_2
-	         (
-			  .clk(clk),
-			  .wr(wr_2),
-			  .rd(rd_2),
-			  .addr(window_counter_2),
-			  .data_in({W0, W1, W2, W3}),
-			  .data_out(data_out_ecc_2)
-			  );
+	eddsa_genram #(
+	         	   .AW(WINDOW_SIZE), 
+	         	   .DW(4*BIT_LENGTH)
+	         	   ) 
+	         	   RAM_ECC_2
+	         	   (
+			 	    .clk(clk),
+			 	    .wr(wr_2),
+			 	    .rd(rd_2),
+			 	    .addr(window_counter_2),
+			 	    .data_in({W0, W1, W2, W3}),
+			 	    .data_out(data_out_ecc_2)
+			 	    );
 	
 	wire [WINDOW_SIZE-1:0] bit_window_1;
 	wire [WINDOW_SIZE-1:0] bit_window_2;
@@ -1631,4 +1631,49 @@ module EdDSA_Acc #(
 		end
 	end
 	
+endmodule
+
+
+module eddsa_genram #(        
+                      parameter AW = 6,   				                //-- Adress width
+                      parameter DW = 8,					                //-- Data witdh
+                      parameter INIT = 0,                               //-- Initialize Memory ?
+                      parameter ROMFILE = "Base_Point_Powers.mem"       //-- File to read
+		              )  	                          
+                     (                                
+                      input  wire clk,                    //-- Clock Signal
+                      input  wire wr,                     //-- Write
+                      input  wire rd,                     //-- Read
+                      input  wire [AW-1:0] addr,          //-- Address
+                      input  wire [DW-1:0] data_in,       //-- Write Data 
+                      output reg  [DW-1:0] data_out       //-- Read Data
+                      );  
+
+    //-- Calculate all possible memory instances
+    localparam NPOS = 2 ** AW;
+    
+    //-- Memory
+    reg [DW-1: 0] ram [0: NPOS-1];
+    
+    //-- Read and Write Memory
+    always @(posedge clk) begin
+        if (wr)
+            ram[addr] <= data_in;
+        
+        if (rd)
+            data_out <= ram[addr];
+    end
+    
+    
+    //-- Load in memory the file ROMFILE
+    //-- Values must be in HEX
+    generate if (INIT == 1) begin
+        initial begin
+          $readmemh(ROMFILE, ram);
+        end
+    end
+    endgenerate
+    
+   //  assign data_out = ram[addr];
+    
 endmodule

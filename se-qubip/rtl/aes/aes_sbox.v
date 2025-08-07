@@ -115,8 +115,9 @@ module aes_sbox (
 	wire [7:0] inv_in;
 	
 	//-- Multiplexer
-	// assign inv_in = (enc) ? sbox_in : aff_inv_out;
-	genvar i;
+	assign inv_in = (enc) ? sbox_in : aff_inv_out;
+	/*
+    genvar i;
 	
 	generate for (i = 0; i < 8; i = i + 1) begin
 	   MUXF8 MUXF8_inv_in(
@@ -127,10 +128,11 @@ module aes_sbox (
                           );
     end 
     endgenerate
-	
+	*/
+
 	//-- 256x8 bits inversion ROM
-	// wire [7:0] inv_ROM [0:255];
-    /*
+	wire [7:0] inv_ROM [0:255];
+    
     assign inv_ROM[8'h00] = 8'h00;
     assign inv_ROM[8'h01] = 8'h01;
     assign inv_ROM[8'h02] = 8'h8D;
@@ -386,14 +388,14 @@ module aes_sbox (
     assign inv_ROM[8'hFC] = 8'hCD;
     assign inv_ROM[8'hFD] = 8'h1A;
     assign inv_ROM[8'hFE] = 8'h41;
-    assign inv_ROM[8'hFF] = 8'h1C;
-	*/					
+    assign inv_ROM[8'hFF] = 8'h1C;				
 	
 	//-- Inversion Output
     wire [7:0] inv_out;
         
-    // assign inv_out = inv_ROM [inv_in];
-				
+    assign inv_out = inv_ROM [inv_in];
+
+    /*		
 	RAM256X1S #(
                 .INIT(256'h55439CCB9A3A178D99BC205954085D25502FFE9CD0C5EDFDFA3209B816B8E6D6)
                 ) 
@@ -482,7 +484,7 @@ module aes_sbox (
                  .WCLK(1'b0),           // Write clock input                                   
                  .D(1'b0)               // RAM data input                                      
                  );                                                                            
-																		
+	*/														
 	
 	
 	//------------------------------------------------------------------------------------------------
@@ -503,7 +505,8 @@ module aes_sbox (
 					  inv_out[7] ^ inv_out[6] ^ inv_out[5] ^ inv_out[4] ^ inv_out[0] ^ 1'b1
 																					       };
 	//-- Multiplexer
-	// assign sbox_out = (enc) ? aff_out : inv_out;
+	assign sbox_out = (enc) ? aff_out : inv_out;
+    /*
 	generate for (i = 0; i < 8; i = i + 1) begin
        MUXF8 MUXF8_sbox_out(
                             .O(sbox_out[i]),        // Output of MUX to general routing
@@ -513,5 +516,5 @@ module aes_sbox (
                             );
     end 
     endgenerate
-	
+	*/
 endmodule

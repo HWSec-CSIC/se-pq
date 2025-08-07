@@ -1,0 +1,10 @@
+{
+    "folders": [
+        {
+            "path": ".."
+        },
+        {
+            "path": "../../test/se-qubip-MLKEM-SEQUBIP2.0"
+        }
+    ]
+}

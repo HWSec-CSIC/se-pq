@@ -7,7 +7,7 @@ module TOP_MLKEM #(
     input           rst,
     input   [7:0]   control,
     input   [63:0]  data_in,
-    input   [15:0]  add,
+    input   [63:0]  add,
     output  [63:0]  data_out,
     output  [1:0]   end_op
     );
@@ -48,7 +48,7 @@ module TOP_MLKEM #(
         .control(control),
         .control_core(control_core_input),
         .data_in(data_in),
-        .add(add),
+        .add(add[15:0]),
         .data_in_core(data_in_core),
         .add_in(add_core_input)
     );
@@ -59,7 +59,7 @@ module TOP_MLKEM #(
         .clk(clk),
         .rst(rst),
         .din(data_out_core),
-        .add(add),
+        .add(add[47:32]),
         .start(end_op_core[0]),
         .control(control),
         .add_ram(add_core_output),

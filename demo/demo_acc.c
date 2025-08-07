@@ -100,6 +100,9 @@ void main(int argc, char** argv) {
 	load_bitstream(BITSTREAM_AXI);
 #endif
 
+	// --- Load PICORV32 Program --- // 
+	WRITE_PICORV_PROGRAM(interface);
+
 	data_conf data_conf;
 
 	read_conf(&data_conf);

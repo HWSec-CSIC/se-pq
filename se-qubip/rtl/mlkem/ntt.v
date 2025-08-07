@@ -578,37 +578,6 @@ module NTT_core(
 
 endmodule
 
-module NTT_cell(
-    input clk,
-    input [15:0] a,
-    input [15:0] b,
-    input [15:0] zeta,
-    output [15:0] c,
-    output [15:0] d,
-    input [3:0] mux_sel //[add2,sub2,add0,sub0];
-
-    );
-    
-    wire [15:0] mux_add0; 
-    wire [15:0] mux_add2;
-    wire [15:0] mux_sub0;
-    wire [15:0] mux_sub2;
-    
-    wire [15:0] xor_zeta;
-    
-    // fqmult fqmult (.a(zeta), .b(mux_sub0), .t(xor_zeta));
-    fqmult_pipe fqmult (.clk(clk), .a(zeta), .b(mux_sub0), .t(xor_zeta));
-    
-    assign mux_add0 = (mux_sel[0]) ? (a + b) : a;
-    assign mux_sub0 = (mux_sel[1]) ? (b - a) : b;
-    assign mux_add2 = (mux_sel[2]) ? (mux_add0 + xor_zeta) : mux_add0;
-    assign mux_sub2 = (mux_sel[3]) ? (mux_add0 - xor_zeta) : xor_zeta;
-    
-    assign c = (mux_sel[1] & !mux_sel[0]) ? mux_sub0 : mux_add2;
-    assign d = mux_sub2;
-
-endmodule
-
 module NTT_cell_2(
     input clk,
     input invntt,

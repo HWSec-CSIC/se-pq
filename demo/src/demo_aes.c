@@ -71,7 +71,9 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
     Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
 #endif 
 
-    unsigned char msg[128] = "Hello, this is the SE of QUBIP project";
+    unsigned char msg[1024] = "Hello, this is the SE of QUBIP project";
+    unsigned int msg_len = 128;
+    unsigned int result = 1;
 
     // ---- AES-128 ---- //
     if (bits == 128) {
@@ -88,28 +90,27 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         unsigned char* ciphertext_128;
         unsigned int ciphertext_128_len;
 
-        ciphertext_128 = malloc(256); memset(ciphertext_128, 0, 256); // It is neccesary to add some bytes more
-        recovered_msg_128 = malloc(128); memset(recovered_msg_128, 0, 128);
+        ciphertext_128 = malloc(msg_len * 2); memset(ciphertext_128, 0, msg_len * 2); // It is neccesary to add some bytes more
+        recovered_msg_128 = malloc(msg_len); memset(recovered_msg_128, 0, msg_len);
 
         // --- ECB --- //
-        aes_128_ecb_encrypt_hw(key_128, ciphertext_128, &ciphertext_128_len, msg, 128, interface);
+        aes_128_ecb_encrypt_hw(key_128, ciphertext_128, &ciphertext_128_len, msg, msg_len, interface);
         aes_128_ecb_decrypt_hw(key_128, ciphertext_128, ciphertext_128_len, recovered_msg_128, &recovered_msg_128_len, interface);
 
         if (verb >= 1) printf("\n original msg: %s", msg);
         if (verb >= 1) printf("\n recover msg: %s", recovered_msg_128);
 
-        print_result_valid("AES-128-ECB", memcmp(msg, recovered_msg_128, 128));
-
+        print_result_valid("AES-128-ECB", memcmp(msg, recovered_msg_128, msg_len));
 
         // --- CBC --- //
-        aes_128_cbc_encrypt_hw(key_128, iv_128, ciphertext_128, &ciphertext_128_len, msg, 128, interface);
+        aes_128_cbc_encrypt_hw(key_128, iv_128, ciphertext_128, &ciphertext_128_len, msg, msg_len, interface);
         aes_128_cbc_decrypt_hw(key_128, iv_128, ciphertext_128, ciphertext_128_len, recovered_msg_128, &recovered_msg_128_len, interface);
 
         if (verb >= 1) printf("\n original msg: %s", msg);
         if (verb >= 1) printf("\n recover msg: %s", recovered_msg_128);
 
-        print_result_valid("AES-128-CBC", memcmp(msg, recovered_msg_128, 128));
-
+        print_result_valid("AES-128-CBC", memcmp(msg, recovered_msg_128, msg_len));
+        
         // --- CMAC --- //
         unsigned char* char_exp_mac_128 = "c430faa66e964f24a466a2fe00ff044c";
         unsigned char exp_mac_128[16]; char2hex(char_exp_mac_128, exp_mac_128);
@@ -117,7 +118,7 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         unsigned int mac_128_len;
         mac_128 = malloc(16); memset(mac_128, 0, 16);
 
-        aes_128_cmac_hw(key_128, mac_128, &mac_128_len, msg, 128, interface);
+        aes_128_cmac_hw(key_128, mac_128, &mac_128_len, msg, msg_len, interface);
 
         if (verb >= 1) {
             printf("\n Obtained Result: ");  show_array(mac_128, 16, 32);
@@ -127,11 +128,11 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         print_result_valid("AES-128-CMAC", memcmp(exp_mac_128, mac_128, 16));
 
         free(mac_128);
-
+        
         // --- GCM --- //
         unsigned char tag[16];
-        unsigned int result = 1;
-        aes_128_gcm_encrypt_hw(key_128, iv_128, 16, ciphertext_128, &ciphertext_128_len, msg, 128, add_128, 16, tag, interface); 
+        result = 1;
+        aes_128_gcm_encrypt_hw(key_128, iv_128, 16, ciphertext_128, &ciphertext_128_len, msg, msg_len, add_128, 16, tag, interface); 
         aes_128_gcm_decrypt_hw(key_128, iv_128, 16, ciphertext_128, ciphertext_128_len, recovered_msg_128, &recovered_msg_128_len, add_128, 16, tag, &result, interface);
 
         if (verb >= 1) printf("\n original msg: %s", msg);
@@ -139,11 +140,11 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         if (verb >= 1) { printf("\n tag: "); show_array(tag, 16, 32); }
 
         print_result_valid("AES-128-GCM", result);
-
+        
         // --- CCM_8 --- //
         unsigned char tag_8[8]; memset(tag_8, 0, 8);
         result = 1;
-        aes_128_ccm_8_encrypt_hw(key_128, iv_128, 8, ciphertext_128, &ciphertext_128_len, msg, 128, add_128, 16, tag_8, interface);
+        aes_128_ccm_8_encrypt_hw(key_128, iv_128, 8, ciphertext_128, &ciphertext_128_len, msg, msg_len, add_128, 16, tag_8, interface);
         aes_128_ccm_8_decrypt_hw(key_128, iv_128, 8, ciphertext_128, ciphertext_128_len, recovered_msg_128, &recovered_msg_128_len, add_128, 16, tag_8, &result, interface);
 
         if (verb >= 1) printf("\n original msg: %s", msg);
@@ -151,10 +152,10 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         if (verb >= 1) { printf("\n tag: "); show_array(tag_8, 8, 32); }
 
         print_result_valid("AES-128-CCM-8", result);
-
+        
         free(ciphertext_128);
         free(recovered_msg_128);
-
+    
     }
     // ---- AES-192 ---- //
     else if (bits == 192) {
@@ -171,28 +172,28 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         unsigned char* ciphertext_192;
         unsigned int ciphertext_192_len;
 
-        ciphertext_192 = malloc(256); memset(ciphertext_192, 0, 256);
-        recovered_msg_192 = malloc(128); memset(recovered_msg_192, 0, 128);
+        ciphertext_192 = malloc(msg_len * 2); memset(ciphertext_192, 0, msg_len * 2);
+        recovered_msg_192 = malloc(msg_len); memset(recovered_msg_192, 0, msg_len);
 
         // --- ECB --- //
-        aes_192_ecb_encrypt_hw(key_192, ciphertext_192, &ciphertext_192_len, msg, 128, interface);
+        aes_192_ecb_encrypt_hw(key_192, ciphertext_192, &ciphertext_192_len, msg, msg_len, interface);
         aes_192_ecb_decrypt_hw(key_192, ciphertext_192, ciphertext_192_len, recovered_msg_192, &recovered_msg_192_len, interface);
 
         if (verb >= 1) printf("\n original msg: %s", msg);
         if (verb >= 1) printf("\n recover msg: %s", recovered_msg_192);
 
-        print_result_valid("AES-192-ECB", memcmp(msg, recovered_msg_192, 128));
+        print_result_valid("AES-192-ECB", memcmp(msg, recovered_msg_192, msg_len));
 
-
+        
         // --- CBC --- //
-        aes_192_cbc_encrypt_hw(key_192, iv_192, ciphertext_192, &ciphertext_192_len, msg, 128, interface);
+        aes_192_cbc_encrypt_hw(key_192, iv_192, ciphertext_192, &ciphertext_192_len, msg, msg_len, interface);
         aes_192_cbc_decrypt_hw(key_192, iv_192, ciphertext_192, ciphertext_192_len, recovered_msg_192, &recovered_msg_192_len, interface);
 
         if (verb >= 1) printf("\n original msg: %s", msg);
         if (verb >= 1) printf("\n recover msg: %s", recovered_msg_192);
 
-        print_result_valid("AES-192-CBC", memcmp(msg, recovered_msg_192, 128));
-
+        print_result_valid("AES-192-CBC", memcmp(msg, recovered_msg_192, msg_len));
+        
         // --- CMAC --- //
         unsigned char* char_exp_mac_192 = "fcb99201cb9804df7bf985377f075711";
         unsigned char exp_mac_192[16]; char2hex(char_exp_mac_192, exp_mac_192);
@@ -200,7 +201,7 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         unsigned int mac_192_len;
         mac_192 = calloc(sizeof(char), 16);
 
-        aes_192_cmac_hw(key_192, mac_192, &mac_192_len, msg, 128, interface);
+        aes_192_cmac_hw(key_192, mac_192, &mac_192_len, msg, msg_len, interface);
 
         if (verb >= 1) {
             printf("\n Obtained Result: ");  show_array(mac_192, 16, 32);
@@ -210,11 +211,11 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         print_result_valid("AES-192-CMAC", memcmp(exp_mac_192, mac_192, 16));
 
         free(mac_192);
-
+        
         // --- GCM --- //
         unsigned char tag[16]; memset(tag, 0, 16);
-        unsigned int result = 1;
-        aes_192_gcm_encrypt_hw(key_192, iv_192, 16, ciphertext_192, &ciphertext_192_len, msg, 128, add_192, 16, tag, interface);
+        result = 1;
+        aes_192_gcm_encrypt_hw(key_192, iv_192, 16, ciphertext_192, &ciphertext_192_len, msg, msg_len, add_192, 16, tag, interface);
         aes_192_gcm_decrypt_hw(key_192, iv_192, 16, ciphertext_192, ciphertext_192_len, recovered_msg_192, &recovered_msg_192_len, add_192, 16, tag, &result, interface);
 
         if (verb >= 1) printf("\n original msg: %s", msg);
@@ -222,11 +223,11 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         if (verb >= 1) { printf("\n tag: "); show_array(tag, 16, 32); }
 
         print_result_valid("AES-192-GCM", result);
-
+        
         // --- CCM_8 --- //
         unsigned char tag_8[8]; memset(tag_8, 0, 8);
         result = 1;
-        aes_192_ccm_8_encrypt_hw(key_192, iv_192, 8, ciphertext_192, &ciphertext_192_len, msg, 128, add_192, 16, tag_8, interface);
+        aes_192_ccm_8_encrypt_hw(key_192, iv_192, 8, ciphertext_192, &ciphertext_192_len, msg, msg_len, add_192, 16, tag_8, interface);
         aes_192_ccm_8_decrypt_hw(key_192, iv_192, 8, ciphertext_192, ciphertext_192_len, recovered_msg_192, &recovered_msg_192_len, add_192, 16, tag_8, &result, interface);
 
         if (verb >= 1) printf("\n original msg: %s", msg);
@@ -234,9 +235,10 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         if (verb >= 1) { printf("\n tag: "); show_array(tag_8, 8, 32); }
 
         print_result_valid("AES-192-CCM-8", result);
-
+        
         free(ciphertext_192);
         free(recovered_msg_192);
+        
     }
     else {
         unsigned char* recovered_msg_256;
@@ -252,27 +254,27 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         unsigned char* ciphertext_256;
         unsigned int ciphertext_256_len;
 
-        ciphertext_256 = malloc(256); memset(ciphertext_256, 0, 256);
-        recovered_msg_256 = malloc(128); memset(recovered_msg_256, 0, 128);
+        ciphertext_256 = malloc(msg_len * 2); memset(ciphertext_256, 0, msg_len * 2);
+        recovered_msg_256 = malloc(msg_len); memset(recovered_msg_256, 0, msg_len);
 
         // --- ECB --- //
-        aes_256_ecb_encrypt_hw(key_256, ciphertext_256, &ciphertext_256_len, msg, 128, interface);
+        aes_256_ecb_encrypt_hw(key_256, ciphertext_256, &ciphertext_256_len, msg, msg_len, interface);
         aes_256_ecb_decrypt_hw(key_256, ciphertext_256, ciphertext_256_len, recovered_msg_256, &recovered_msg_256_len, interface);
 
         if (verb >= 1) printf("\n original msg: %s", msg);
         if (verb >= 1) printf("\n recover msg: %s", recovered_msg_256);
 
-        print_result_valid("AES-256-ECB", memcmp(msg, recovered_msg_256, 128));
-
+        print_result_valid("AES-256-ECB", memcmp(msg, recovered_msg_256, msg_len));
+        
         // --- CBC --- //
-        aes_256_cbc_encrypt_hw(key_256, iv_256, ciphertext_256, &ciphertext_256_len, msg, 128, interface);
+        aes_256_cbc_encrypt_hw(key_256, iv_256, ciphertext_256, &ciphertext_256_len, msg, msg_len, interface);
         aes_256_cbc_decrypt_hw(key_256, iv_256, ciphertext_256, ciphertext_256_len, recovered_msg_256, &recovered_msg_256_len, interface);
 
         if (verb >= 1) printf("\n original msg: %s", msg);
         if (verb >= 1) printf("\n recover msg: %s", recovered_msg_256);
 
-        print_result_valid("AES-256-CBC", memcmp(msg, recovered_msg_256, 128));
-
+        print_result_valid("AES-256-CBC", memcmp(msg, recovered_msg_256, msg_len));
+        
         // --- CMAC --- //
         unsigned char* char_exp_mac_256 = "7a88b15caef3b438ddbb0299a51d70d3";
         unsigned char exp_mac_256[16]; char2hex(char_exp_mac_256, exp_mac_256);
@@ -280,7 +282,7 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         unsigned int mac_256_len;
         mac_256 = calloc(sizeof(char), 16);
 
-        aes_256_cmac_hw(key_256, mac_256, &mac_256_len, msg, 128, interface);
+        aes_256_cmac_hw(key_256, mac_256, &mac_256_len, msg, msg_len, interface);
 
         if (verb >= 1) {
             printf("\n Obtained Result: ");  show_array(mac_256, 16, 32);
@@ -290,11 +292,11 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         print_result_valid("AES-256-CMAC", memcmp(exp_mac_256, mac_256, 16));
 
         free(mac_256);
-
+        
         // --- GCM --- //
         unsigned char tag[16]; memset(tag, 0, 16);
-        unsigned int result = 1;
-        aes_256_gcm_encrypt_hw(key_256, iv_256, 16, ciphertext_256, &ciphertext_256_len, msg, 128, add_256, 16, tag, interface);
+        result = 1;
+        aes_256_gcm_encrypt_hw(key_256, iv_256, 16, ciphertext_256, &ciphertext_256_len, msg, msg_len, add_256, 16, tag, interface);
         aes_256_gcm_decrypt_hw(key_256, iv_256, 16, ciphertext_256, ciphertext_256_len, recovered_msg_256, &recovered_msg_256_len, add_256, 16, tag, &result, interface);
 
         if (verb >= 1) printf("\n original msg: %s", msg);
@@ -302,11 +304,11 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         if (verb >= 1) { printf("\n tag: "); show_array(tag, 16, 32); }
 
         print_result_valid("AES-256-GCM", result);
-
+        
         // --- CCM_8 --- //
         unsigned char tag_8[8]; memset(tag_8, 0, 8);
         result = 1;
-        aes_256_ccm_8_encrypt_hw(key_256, iv_256, 8, ciphertext_256, &ciphertext_256_len, msg, 128, add_256, 16, tag_8, interface);
+        aes_256_ccm_8_encrypt_hw(key_256, iv_256, 8, ciphertext_256, &ciphertext_256_len, msg, msg_len, add_256, 16, tag_8, interface);
         aes_256_ccm_8_decrypt_hw(key_256, iv_256, 8, ciphertext_256, ciphertext_256_len, recovered_msg_256, &recovered_msg_256_len, add_256, 16, tag_8, &result, interface);
 
         if (verb >= 1) printf("\n original msg: %s", msg);
@@ -314,10 +316,10 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
         if (verb >= 1) { printf("\n tag: "); show_array(tag_8, 8, 32); }
 
         print_result_valid("AES-256-CCM-8", result);
-    
+        
         free(ciphertext_256);
         free(recovered_msg_256);
-
+        
     }
 #ifdef AXI
     set_clk_frequency = FREQ_TYPICAL;

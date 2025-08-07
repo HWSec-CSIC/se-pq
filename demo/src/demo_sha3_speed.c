@@ -107,40 +107,28 @@ void test_sha3_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsign
     else if (sel == 5)   printf("\n\n -- Test SHA3-384 --");
     */
 
-    int buf_len = 1000;
+    int input_len   = 20000;
+    int output_len  = 20000;
 
-    unsigned char md[64];
-    unsigned char buf[buf_len];
-    unsigned int mod = 1000;
-    int ls;
+    unsigned char input[input_len];
+    unsigned char md[output_len];
+    
+    memset(md, 0, output_len);
 
-    seed_rng();
-
-    // buf = malloc(1024);
+    // input = malloc(1024);
     // md  = malloc(256);
     // md1 = malloc(256);
 
     for (unsigned int test = 1; test <= n_test; test++) {
-        // int r = rand() % buf_len;// 100000;
-        int r = 64;
-
-        for (int i = 0; i < r; i++)
+        for (int i = 0; i < input_len; i++)
         {
-            buf[i] = rand();
+            input[i] = rand();
         }
         
-        // ctr_drbg(buf, r);
-        // trng_hw(buf, r, interface);
-
-        if (sel == 0 | sel == 1)    ls = 64;
-        else                        ls = 64;
-
-        memset(md, 0, ls);
-
-        if (verb >= 2) printf("\n test: %d \t bytes: %d \t len_shake: %d", test, r, ls);
+        if (verb >= 2) printf("\n test: %d \t bytes: %d \t len_shake: %d", test, input_len, output_len);
 
         start_t = timeInMicroseconds();
-        demo_sha3_perf_hw(sel, buf, r, md, ls, interface);
+        demo_sha3_perf_hw(sel, input, input_len, md, output_len, interface);
         stop_t = timeInMicroseconds(); if (verb >= 2) printf("\n SW: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
         time_hw = stop_t - start_t;
@@ -153,10 +141,6 @@ void test_sha3_hw(unsigned int sel, unsigned int n_test, time_result* tr, unsign
     }
 
     tr->time_mean_value = (uint64_t)(time_total_hw / n_test);
-
-    // free(buf);
-    // free(md);
-    // free(md1);
 
 #ifdef AXI
     set_clk_frequency = FREQ_TYPICAL;

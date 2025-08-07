@@ -8,7 +8,7 @@
   *
   * This Secure Element repository for QUBIP Project is subject to the
   * BSD 3-Clause License below.
-  *
+  * 
   * Copyright (c) 2024,
   *         Eros Camacho-Ruiz
   *         Pablo Navarro-Torrero

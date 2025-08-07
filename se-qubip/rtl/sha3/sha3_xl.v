@@ -67,9 +67,9 @@ module sha3_compact_xl#(
     parameter D_WIDTH = 64
     )(
     input                           i_clk,
-    input                           i_rst,
+    input                           i_rst, 
     input   [D_WIDTH-1:0]           i_data_in,
-    input   [7:0]                   i_add,
+    input   [D_WIDTH:0]             i_add,
     input   [7:0]                   i_control,
     output  [D_WIDTH-1:0]           o_data_out,
     output                          o_end_op,
@@ -89,7 +89,10 @@ module sha3_compact_xl#(
         end
     endgenerate
     
-    assign o_data_out = P_out[i_add];
+    wire [7:0] i_add_in  = i_add[07:00];
+    wire [7:0] i_add_out = i_add[39:32];
+
+    assign o_data_out = P_out[i_add_out];
     
     wire fin;
     reg end_op_reg;
@@ -230,7 +233,7 @@ module sha3_compact_xl#(
      .fsm_start_reset(fsm_start_reset), .load(fsm_load_data), 
      .RATE(RATE), .LEN(LEN), .PAD(PAD),
      .padding(padding), .data_in(i_data_in), 
-     .add(i_add), .add_reset(add_reset), .P(P));
+     .add(i_add_in), .add_reset(add_reset), .P(P));
      
      /*
      input_module_v2 input_module_v2     

@@ -567,7 +567,7 @@ module EdDSA #(
                 end
                 (6'd17): ch_endian <= {256'h0, R0};
                 (6'd18): begin
-                    sig_pub[BIT_LENGTH-1:0] = changed_endian_256;                               //-- S
+                    sig_pub[BIT_LENGTH-1:0] <= changed_endian_256;                               //-- S
                     valid   <= 1;
                     state   <= END;
                 end

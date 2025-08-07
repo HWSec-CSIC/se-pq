@@ -57,21 +57,27 @@
   * @author Eros Camacho-Ruiz (camacho@imse-cnm.csic.es)
   * @version 1.0
   **/
-/* --- ADDRESSES DEFINITION --- */
 
-#define ADD_SHA2        0x00000020ULL
-#define ADD_SHA3        0x00000030ULL 
-#define ADD_EDDSA       0x00000040ULL
-#define ADD_X25519      0x00000050ULL
-#define ADD_TRNG	    0x00000060ULL
-#define ADD_AES 	    0x00000070ULL
-#define ADD_MLKEM       0x00000080ULL
+/* --- SE CODES --- */
+
+#define SHA_2_SE_CODE             (1 << 0)        //-- SHA-2
+#define SHA_3_SE_CODE             (1 << 1)        //-- SHA-3
+#define ECDSA_SE_CODE             (1 << 2)        //-- EdDSA25519
+#define ECDH_SE_CODE              (1 << 3)        //-- X25519
+#define TRNG_SE_CODE              (1 << 4)        //-- TRNG
+#define AES_SE_CODE               (1 << 5)        //-- AES
+#define MLKEM_SE_CODE             (1 << 6)        //-- MLKEM
+#define MLDSA_SE_CODE             (1 << 7)        //-- MLDSA
+#define SLHDSA_SE_CODE            (1 << 8)        //-- SLHDSA
+#define SECMEM_SE_CODE            (1 << 9)        //-- SECMEM
+
 
 /* ---- REGISTERS DEFINITION --- */
 
-#define DATA_IN         0x0		/**< data_in */
-#define ADDRESS         0x8		/**< address */
-#define CONTROL         0x10	/**< control */
-#define DATA_OUT        0x18	/**< data_out */
-#define END_OP          0x20	/**< end_op */
+#define AXI_BYTES                 8
+
+#define PICORV32_DATA_IN          0x0
+#define PICORV32_DATA_OUT         0x8
+#define PICORV32_CONTROL          0x10
+#define PICORV32_PROGRAM          0x18
 

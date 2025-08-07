@@ -114,7 +114,7 @@ void test_aes_acc(unsigned char mode[4], unsigned int bits, unsigned int n_test,
     unsigned char msg_test[128] = "Hello, this is the SE of QUBIP project"; 
 
     unsigned char msg[msg_len];
-    memcpy(msg, msg_test, msg_len);
+    // memcpy(msg, msg_test, msg_len);
 
     // unsigned char msg[msg_len];
 

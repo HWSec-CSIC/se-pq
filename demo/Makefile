@@ -1,8 +1,8 @@
 # COMPILER
-CC=/usr/bin/cc -fPIC
+CC=/usr/bin/cc -O4
 
 # INTERFACE (AXI or I2C or I2C_STM32)
-INTERFACE = I2C
+INTERFACE = AXI
 
 # BOARD (PYNQZ2 or ZCU104)
 BOARD = ZCU104
@@ -44,11 +44,17 @@ LIB_AES_HW_SOURCES = $(SRCDIR)aes/aes_hw.c
 LIB_AES_HW_HEADERS = $(SRCDIR)aes/aes_hw.h
 # MLKEM
 LIB_MLKEM_HW_SOURCES = $(SRCDIR)mlkem/mlkem_hw.c 
-LIB_MLKEM_HW_HEADERS = $(SRCDIR)mlkem/mlkem_hw.h  
+LIB_MLKEM_HW_HEADERS = $(SRCDIR)mlkem/mlkem_hw.h 
+# MLDSA
+LIB_MLDSA_HW_SOURCES = $(SRCDIR)mldsa/mldsa_hw.c 
+LIB_MLDSA_HW_HEADERS = $(SRCDIR)mldsa/mldsa_hw.h  
+# SLHDSA
+LIB_SLHDSA_HW_SOURCES = $(SRCDIR)slhdsa/slhdsa_hw.c 
+LIB_SLHDSA_HW_HEADERS = $(SRCDIR)slhdsa/slhdsa_hw.h  
 # COMMON
 ifeq ($(INTERFACE), AXI) 
-	LIB_COMMON_SOURCES = $(SRCDIR)common/intf.c $(SRCDIR)common/mmio.c $(SRCDIR)common/extra_func.c
-	LIB_COMMON_HEADERS = $(SRCDIR)common/intf.h $(SRCDIR)common/mmio.h $(SRCDIR)common/extra_func.h $(SRCDIR)common/conf.h
+	LIB_COMMON_SOURCES = $(SRCDIR)common/intf.c $(SRCDIR)common/mmio.c $(SRCDIR)common/extra_func.c $(SRCDIR)common/picorv32.c
+	LIB_COMMON_HEADERS = $(SRCDIR)common/intf.h $(SRCDIR)common/mmio.h $(SRCDIR)common/extra_func.h $(SRCDIR)common/conf.h $(SRCDIR)common/picorv32.h
 else ifeq ($(INTERFACE), I2C)
 	LIB_COMMON_SOURCES = $(SRCDIR)common/intf.c $(SRCDIR)common/i2c.c $(SRCDIR)common/extra_func.c
 	LIB_COMMON_HEADERS = $(SRCDIR)common/intf.h $(SRCDIR)common/i2c.h $(SRCDIR)common/extra_func.h $(SRCDIR)common/conf.h
@@ -59,8 +65,8 @@ endif
 LIB_HEADER = ../se-qubip.h
 
 # LIBRARY SOURCES & HEADERS
-LIB_SOURCES = $(LIB_COMMON_SOURCES) $(LIB_SHA3_HW_SOURCES) $(LIB_SHA2_HW_SOURCES) $(LIB_EDDSA_HW_SOURCES) $(LIB_X25519_HW_SOURCES) $(LIB_TRNG_HW_SOURCES) $(LIB_AES_HW_SOURCES) $(LIB_MLKEM_HW_SOURCES)
-LIB_HEADERS = $(LIB_COMMON_HEADERS) $(LIB_SHA3_HW_HEADERS) $(LIB_SHA2_HW_HEADERS) $(LIB_EDDSA_HW_HEADERS) $(LIB_X25519_HW_HEADERS) $(LIB_TRNG_HW_HEADERS) $(LIB_AES_HW_HEADERS) $(LIB_MLKEM_HW_HEADERS) $(LIB_HEADER)
+LIB_SOURCES = $(LIB_COMMON_SOURCES) $(LIB_SHA3_HW_SOURCES) $(LIB_SHA2_HW_SOURCES) $(LIB_EDDSA_HW_SOURCES) $(LIB_X25519_HW_SOURCES) $(LIB_TRNG_HW_SOURCES) $(LIB_AES_HW_SOURCES) $(LIB_MLKEM_HW_SOURCES) $(LIB_MLDSA_HW_SOURCES) $(LIB_SLHDSA_HW_SOURCES)
+LIB_HEADERS = $(LIB_COMMON_HEADERS) $(LIB_SHA3_HW_HEADERS) $(LIB_SHA2_HW_HEADERS) $(LIB_EDDSA_HW_HEADERS) $(LIB_X25519_HW_HEADERS) $(LIB_TRNG_HW_HEADERS) $(LIB_AES_HW_HEADERS) $(LIB_MLKEM_HW_HEADERS) $(LIB_MLDSA_HW_HEADERS) $(LIB_SLHDSA_HW_HEADERS) $(LIB_HEADER)
 
 #DEMO
 SRC_DEMO = src/
@@ -72,6 +78,9 @@ DEMO_SOURCES =	$(SRC_DEMO)demo_aes.c \
 				$(SRC_DEMO)demo_sha2.c \
 				$(SRC_DEMO)demo_sha3.c \
 				$(SRC_DEMO)demo_trng.c \
+				$(SRC_DEMO)demo_mldsa.c \
+				$(SRC_DEMO)demo_mldsa_nist.c \
+				$(SRC_DEMO)demo_slhdsa.c \
 				$(SRC_DEMO)test_func.c
 
 DEMO_SPEED_SOURCES =	$(SRC_DEMO)demo_aes_speed.c \
@@ -81,6 +90,8 @@ DEMO_SPEED_SOURCES =	$(SRC_DEMO)demo_aes_speed.c \
 						$(SRC_DEMO)demo_x25519_speed.c \
 						$(SRC_DEMO)demo_mlkem_speed.c \
 						$(SRC_DEMO)demo_trng_speed.c \
+						$(SRC_DEMO)demo_mldsa_speed.c \
+						$(SRC_DEMO)demo_slhdsa_speed.c \
 						$(SRC_DEMO)test_func.c
 
 DEMO_ACC_SOURCES =		$(SRC_DEMO)demo_aes_acc.c \

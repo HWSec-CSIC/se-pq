@@ -94,6 +94,7 @@ int test_random(unsigned char* random, unsigned int size) {
 void print_result_valid(unsigned char* str, unsigned int fail) {
 	if(!fail)	printf("\n %-30s | \033[1;32m\u2705\033[0m", str);
 	else		printf("\n %-30s | \033[1;31m\u274c\033[0m ", str);
+	fflush(stdout);
 }
 
 void print_result_double_valid(unsigned char* str, unsigned char* str2, unsigned int fail) {
@@ -104,18 +105,18 @@ void print_result_double_valid(unsigned char* str, unsigned char* str2, unsigned
 
 void read_conf(data_conf* data) {
 
-	unsigned char name[20] = "config.conf";
+	unsigned char name[60] = "config.conf";
 
 	FILE* fp;
 	fp = fopen(name, "r");
 
-	unsigned char str[20];
+	unsigned char str[60];
 
 	unsigned int ind = 0;
 	unsigned int ind_vread = 0;
-	unsigned int vread[10];
+	unsigned int vread[10] = {0};
 
-	while (fgets(str, 20, fp)) {
+	while (fgets(str, 60, fp)) {
 		// printf("%s", str);
 		char* token;
 		char* delimiter = "\t";
@@ -133,14 +134,16 @@ void read_conf(data_conf* data) {
 
 	}
 
-	data->aes		= vread[0];
-	data->sha3		= vread[1];
-	data->sha2		= vread[2];
-	data->eddsa		= vread[3];
-	data->ecdh		= vread[4];
-	data->mlkem		= vread[5];
-	data->drbg		= vread[6];
-	data->n_test	= vread[7];
+	data->aes    = vread[0];
+    data->sha3   = vread[1];
+    data->sha2   = vread[2];
+    data->eddsa  = vread[3];
+    data->ecdh   = vread[4];
+    data->mlkem  = vread[5];
+    data->drbg   = vread[6];
+	data->mldsa  = vread[7];
+	data->slhdsa = vread[8];
+    data->n_test = vread[9];
 
 	fclose(fp);
 
@@ -170,13 +173,13 @@ void print_results_str_1_tab_3(unsigned int n_test, unsigned char* str, time_res
 	unsigned int time3_us = tr3.time_mean_value;
 
 	// unsigned char time_s[20];	sprintf(time_s,		"%.3f / %.3f", time1_s,  time2_s);
-	unsigned char time_ms[30];	sprintf(time_ms, "%.3f / %.3f / %.3f", time1_ms, time2_ms, time3_ms);
-	unsigned char time_us[30];	sprintf(time_us, "%d / %d / %d", time1_us, time2_us, time3_us);
+	unsigned char time_ms[60];	sprintf(time_ms, "%5.3f / %5.3f / %5.3f", time1_ms, time2_ms, time3_ms);
+	unsigned char time_us[60];	sprintf(time_us, "%8d / %8d / %8d", time1_us, time2_us, time3_us);
 	unsigned char s_test[20];	if (tr3.val_result != 0xFFFFFFFF)	sprintf(s_test, "%d / %d", (unsigned int)tr3.val_result, n_test);
 								else								strcpy(s_test, "-");
 
 	// printf("\n %-30s | %-25s | %-25s | %-25s | %-15s ", str, time_s, time_ms, time_us, s_test);
-	printf("\n %-30s | %-30s | %-30s | %-15s ", str, time_ms, time_us, s_test);
+	printf("\n %-30s | %-30s | %-30s | %-15s ", str, time_ms, time_us, s_test); fflush(stdout);
 
 }
 
@@ -189,31 +192,44 @@ void print_results_str_1_tab_3_acc(unsigned int n_test, unsigned char* str, time
 	unsigned int time2_sw_us = tr2_sw.time_mean_value;
 	unsigned int time3_sw_us = tr3_sw.time_mean_value;
 
-	// unsigned char time_s[20];	sprintf(time_s,		"%.3f / %.3f", time1_s,  time2_s);
-	unsigned char time_us_hw[20];	sprintf(time_us_hw, "%d / %d / %d", time1_hw_us, time2_hw_us, time3_hw_us);
-	unsigned char time_us_sw[20];	sprintf(time_us_sw, "%d / %d / %d", time1_sw_us, time2_sw_us, time3_sw_us);
+    // --- INCREASE BUFFER SIZES and use snprintf ---
+    // Use 'char' instead of 'unsigned char' for string buffers, it's more conventional.
+	char time_us_hw[64]; // Increased size for safety
+	char time_us_sw[64]; // Increased size for safety
+	
+    // Use snprintf: It will not write more than 64 bytes, preventing overflows.
+	snprintf(time_us_hw, sizeof(time_us_hw), "%d / %d / %d", time1_hw_us, time2_hw_us, time3_hw_us);
+	snprintf(time_us_sw, sizeof(time_us_sw), "%d / %d / %d", time1_sw_us, time2_sw_us, time3_sw_us);
 
-	// Print acc with colours
-	double acc_1 = (double)time1_sw_us / (double)time1_hw_us;
-	double acc_2 = (double)time2_sw_us / (double)time2_hw_us;
-	double acc_3 = (double)time3_sw_us / (double)time3_hw_us;
-	unsigned char acc_1_text[30];
-	unsigned char acc_2_text[30];
-	unsigned char acc_3_text[30];
-	if (acc_1 > 1)  sprintf(acc_1_text, "\x1b[32m\x1b[1m%.2f\x1b[0m", acc_1); // green https://talyian.github.io/ansicolors/
-	else			sprintf(acc_1_text, "\x1b[31m\x1b[1m%.2f\x1b[0m", acc_1); // red
-	if (acc_2 > 1)	sprintf(acc_2_text, "\x1b[32m\x1b[1m%.2f\x1b[0m", acc_2); // green
-	else			sprintf(acc_2_text, "\x1b[31m\x1b[1m%.2f\x1b[0m", acc_2); // red
-	if (acc_3 > 1)	sprintf(acc_3_text, "\x1b[32m\x1b[1m%.2f\x1b[0m", acc_3); // green
-	else			sprintf(acc_3_text, "\x1b[31m\x1b[1m%.2f\x1b[0m", acc_3); // red
+	// --- Print acc with colours ---
+	double acc_1 = (time1_hw_us > 0) ? (double)time1_sw_us / (double)time1_hw_us : 0.0;
+	double acc_2 = (time2_hw_us > 0) ? (double)time2_sw_us / (double)time2_hw_us : 0.0;
+	double acc_3 = (time3_hw_us > 0) ? (double)time3_sw_us / (double)time3_hw_us : 0.0;
+    
+    // Using snprintf here is also safer.
+	char acc_1_text[64];
+	char acc_2_text[64];
+	char acc_3_text[64];
 
-	unsigned char acc[120]; sprintf(acc, "%s / %s / %s", acc_1_text, acc_2_text, acc_3_text);
+	const char* color_acc_1 = (acc_1 > 1.0) ? "\x1b[32m\x1b[1m" : "\x1b[31m\x1b[1m";
+	snprintf(acc_1_text, sizeof(acc_1_text), "%s%.2f\x1b[0m", color_acc_1, acc_1);
 
-	unsigned char s_test[20];	if (tr3_hw.val_result != 0xFFFFFFFF)	sprintf(s_test, "%d / %d", (unsigned int)tr3_hw.val_result, n_test);
-	else								strcpy(s_test, "-");
+	const char* color_acc_2 = (acc_2 > 1.0) ? "\x1b[32m\x1b[1m" : "\x1b[31m\x1b[1m";
+	snprintf(acc_2_text, sizeof(acc_2_text), "%s%.2f\x1b[0m", color_acc_2, acc_2);
+    
+    const char* color_acc_3 = (acc_3 > 1.0) ? "\x1b[32m\x1b[1m" : "\x1b[31m\x1b[1m";
+	snprintf(acc_3_text, sizeof(acc_3_text), "%s%.2f\x1b[0m", color_acc_3, acc_3);
 
-	// printf("\n %-30s | %-25s | %-25s | %-25s | %-15s ", str, time_s, time_ms, time_us, s_test);
-	printf("\n %-30s | %-30s | %-30s | %-69s | %-15s ", str, time_us_hw, time_us_sw, acc, s_test); // 56 purely empirical value
+	char acc[256]; // Increased size
+	snprintf(acc, sizeof(acc), "%s / %s / %s", acc_1_text, acc_2_text, acc_3_text);
+
+	char s_test[20];
+	if (tr3_hw.val_result != 0xFFFFFFFF)
+		snprintf(s_test, sizeof(s_test), "%d / %d", (unsigned int)tr3_hw.val_result, n_test);
+	else
+		strncpy(s_test, "-", sizeof(s_test)); // Use strncpy for safety
+
+	printf("\n %-30s | %-30s | %-30s | %-69s | %-15s ", (const char*)str, time_us_hw, time_us_sw, acc, s_test); fflush(stdout);
 
 }
 
@@ -228,14 +244,14 @@ void print_results_str_1_tab_2(unsigned int n_test, unsigned char* str, time_res
 	unsigned int time2_us = tr2.time_mean_value;
 
 	// unsigned char time_s[20];	sprintf(time_s,		"%.3f / %.3f", time1_s,  time2_s);
-	unsigned char time_ms[20];	sprintf(time_ms,	"%.3f / %.3f", time1_ms, time2_ms);
-	unsigned char time_us[20];	sprintf(time_us,	"%d / %d", time1_us, time2_us);
+	unsigned char time_ms[60];	sprintf(time_ms,	"%5.3f / %5.3f", time1_ms, time2_ms);
+	unsigned char time_us[60];	sprintf(time_us,	"%8d / %8d", time1_us, time2_us);
 	unsigned char s_test[20];	if(tr2.val_result != 0xFFFFFFFF)	sprintf(s_test,	"%d / %d", (unsigned int)tr2.val_result, n_test);
 								else								strcpy(s_test, "-");
 
 	// printf("\n %-30s | %-25s | %-25s | %-25s | %-15s ", str, time_s, time_ms, time_us, s_test);
 	printf("\n %-30s | %-30s | %-30s | %-15s ", str, time_ms, time_us, s_test);
-
+	fflush(stdout);
 }
 
 void print_results_str_1_tab_2_acc(unsigned int n_test, unsigned char* str, time_result tr1_hw, time_result tr2_hw, time_result tr1_sw, time_result tr2_sw) {
@@ -265,7 +281,7 @@ void print_results_str_1_tab_2_acc(unsigned int n_test, unsigned char* str, time
 	else								strcpy(s_test, "-");
 
 	// printf("\n %-30s | %-25s | %-25s | %-25s | %-15s ", str, time_s, time_ms, time_us, s_test);
-	printf("\n %-30s | %-30s | %-30s | %-56s | %-15s ", str, time_us_hw, time_us_sw, acc, s_test); // 56 purely empirical value
+	printf("\n %-30s | %-30s | %-30s | %-56s | %-15s ", str, time_us_hw, time_us_sw, acc, s_test);  fflush(stdout); // 56 purely empirical value
 
 }
 
@@ -277,14 +293,14 @@ void print_results_str_1_tab_1(unsigned int n_test, unsigned char* str, time_res
 	unsigned int time1_us	= tr.time_mean_value;
 
 	// unsigned char time_s[20];	sprintf(time_s,		"%.3f / %.3f", time1_s,  time2_s);
-	unsigned char time_ms[20];	sprintf(time_ms, "%.3f", time1_ms);
-	unsigned char time_us[20];	sprintf(time_us, "%d", time1_us);
+	unsigned char time_ms[60];	sprintf(time_ms, "%5.3f", time1_ms);
+	unsigned char time_us[60];	sprintf(time_us, "%8d", time1_us);
 	unsigned char s_test[20];	if (tr.val_result != 0xFFFFFFFF)	sprintf(s_test, "%d / %d", (unsigned int)tr.val_result, n_test);
 								else								strcpy(s_test, "-");
 
 	// printf("\n %-30s | %-25s | %-25s | %-25s | %-15s ", str, time_s, time_ms, time_us, s_test);
 	printf("\n %-30s | %-30s | %-30s | %-15s ", str, time_ms, time_us, s_test);
-
+	fflush(stdout);
 }
 
 void print_results_str_1_tab_1_acc(unsigned int n_test, unsigned char* str, time_result tr_hw, time_result tr_sw) {
@@ -308,7 +324,7 @@ void print_results_str_1_tab_1_acc(unsigned int n_test, unsigned char* str, time
 	else								strcpy(s_test, "-");
 
 	// printf("\n %-30s | %-25s | %-25s | %-25s | %-15s ", str, time_s, time_ms, time_us, s_test);
-	printf("\n %-30s | %-30s | %-30s | %-43s | %-15s ", str, time_us_hw, time_us_sw, acc, s_test); // 30 purely empirical value
+	printf("\n %-30s | %-30s | %-30s | %-43s | %-15s ", str, time_us_hw, time_us_sw, acc, s_test); fflush(stdout); // 30 purely empirical value
 
 }
 
@@ -319,13 +335,13 @@ void print_results_str_2_tab_1(unsigned int n_test, unsigned char* str1, unsigne
 	unsigned int time1_us = tr.time_mean_value;
 
 	// unsigned char time_s[20];	sprintf(time_s,		"%.3f / %.3f", time1_s,  time2_s);
-	unsigned char time_ms[20];	sprintf(time_ms, "%.3f", time1_ms);
-	unsigned char time_us[20];	sprintf(time_us, "%d", time1_us);
+	unsigned char time_ms[60];	sprintf(time_ms, "%5.3f", time1_ms);
+	unsigned char time_us[60];	sprintf(time_us, "%8d", time1_us);
 	unsigned char s_test[20];	if (tr.val_result != 0xFFFFFFFF)	sprintf(s_test, "%d / %d", (unsigned int)tr.val_result, n_test);
 	else								strcpy(s_test, "-");
 
 	// printf("\n %-30s | %-25s | %-25s | %-25s | %-15s ", str, time_s, time_ms, time_us, s_test);
-	printf("\n %-14s %-15s | %-30s | %-30s | %-15s ", str1, str2, time_ms, time_us, s_test);
+	printf("\n %-14s %-15s | %-30s | %-30s | %-15s ", str1, str2, time_ms, time_us, s_test); fflush(stdout);
 
 }
 
@@ -350,7 +366,7 @@ void print_results_str_2_tab_1_acc(unsigned int n_test, unsigned char* str1, uns
 	else								strcpy(s_test, "-");
 
 	// printf("\n %-30s | %-25s | %-25s | %-25s | %-15s ", str, time_s, time_ms, time_us, s_test);
-	printf("\n %-14s %-15s | %-30s | %-30s | %-43s | %-15s ", str1, str2, time_us_hw, time_us_sw, acc, s_test); // 43 purely empirical value
+	printf("\n %-14s %-15s | %-30s | %-30s | %-43s | %-15s ", str1, str2, time_us_hw, time_us_sw, acc, s_test); fflush(stdout); // 43 purely empirical value
 
 }
 
@@ -368,6 +384,7 @@ void load_bitstream(char* BITSTREAM_FILE)
 
 	if (!(file = fopen(bitstream_file, "r"))) {
 		printf("\n   Bitstream not available. Bye ...\n\n");
+		exit(1);
 	}
 	fclose(file);
 
@@ -408,7 +425,31 @@ int cmpchar(unsigned char* in1, unsigned char* in2, unsigned int len) {
 
 }
 
+// Converts a single hex digit ('0'-'9', 'a'-'f', or 'A'-'F') to its numeric value.
+static unsigned char hexVal(char c) {
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    if (c >= 'A' && c <= 'F')
+        return c - 'A' + 10;
+    if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    // Error: invalid character, here we simply return 0
+    return 0;
+}
+
+// Converts a null-terminated hexadecimal string (with an even number of digits)
+// into binary form, storing len(input)/2 bytes in the output buffer.
 void char2hex(unsigned char* in, unsigned char* out) {
+    size_t len = strlen(in);
+    // assert(len % 2 == 0);  // Ensure even number of hex digits.
+    
+    size_t outLen = len / 2;
+    for (size_t i = 0; i < outLen; i++) {
+        out[i] = (hexVal(in[2 * i]) << 4) | hexVal(in[2 * i + 1]);
+    }
+}
+
+/* void char2hex(unsigned char* in, unsigned char* out) {
 	
 	unsigned int index = 0;
 	unsigned char char_out; 
@@ -730,7 +771,7 @@ void char_to_hex(unsigned char in0, unsigned char in1, unsigned char* out) {
 		} break;
 	}
 
-}
+} */
 
 uint64_t timeInMicroseconds() {
 	struct timeval tv;
@@ -757,7 +798,7 @@ void print_title_demo() {
 	printf("\n\t╚════██║██╔══╝╚════╝██║▄▄ ██║██║   ██║██╔══██╗██║██╔═══╝ ");
 	printf("\n\t███████║███████╗    ╚██████╔╝╚██████╔╝██████╔╝██║██║     ");
 	printf("\n\t╚══════╝╚══════╝     ╚══▀▀═╝  ╚═════╝ ╚═════╝ ╚═╝╚═╝     ");
-	printf("\n\t Developers:                                         v2.0");
+	printf("\n\t Developers:                                         v3.0");
 	printf("\n\t \t\t Eros Camacho-Ruiz");
 	printf("\n\t \t\t Pablo Navarro-Torrero");
 	printf("\n\t \t\t Pau Ortega-Castro");

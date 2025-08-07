@@ -147,7 +147,7 @@ module EdDSA_itf #(
 	                                                   .clk(clk),
 	                                                   .rst(rst_itf),
 	                                                   .load(load),
-						                               .addr(address),
+						                               .addr(address[31:0]),
 						                               .din(data_in),
 						                               .dout(data_eddsa_in)
 						                               ); 
@@ -181,7 +181,7 @@ module EdDSA_itf #(
     piso #(.R_DATA_WIDTH(WIDTH), .N_REG(OUT_REG)) PISO(
 						                               .clk(clk),
 						                               .read(read),
-						                               .addr(address),
+						                               .addr(address[63:32]),
 						                               .din(data_eddsa_out),
 						                               .dout(data_out)
 						                               );

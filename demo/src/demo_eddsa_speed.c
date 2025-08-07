@@ -103,7 +103,8 @@ void test_eddsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
     unsigned char* pri_key;
     unsigned int pub_len;
     unsigned int pri_len;
-    unsigned char msg[] = "Hello, this is the SE of QUBIP project";
+    unsigned int msg_len = 20000;
+    unsigned char msg[20000] = "Hello, this is the SE of QUBIP project";
     unsigned char* sig;
     unsigned int sig_len;
     unsigned int result = 1;
@@ -154,7 +155,7 @@ void test_eddsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
             // sign_hw
             start_t = timeInMicroseconds();
-            eddsa25519_sign_hw(msg, strlen(msg), pri_key, pri_len, pub_key, pub_len, &sig, &sig_len, interface);
+            eddsa25519_sign_hw(msg, msg_len, pri_key, pri_len, pub_key, pub_len, &sig, &sig_len, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time_hw = stop_t - start_t;
@@ -171,9 +172,8 @@ void test_eddsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
             }
 
             // dec_hw
-
             start_t = timeInMicroseconds();
-            eddsa25519_verify_hw(msg, strlen(msg), pub_key, pub_len, sig, sig_len, &result, interface);
+            eddsa25519_verify_hw(msg, msg_len, pub_key, pub_len, sig, sig_len, &result, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW VERIFY: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time_hw = stop_t - start_t;
@@ -185,6 +185,7 @@ void test_eddsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
             if (result) tr_ve->val_result++;
 
+            
         }
 
         // ---- EDDSA ---- //

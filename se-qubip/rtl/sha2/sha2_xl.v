@@ -66,7 +66,7 @@ module sha2_xl (
     input              i_clk,
     input              i_rst,
     input  [7:0]       i_control,
-    input  [4:0]       i_add,
+    input  [63:0]       i_add,
     input  [63:0]      i_data_in,
     output  [63:0]     o_data_out,
     output             o_end_op
@@ -101,13 +101,13 @@ module sha2_xl (
     
     mem_RAM #(.SIZE(32), .WIDTH(64)) 
     mem_RAM (.clk(i_clk), .en_write(en_w), .en_read(en_r), 
-             .addr_write(i_add), .addr_read(ad_sha2), .data_in(data_in_pad), .data_out(data_sha2));
+             .addr_write(i_add[4:0]), .addr_read(ad_sha2), .data_in(data_in_pad), .data_out(data_sha2));
              
     // Multiplexer out
     always @(posedge i_clk) begin
         if(!reset) data_out_reg <= 0;
         else begin  
-            case(i_add) 
+            case(i_add[36:32]) 
                 5'b00000: data_out_reg <= H_out[8*64-1:7*64];
                 5'b00001: data_out_reg <= H_out[7*64-1:6*64];
                 5'b00010: data_out_reg <= H_out[6*64-1:5*64];
@@ -127,7 +127,7 @@ module sha2_xl (
         .clk(i_clk),
         .rst(i_rst),
         .control(i_control),
-        .ad_in(i_add),
+        .ad_in(i_add[4:0]),
         .data_in(i_data_in),
         .data_out(data_in_pad)
     );

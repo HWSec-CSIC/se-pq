@@ -96,9 +96,9 @@ void demo_sha2_hw(unsigned int verb, INTF interface) {
     unsigned char res_512_224[28]; char2hex(exp_res_512_224, res_512_224);
     unsigned char res_512_256[32]; char2hex(exp_res_512_256, res_512_256);
 
-    input       = malloc(32);
+    /* input       = malloc(32);
     input[0]    = (unsigned char)('\0');
-    len_input   = 0;
+    len_input   = 0; */
 
     // ---- sha_224 ---- //
     /*

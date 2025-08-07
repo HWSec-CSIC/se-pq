@@ -149,17 +149,68 @@ void mlkem_1024_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, 
 
 }
 
-void mlkem_gen_keys_hw(int k, unsigned char* pk, unsigned char* sk, INTF interface) {
+void mlkem_gen_keys_hw(int k, unsigned char* pk, unsigned char* sk, INTF interface) 
+{
+	//-- se_code = { {(32'b) 64-bit data_packages}, {10'b0}, {k = 4, k = 3, k = 2, DEC, ENC, KEY_GEN}, {(16'b)MLKEM} }
+	uint64_t next_block = 0;
+	uint64_t control = 0;
+    while (control != CMD_SE_CODE)
+    {
+        picorv32_control(interface, &control);
+    }
+    const uint8_t mlkem_code  = MLKEM_SE_CODE;
+    uint16_t mlkem_op_sel     = (1 << (k + 1)) | (1 << 0); 
+    
+    uint64_t se_code = ((uint32_t) mlkem_op_sel << 16) + mlkem_code;
+    write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
 
+	uint32_t LEN_EK;					// Bytes
+	uint32_t LEN_DK;					// Bytes
+	uint32_t LEN_EK_packages;			// Packages of 64-bit
+	uint32_t LEN_DK_packages;			// Packages of 64-bit
+	uint32_t LEN_EK_blocks;				// Blocks of #FIFO_DEPTH-1 * 64-bit
+	uint32_t LEN_DK_blocks;				// Blocks of #FIFO_DEPTH-1 * 64-bit
+	uint32_t LEN_EK_rem;				// Remaining packages of 64-bit
+	uint32_t LEN_DK_rem;				// Remaining packages of 64-bit
 	
+	//-- k = 2
+	if (k == 2)							
+	{
+		LEN_EK = 800;
+		LEN_DK = 1632;
+	}
+	//-- k = 3
+	else if (k == 3)						
+	{
+		LEN_EK = 1184;
+		LEN_DK = 2400;
+	}
+	//-- k = 4
+	else if (k == 4)						
+	{
+		LEN_EK = 1568;
+		LEN_DK = 3168;
+	}
+	else
+	{
+		LEN_EK = 800;
+		LEN_DK = 1632;
+	}
+
+	LEN_EK_packages = LEN_EK >> 3;
+	LEN_DK_packages = LEN_DK >> 3;
+	LEN_EK_blocks 	= LEN_EK_packages / (FIFO_OUT_DEPTH - 2);
+	LEN_DK_blocks 	= LEN_DK_packages / (FIFO_OUT_DEPTH - 2);
+	LEN_EK_rem 		= LEN_EK_packages % (FIFO_OUT_DEPTH - 2);
+	LEN_DK_rem 		= LEN_DK_packages % (FIFO_OUT_DEPTH - 2);
+
+	//-- Generate random
 	uint8_t d[32]; unsigned long long int d64[4];
 	uint8_t z[32]; unsigned long long int z64[4];
 	randombytes(d, 32); memcpy(d64, d, 32);
 	randombytes(z, 32); memcpy(z64, z, 32);
 	
-
-	/*
-	unsigned long long int d64[4];
+	/* unsigned long long int d64[4];
 	d64[0] = 0x519d62010a40b41e;
 	d64[1] = 0xf5deb985cde27479;
 	d64[2] = 0x2b9c6f8e50de8290;
@@ -169,326 +220,509 @@ void mlkem_gen_keys_hw(int k, unsigned char* pk, unsigned char* sk, INTF interfa
 	z64[0] = 0xfe0338161141391a;
 	z64[1] = 0x7586a635c319852e;
 	z64[2] = 0x5f2ba2afad8e3356;
-	z64[3] = 0x93d6cc60054357c5;
-	*/
+	z64[3] = 0x93d6cc60054357c5; */
 
-	unsigned long long int reg_addr;
-	unsigned long long int reg_data_out;
-	unsigned long long int reg_data_in;
+	while (control != CMD_SE_WRITE)
+    {
+        picorv32_control(interface, &control);
+    }
+
+	//-- Send seed (d)
+	for (int i = 0; i < 4; i++)
+	{
+		write_INTF(interface, d64 + i, PICORV32_DATA_IN, AXI_BYTES);
+	}
+
+	//-- Send seed z
+	for (int i = 0; i < 4; i++)
+	{
+		write_INTF(interface, z64 + i, PICORV32_DATA_IN, AXI_BYTES);
+	}
+
+	//-- Read sk
+	uint32_t packages_read = 0;
+	for (int i = 0; i < LEN_DK_blocks; i++)
+	{
+		while (control != CMD_SE_READ)
+    	{
+    	    picorv32_control(interface, &control);
+    	}
+		
+		for (int j = 0; j < FIFO_OUT_DEPTH - 2; j++)
+		{
+			read_INTF(interface, sk + (j + packages_read) * AXI_BYTES, PICORV32_DATA_OUT, AXI_BYTES);
+		}
+		packages_read += FIFO_OUT_DEPTH - 2;
+
+		while (control != CMD_SE_WAIT)
+    	{
+    	    picorv32_control(interface, &control);
+			if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    	}
+	}
+
+	while (control != CMD_SE_READ)
+    {
+        picorv32_control(interface, &control);
+    }
 	
-	unsigned long long int op;
-	unsigned long long int op_mode;
+	for (int i = 0; i < LEN_DK_rem; i++)
+	{
+		read_INTF(interface, sk + (i + packages_read) * AXI_BYTES, PICORV32_DATA_OUT, AXI_BYTES);
+	}
+	packages_read = 0;
 
-	if (k == 2)				op_mode = MLKEM_GEN_KEYS_512	<< 4; 
-	else if (k == 3)		op_mode = MLKEM_GEN_KEYS_768	<< 4; 
-	else if (k == 4)		op_mode = MLKEM_GEN_KEYS_1024	<< 4; 
-	else					op_mode = MLKEM_GEN_KEYS_512	<< 4;
+	while (control != CMD_SE_WAIT)
+    {
+        picorv32_control(interface, &control);
+		if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    }
 
-	unsigned int LEN_EK;
-	unsigned int LEN_DK;
+	//-- Read pk
+	for (int i = 0; i < LEN_EK_blocks; i++)
+	{
+		while (control != CMD_SE_READ)
+    	{
+    	    picorv32_control(interface, &control);
+    	}
+		
+		for (int j = 0; j < FIFO_OUT_DEPTH - 2; j++)
+		{
+			read_INTF(interface, pk + (j + packages_read) * AXI_BYTES, PICORV32_DATA_OUT, AXI_BYTES);
+		}
+		packages_read += FIFO_OUT_DEPTH - 2;
 
-	if (k == 2)			LEN_EK = 800;
-	else if (k == 3)	LEN_EK = 1184;
-	else if (k == 4)	LEN_EK = 1568;
-	else				LEN_EK = 800;
-
-	if (k == 2)			LEN_DK = 1632;
-	else if (k == 3)	LEN_DK = 2400;
-	else if (k == 4)	LEN_DK = 3168;
-	else				LEN_DK = 1632;
-
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_RESET) & 0xFFFFFFFF);
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	// -- load seed (d) -- //
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_COINS) & 0xFFFFFFFF); // LOAD_D
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < 4; i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		reg_data_in = d64[i];
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
+		while (control != CMD_SE_WAIT)
+    	{
+    	    picorv32_control(interface, &control);
+			if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    	}
 	}
 
-	// -- load z -- //
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_SS) & 0xFFFFFFFF); // LOAD_Z
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < 4; i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		reg_data_in = z64[i];
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
+	while (control != CMD_SE_READ)
+    {
+        picorv32_control(interface, &control);
+    }
+	
+	for (int i = 0; i < LEN_EK_rem; i++)
+	{
+		read_INTF(interface, pk + (i + packages_read) * AXI_BYTES, PICORV32_DATA_OUT, AXI_BYTES);
 	}
 
-	// -- start -- //
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_START) & 0xFFFFFFFF); // START
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	unsigned long long int end_op = 0;
-	// wait END_OP
-	while (!end_op) read_INTF(interface, &end_op, END_OP, sizeof(unsigned long long int));
-
-	// read sk
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_SK) & 0xFFFFFFFF);; // MLKEM_START
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < (LEN_DK / 8); i++) {
-		reg_addr = (unsigned long long int)(i + (LEN_EK / 8));
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		read_INTF(interface, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
-		memcpy(sk + 8*i, &reg_data_out, 8);
-	}
-
-	// read pk
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_PK) & 0xFFFFFFFF);; // MLKEM_READ_EK
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < (LEN_EK / 8); i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		read_INTF(interface, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
-		memcpy(pk + 8 * i, &reg_data_out, 8);
-	}
-
-
+	while (control != CMD_SE_CODE) 
+    {
+        picorv32_control(interface, &control);
+    }
 }
 
-void mlkem_enc_hw(int k, unsigned char* pk, unsigned char* ct, unsigned char* ss, INTF interface) {
+void mlkem_enc_hw(int k, unsigned char* pk, unsigned char* ct, unsigned char* ss, INTF interface) 
+{
+	//-- se_code = { {(32'b) 64-bit data_packages}, {10'b0}, {k = 4, k = 3, k = 2, DEC, ENC, KEY_GEN}, {(16'b)MLKEM} }
+	uint64_t next_block = 0;
+	uint64_t control = 0;
+    while (control != CMD_SE_CODE)
+    {
+        picorv32_control(interface, &control);
+    }
+    const uint8_t mlkem_code  = MLKEM_SE_CODE;
+    uint16_t mlkem_op_sel     = (1 << (k + 1)) | (1 << 1); 
+    
+    uint64_t se_code = ((uint32_t) mlkem_op_sel << 16) + mlkem_code;
+    write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
 
+	uint32_t LEN_EK;					// Bytes
+	uint32_t LEN_CT;					// Bytes
+	uint32_t LEN_EK_packages;			// Packages of 64-bit
+	uint32_t LEN_CT_packages;			// Packages of 64-bit
+	uint32_t LEN_EK_blocks;				// Blocks of #FIFO_DEPTH-1 * 64-bit
+	uint32_t LEN_CT_blocks;				// Blocks of #FIFO_DEPTH-1 * 64-bit
+	uint32_t LEN_EK_rem;				// Remaining packages of 64-bit
+	uint32_t LEN_CT_rem;				// Remaining packages of 64-bit
 	
+	//-- k = 2
+	if (k == 2)							
+	{
+		LEN_EK = 800 - 32;
+		LEN_CT = 768;
+	}
+	//-- k = 3
+	else if (k == 3)						
+	{
+		LEN_EK = 1184 - 32;
+		LEN_CT = 1088;
+	}
+	//-- k = 4
+	else if (k == 4)						
+	{
+		LEN_EK = 1568 - 32;
+		LEN_CT = 1568;
+	}
+	else
+	{
+		LEN_EK = 800 - 32;
+		LEN_CT = 768;
+	}
+
+	LEN_EK_packages = LEN_EK >> 3;
+	LEN_CT_packages = LEN_CT >> 3;
+	LEN_EK_blocks 	= LEN_EK_packages / (FIFO_OUT_DEPTH - 2);
+	LEN_CT_blocks 	= LEN_CT_packages / (FIFO_OUT_DEPTH - 2);
+	LEN_EK_rem 		= LEN_EK_packages % (FIFO_OUT_DEPTH - 2);
+	LEN_CT_rem 		= LEN_CT_packages % (FIFO_OUT_DEPTH - 2);
+
+	//-- Generate random
 	uint8_t m[32]; unsigned long long int m64[4];
 	randombytes(m, 32); memcpy(m64, m, 32);
 	
-
-	/*
-	unsigned long long int m64[4];
+	/* unsigned long long int m64[4];
 	m64[0] = 0x72407c18ae6c9baf;
 	m64[1] = 0x1070e33b3f9dfc56;
 	m64[2] = 0x28a187e6d055afff;
-	m64[3] = 0xd38468eb627f7cf1;
-	*/
+	m64[3] = 0xd38468eb627f7cf1; */
 
-	unsigned long long int op;
-	unsigned long long int op_mode;
+	//-- Send PK
+	uint32_t packages_send = 0;
+	for (int i = 0; i < LEN_EK_blocks; i++)
+	{
+		while (control != CMD_SE_WRITE)
+		{
+			picorv32_control(interface, &control);
+		}
+		
+		for (int j = 0; j < FIFO_OUT_DEPTH - 2; j++)
+		{
+			write_INTF(interface, pk + (j + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+		}
+		packages_send += FIFO_OUT_DEPTH - 2;
 
-	unsigned long long int reg_addr;
-	unsigned long long int reg_data_out;
-	unsigned long long int reg_data_in;
-
-	if (k == 2)				op_mode = MLKEM_ENCAP_512		<< 4;
-	else if (k == 3)		op_mode = MLKEM_ENCAP_768		<< 4;
-	else if (k == 4)		op_mode = MLKEM_ENCAP_1024		<< 4;
-	else					op_mode = MLKEM_ENCAP_512		<< 4;
-
-	unsigned int LEN_EK;
-	unsigned int LEN_CT;
-
-	if (k == 2)			LEN_EK = 800;
-	else if (k == 3)	LEN_EK = 1184;
-	else if (k == 4)	LEN_EK = 1568;
-	else				LEN_EK = 800;
-
-	if (k == 2)			LEN_CT = 768;
-	else if (k == 3)	LEN_CT = 1088;
-	else if (k == 4)	LEN_CT = 1568;
-	else				LEN_CT = 768;
-
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_RESET) & 0xFFFFFFFF); // MLKEM_RESET ON
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	// load_pk
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_PK) & 0xFFFFFFFF);  // MLKEM_LOAD_PK 
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < ((LEN_EK - 32) / 8); i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		memcpy(&reg_data_in, pk + (8*i), 8);
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
+		while (control != CMD_SE_WAIT)
+    	{
+    	    picorv32_control(interface, &control);
+			if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    	}
 	}
-
-	// load_seed
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_COINS) & 0xFFFFFFFF);  // MLKEM_LOAD_SEED
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < 4; i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		memcpy(&reg_data_in, pk + (8*i + (LEN_EK-32)), 8);
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
+	while (control != CMD_SE_WRITE)
+	{
+		picorv32_control(interface, &control);
 	}
-
-	// -- load msg (m) -- //
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_SS) & 0xFFFFFFFF); // LOAD_M
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < 4; i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		reg_data_in = m64[i];
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
-	}
-
-
-	// start
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_START) & 0xFFFFFFFF); // MLKEM_START
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	unsigned long long int end_op = 0;
-	// wait END_OP
-	while (!end_op) read_INTF(interface, &end_op, END_OP, sizeof(unsigned long long int));
-
-	// read ct
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_CT) & 0xFFFFFFFF);; // MLKEM_READ_CT
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < (LEN_CT / 8); i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		read_INTF(interface, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
-		memcpy(ct + 8 * i, &reg_data_out, 8);
-	}
-
-	// read ss
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_SS) & 0xFFFFFFFF); // MLKEM_READ_K(SS)
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < 4; i++) {
-		reg_addr = (unsigned long long int)(i + (LEN_CT / 8));
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		read_INTF(interface, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
-		memcpy(ss + 8 * i, &reg_data_out, 8);
-	}
-
-}
-
-void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface) {
-
-	unsigned long long int op;
-	unsigned long long int op_mode;
-
-	unsigned long long int reg_addr;
-	unsigned long long int reg_data_out;
-	unsigned long long int reg_data_in;
-
-	if (k == 2)				op_mode = MLKEM_DECAP_512 << 4;
-	else if (k == 3)		op_mode = MLKEM_DECAP_768 << 4;
-	else if (k == 4)		op_mode = MLKEM_DECAP_1024 << 4;
-	else					op_mode = MLKEM_DECAP_512 << 4;
-
-	unsigned int LEN_EK;
-	unsigned int LEN_DK;
-	unsigned int LEN_CT;
-
-	if (k == 2)			LEN_EK = 800;
-	else if (k == 3)	LEN_EK = 1184;
-	else if (k == 4)	LEN_EK = 1568;
-	else				LEN_EK = 800;
-
-	if (k == 2)			LEN_DK = 1632;
-	else if (k == 3)	LEN_DK = 2400;
-	else if (k == 4)	LEN_DK = 3168;
-	else				LEN_DK = 1632;
-
-	if (k == 2)			LEN_CT = 768;
-	else if (k == 3)	LEN_CT = 1088;
-	else if (k == 4)	LEN_CT = 1568;
-	else				LEN_CT = 768;
-
-	unsigned int LEN_PKE = LEN_DK - LEN_EK - 32 - 32;
-
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_RESET) & 0xFFFFFFFF);; // MLKEM_RESET ON
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	// load_sk
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_SK) & 0xFFFFFFFF);; // MLKEM_LOAD_SK
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < (LEN_PKE / 8); i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		memcpy(&reg_data_in, sk + (8 * i), 8);
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
-	}
-
-	// load_pk
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_PK) & 0xFFFFFFFF);; // MLKEM_LOAD_PK
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < (LEN_PKE / 8); i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		memcpy(&reg_data_in, sk + ((8 * i) + LEN_PKE), 8);
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
-	}
-
-	// load_ct
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_CT) & 0xFFFFFFFF);; // MLKEM_LOAD_CT
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < (LEN_CT / 8); i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		memcpy(&reg_data_in, ct + (8 * i), 8);
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
-	}
-
-	// load_seed
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_COINS) & 0xFFFFFFFF);; // MLKEM_LOAD_SEED
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < 4; i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		memcpy(&reg_data_in, sk + (8*i + (LEN_DK - 32 - 32 - 32)), 8);
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
-	}
-
-	// load_hek
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_HEK) & 0xFFFFFFFF);; // MLKEM_LOAD_SEED
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < 4; i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		memcpy(&reg_data_in, sk + (8 * i + (LEN_DK - 32 - 32)), 8);
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
-	}
-
-	// load_z
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_LOAD_PS) & 0xFFFFFFFF);; // MLKEM_LOAD_SEED
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	for (int i = 0; i < 4; i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		memcpy(&reg_data_in, sk + (8 * i + (LEN_DK - 32)), 8);
-		write_INTF(interface, &reg_data_in, DATA_IN, sizeof(unsigned long long int));
-	}
-
-
-	// start
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_START) & 0xFFFFFFFF);; // MLKEM_START
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
-
-	unsigned long long int end_op = 0;
-	// wait END_OP
-	while (!end_op) read_INTF(interface, &end_op, END_OP, sizeof(unsigned long long int));
-
-	*result = end_op; // 01: bad result, 11: good result
 	
-	// read ss
-	op = (unsigned long long int)ADD_MLKEM << 32 | ((op_mode | MLKEM_READ_SS) & 0xFFFFFFFF); // MLKEM_READ_K(SS)
-	write_INTF(interface, &op, CONTROL, sizeof(unsigned long long int));
+	for (int i = 0; i < LEN_EK_rem; i++)
+	{
+		write_INTF(interface, pk + (i + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+	}
+	packages_send += LEN_EK_rem;
+	
+	while (control != CMD_SE_WAIT)
+    {
+        picorv32_control(interface, &control);
+		if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    }
 
-	for (int i = 0; i < 4; i++) {
-		reg_addr = (unsigned long long int)(i);
-		write_INTF(interface, &reg_addr, ADDRESS, sizeof(unsigned long long int));
-		read_INTF(interface, &reg_data_out, DATA_OUT, sizeof(unsigned long long int));
-		memcpy(ss + 8 * i, &reg_data_out, 8);
+	//-- Send Seed
+	while (control != CMD_SE_WRITE)
+	{
+		picorv32_control(interface, &control);
+	}
+	for (int i = 0; i < 4; i++)
+	{
+		write_INTF(interface, pk + (i + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+	}
+	packages_send = 0;
+
+	//-- Send msg (m)
+	for (int i = 0; i < 4; i++)
+	{
+		write_INTF(interface, m64 + i, PICORV32_DATA_IN, AXI_BYTES);
 	}
 
+	//-- Read CT
+	uint32_t packages_read = 0;
+	for (int i = 0; i < LEN_CT_blocks; i++)
+	{
+		while (control != CMD_SE_READ)
+    	{
+    	    picorv32_control(interface, &control);
+    	}
+		
+		for (int j = 0; j < FIFO_OUT_DEPTH - 2; j++)
+		{
+			read_INTF(interface, ct + (j + packages_read) * AXI_BYTES, PICORV32_DATA_OUT, AXI_BYTES);
+		}
+		packages_read += FIFO_OUT_DEPTH - 2;
+
+		while (control != CMD_SE_WAIT)
+    	{
+    	    picorv32_control(interface, &control);
+			if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    	}
+	}
+
+	while (control != CMD_SE_READ)
+    {
+        picorv32_control(interface, &control);
+    }
+	
+	for (int i = 0; i < LEN_CT_rem; i++)
+	{
+		read_INTF(interface, ct + (i + packages_read) * AXI_BYTES, PICORV32_DATA_OUT, AXI_BYTES);
+	}
+	packages_read = 0;
+
+	while (control != CMD_SE_WAIT)
+    {
+        picorv32_control(interface, &control);
+		if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    }
+
+	//-- Read SS
+	while (control != CMD_SE_READ)
+    {
+        picorv32_control(interface, &control);
+    }
+		
+	for (int i = 0; i < 4; i++)
+	{
+		read_INTF(interface, ss + i  * AXI_BYTES, PICORV32_DATA_OUT, AXI_BYTES);
+	}
+
+	while (control != CMD_SE_CODE) 
+    {
+        picorv32_control(interface, &control);
+    }
 }
+
+void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface) 
+{
+	//-- se_code = { {(32'b) 64-bit data_packages}, {10'b0}, {k = 4, k = 3, k = 2, DEC, ENC, KEY_GEN}, {(16'b)MLKEM} }
+	uint64_t next_block = 0;
+	uint64_t control = 0;
+    while (control != CMD_SE_CODE)
+    {
+        picorv32_control(interface, &control);
+    }
+    const uint8_t mlkem_code  = MLKEM_SE_CODE;
+    uint16_t mlkem_op_sel     = (1 << (k + 1)) | (1 << 2); 
+    
+    uint64_t se_code = ((uint32_t) mlkem_op_sel << 16) + mlkem_code;
+    write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
+
+	uint32_t LEN_EK;					
+	uint32_t LEN_DK;					
+	uint32_t LEN_PKE;					// Bytes
+	uint32_t LEN_CT;					// Bytes
+	uint32_t LEN_PKE_packages;			// Packages of 64-bit
+	uint32_t LEN_CT_packages;			// Packages of 64-bit
+	uint32_t LEN_PKE_blocks;			// Blocks of #FIFO_DEPTH-1 * 64-bit
+	uint32_t LEN_CT_blocks;				// Blocks of #FIFO_DEPTH-1 * 64-bit
+	uint32_t LEN_PKE_rem;				// Remaining packages of 64-bit
+	uint32_t LEN_CT_rem;				// Remaining packages of 64-bit
+	
+	//-- k = 2
+	if (k == 2)							
+	{
+		LEN_EK 	= 800;
+		LEN_DK 	= 1632;
+		LEN_PKE = LEN_DK - LEN_EK - 32 - 32;
+		LEN_CT 	= 768;
+	}
+	//-- k = 3
+	else if (k == 3)						
+	{
+		LEN_EK 	= 1184;
+		LEN_DK 	= 2400;
+		LEN_PKE = LEN_DK - LEN_EK - 32 - 32;
+		LEN_CT 	= 1088;
+	}
+	//-- k = 4
+	else if (k == 4)						
+	{
+		LEN_EK	= 1568;
+		LEN_DK 	= 3168;
+		LEN_PKE = LEN_DK - LEN_EK - 32 - 32;
+		LEN_CT 	= 1568;
+	}
+	else
+	{
+		LEN_EK 	= 800;
+		LEN_DK 	= 1632;
+		LEN_PKE = LEN_DK - LEN_EK - 32 - 32;
+		LEN_CT 	= 768;
+	}
+
+	LEN_PKE_packages 	= LEN_PKE >> 3;
+	LEN_CT_packages 	= LEN_CT >> 3;
+	LEN_PKE_blocks 		= LEN_PKE_packages / (FIFO_OUT_DEPTH - 2);
+	LEN_CT_blocks 		= LEN_CT_packages / (FIFO_OUT_DEPTH - 2);
+	LEN_PKE_rem 		= LEN_PKE_packages % (FIFO_OUT_DEPTH - 2);
+	LEN_CT_rem 			= LEN_CT_packages % (FIFO_OUT_DEPTH - 2);
+
+	//-- Send SK
+	uint32_t packages_send = 0;
+	for (int i = 0; i < LEN_PKE_blocks; i++)
+	{
+		while (control != CMD_SE_WRITE)
+		{
+			picorv32_control(interface, &control);
+		}
+		
+		for (int j = 0; j < FIFO_OUT_DEPTH - 2; j++)
+		{
+			write_INTF(interface, sk + (j + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+		}
+		packages_send += FIFO_OUT_DEPTH - 2;
+
+		while (control != CMD_SE_WAIT)
+    	{
+    	    picorv32_control(interface, &control);
+			if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    	}
+	}
+	while (control != CMD_SE_WRITE)
+	{
+		picorv32_control(interface, &control);
+	}
+	
+	for (int i = 0; i < LEN_PKE_rem; i++)
+	{
+		write_INTF(interface, sk + (i + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+	}
+	packages_send += LEN_PKE_rem;
+	
+	while (control != CMD_SE_WAIT)
+    {
+        picorv32_control(interface, &control);
+		if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    }
+
+	//-- Send PK
+	for (int i = 0; i < LEN_PKE_blocks; i++)
+	{
+		while (control != CMD_SE_WRITE)
+		{
+			picorv32_control(interface, &control);
+		}
+		
+		for (int j = 0; j < FIFO_OUT_DEPTH - 2; j++)
+		{
+			write_INTF(interface, sk + (j + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+		}
+		packages_send += FIFO_OUT_DEPTH - 2;
+
+		while (control != CMD_SE_WAIT)
+    	{
+    	    picorv32_control(interface, &control);
+			if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    	}
+	}
+	while (control != CMD_SE_WRITE)
+	{
+		picorv32_control(interface, &control);
+	}
+	
+	for (int i = 0; i < LEN_PKE_rem; i++)
+	{
+		write_INTF(interface, sk + (i + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+	}
+	packages_send += LEN_PKE_rem;
+	
+	while (control != CMD_SE_WAIT)
+    {
+        picorv32_control(interface, &control);
+		if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    }
+
+	//-- Send CT
+	packages_send = 0;
+	for (int i = 0; i < LEN_CT_blocks; i++)
+	{
+		while (control != CMD_SE_WRITE)
+		{
+			picorv32_control(interface, &control);
+		}
+		
+		for (int j = 0; j < FIFO_OUT_DEPTH - 2; j++)
+		{
+			write_INTF(interface, ct + (j + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+		}
+		packages_send += FIFO_OUT_DEPTH - 2;
+
+		while (control != CMD_SE_WAIT)
+    	{
+    	    picorv32_control(interface, &control);
+			if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    	}
+	}
+	while (control != CMD_SE_WRITE)
+	{
+		picorv32_control(interface, &control);
+	}
+	
+	for (int i = 0; i < LEN_CT_rem; i++)
+	{
+		write_INTF(interface, ct + (i + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+	}
+	packages_send += LEN_CT_rem;
+	
+	while (control != CMD_SE_WAIT)
+    {
+        picorv32_control(interface, &control);
+		if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    }
+	packages_send = 0;
+
+	//-- Send Seed
+	while (control != CMD_SE_WRITE)
+	{
+		picorv32_control(interface, &control);
+	}
+	for (int i = 0; i < 4; i++)
+	{
+		write_INTF(interface, sk + i * AXI_BYTES + LEN_DK - 32 - 32 - 32, PICORV32_DATA_IN, AXI_BYTES);
+	}
+
+	//-- Send HEK
+	for (int i = 0; i < 4; i++)
+	{
+		write_INTF(interface, sk + i * AXI_BYTES + LEN_DK - 32 - 32, PICORV32_DATA_IN, AXI_BYTES);
+	}
+
+	//-- Send Z
+	for (int i = 0; i < 4; i++)
+	{
+		write_INTF(interface, sk + i * AXI_BYTES + LEN_DK - 32, PICORV32_DATA_IN, AXI_BYTES);
+	}
+
+	//-- Read SS
+	while (control != CMD_SE_READ)
+    {
+        picorv32_control(interface, &control);
+    }
+		
+	for (int i = 0; i < 4; i++)
+	{
+		read_INTF(interface, ss + i  * AXI_BYTES, PICORV32_DATA_OUT, AXI_BYTES);
+	}
+
+	//-- Read Result
+	while (control != CMD_SE_WAIT)
+    {
+        picorv32_control(interface, &control);
+		if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    }
+	while (control != CMD_SE_READ)
+    {
+        picorv32_control(interface, &control);
+    }
+	uint64_t result_64;
+	read_INTF(interface, &result_64, PICORV32_DATA_OUT, AXI_BYTES);
+
+	*result = result_64;
+
+	while (control != CMD_SE_CODE) 
+    {
+        picorv32_control(interface, &control);
+    }
+}
+
+
 

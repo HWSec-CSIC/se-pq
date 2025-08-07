@@ -90,12 +90,19 @@ module RAM  #
 	
     assign data_out = out_reg;
     
-    genvar i;
+    /* genvar i;
         generate 
          for(i = 0; i < SIZE; i = i+1) begin
             initial Mem[i] = 0;
          end
-        endgenerate
+        endgenerate */
+    
+    initial begin
+        integer i; // Use 'integer' for procedural loop variables
+        for (i = 0; i < SIZE; i = i + 1) begin
+            Mem[i] = 0;
+        end
+    end
     
     
 	
@@ -178,7 +185,7 @@ module ROM_ADD
  
 	initial
 	begin
-		$readmemb("ROM_ADD.mem", rom);
+		$readmemb("rtl/mlkem/ROM_ADD.mem", rom);
 	end
  
 	always @ (posedge clk)
@@ -210,22 +217,22 @@ parameter DEC = 0)
  
     generate
         if(K == 2) begin
-                    if(GEN == 1 & ENC == 0 & DEC == 0) initial begin $readmemh("PROGRAM_ROM_GEN_K_2.mem", rom); end 
-            else    if(GEN == 0 & ENC == 1 & DEC == 0) initial begin $readmemh("PROGRAM_ROM_ENC_K_2.mem", rom); end 
-            else    if(GEN == 0 & ENC == 0 & DEC == 1) initial begin $readmemh("PROGRAM_ROM_DEC_K_2.mem", rom); end 
-            else                                       initial begin $readmemh("PROGRAM_ROM_GEN_K_2.mem", rom); end
+                    if(GEN == 1 & ENC == 0 & DEC == 0) initial begin $readmemh("rtl/mlkem/PROGRAM_ROM_GEN_K_2.mem", rom); end 
+            else    if(GEN == 0 & ENC == 1 & DEC == 0) initial begin $readmemh("rtl/mlkem/PROGRAM_ROM_ENC_K_2.mem", rom); end 
+            else    if(GEN == 0 & ENC == 0 & DEC == 1) initial begin $readmemh("rtl/mlkem/PROGRAM_ROM_DEC_K_2.mem", rom); end 
+            else                                       initial begin $readmemh("rtl/mlkem/PROGRAM_ROM_GEN_K_2.mem", rom); end
         end
         else if(K == 3) begin
-                    if(GEN == 1 & ENC == 0 & DEC == 0) initial begin $readmemh("PROGRAM_ROM_GEN_K_3.mem", rom); end 
-            else    if(GEN == 0 & ENC == 1 & DEC == 0) initial begin $readmemh("PROGRAM_ROM_ENC_K_3.mem", rom); end 
-            else    if(GEN == 0 & ENC == 0 & DEC == 1) initial begin $readmemh("PROGRAM_ROM_DEC_K_3.mem", rom); end 
-            else                                       initial begin $readmemh("PROGRAM_ROM_GEN_K_3.mem", rom); end
+                    if(GEN == 1 & ENC == 0 & DEC == 0) initial begin $readmemh("rtl/mlkem/PROGRAM_ROM_GEN_K_3.mem", rom); end 
+            else    if(GEN == 0 & ENC == 1 & DEC == 0) initial begin $readmemh("rtl/mlkem/PROGRAM_ROM_ENC_K_3.mem", rom); end 
+            else    if(GEN == 0 & ENC == 0 & DEC == 1) initial begin $readmemh("rtl/mlkem/PROGRAM_ROM_DEC_K_3.mem", rom); end 
+            else                                       initial begin $readmemh("rtl/mlkem/PROGRAM_ROM_GEN_K_3.mem", rom); end
         end
         else if(K == 4) begin
-                    if(GEN == 1 & ENC == 0 & DEC == 0) initial begin $readmemh("PROGRAM_ROM_GEN_K_4.mem", rom); end 
-            else    if(GEN == 0 & ENC == 1 & DEC == 0) initial begin $readmemh("PROGRAM_ROM_ENC_K_4.mem", rom); end 
-            else    if(GEN == 0 & ENC == 0 & DEC == 1) initial begin $readmemh("PROGRAM_ROM_DEC_K_4.mem", rom); end 
-            else                                       initial begin $readmemh("PROGRAM_ROM_GEN_K_4.mem", rom); end
+                    if(GEN == 1 & ENC == 0 & DEC == 0) initial begin $readmemh("rtl/mlkem/PROGRAM_ROM_GEN_K_4.mem", rom); end 
+            else    if(GEN == 0 & ENC == 1 & DEC == 0) initial begin $readmemh("rtl/mlkem/PROGRAM_ROM_ENC_K_4.mem", rom); end 
+            else    if(GEN == 0 & ENC == 0 & DEC == 1) initial begin $readmemh("rtl/mlkem/PROGRAM_ROM_DEC_K_4.mem", rom); end 
+            else                                       initial begin $readmemh("rtl/mlkem/PROGRAM_ROM_GEN_K_4.mem", rom); end
         end
 	endgenerate
  
