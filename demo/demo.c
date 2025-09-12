@@ -94,14 +94,27 @@ void main(int argc, char** argv) {
 	INTF interface;
 	open_INTF(&interface, INTF_ADDRESS, INTF_LENGTH);
 
+	// --- Is it already programmed? --- //
+	bool is_dev_prog = false;
+	uint64_t control = 0;
+    // read_INTF(interface, &control, PICORV32_CONTROL, AXI_BYTES);
+	if (control == CMD_SE_CODE) is_dev_prog = true;
+
 #ifdef AXI
 	// --- Loading Bitstream --- //
-	load_bitstream(BITSTREAM_AXI);
+	if (!is_dev_prog) 
+	{
+		printf("\n\nPROGRAMMING DEVICE...\n\n");
+		load_bitstream(BITSTREAM_AXI);
+	}
 #endif
 
 	// --- Load PICORV32 Program --- // 
-	WRITE_PICORV_PROGRAM(interface);
-	// READ_PICORV_PROGRAM(interface);
+	if (!is_dev_prog) 
+	{
+		WRITE_PICORV_PROGRAM(interface);
+		// READ_PICORV_PROGRAM(interface);
+	}
 
 	data_conf data_conf;
 
@@ -171,7 +184,7 @@ void main(int argc, char** argv) {
 	if (data_conf.slhdsa) {
     	const slh_ph_func_t *ph = &slh_dsa_ph_shake_256;
 		demo_slhdsa_hw(interface, ph, "shake-128-f", verb);
-    	demo_slhdsa_hw(interface, ph, "shake-128-s", verb);
+    	/* demo_slhdsa_hw(interface, ph, "shake-128-s", verb);
 		demo_slhdsa_hw(interface, ph, "shake-192-f", verb);
 		demo_slhdsa_hw(interface, ph, "shake-192-s", verb);
 		demo_slhdsa_hw(interface, ph, "shake-256-f", verb);
@@ -181,9 +194,10 @@ void main(int argc, char** argv) {
 		demo_slhdsa_hw(interface, ph, "sha-2-192-f", verb);
 		demo_slhdsa_hw(interface, ph, "sha-2-192-s", verb);
 		demo_slhdsa_hw(interface, ph, "sha-2-256-f", verb);
-		demo_slhdsa_hw(interface, ph, "sha-2-256-s", verb);
+		demo_slhdsa_hw(interface, ph, "sha-2-256-s", verb); */
 	}
 	
+	secmem_info(1, interface);
 
 	printf("\n\n");
 

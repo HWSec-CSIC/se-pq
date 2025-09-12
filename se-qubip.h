@@ -74,6 +74,7 @@
 #include "se-qubip/src/mlkem/mlkem_hw.h"
 #include "se-qubip/src/mldsa/mldsa_hw.h"
 #include "se-qubip/src/slhdsa/slhdsa_hw.h"
+#include "se-qubip/src/secmem/secmem_hw.h"
 
 //-- SHA-3 / SHAKE
 #define sha3_512_hw			                sha3_512_hw_func
@@ -242,13 +243,13 @@
         #define FREQ_MLKEM         100.0
         #define FREQ_AES           100.0
     #elif ZCU104
-        #define FREQ_TYPICAL       375.0
-        #define FREQ_SHA2          375.0
-        #define FREQ_SHA3          375.0
-        #define FREQ_EDDSA         320.0 
-        #define FREQ_X25519        320.0
-        #define FREQ_MLKEM         320.0
-        #define FREQ_AES           375.0
+        #define FREQ_TYPICAL       100.0    // 375.0
+        #define FREQ_SHA2          100.0    // 375.0
+        #define FREQ_SHA3          100.0    // 375.0
+        #define FREQ_EDDSA         100.0    // 320.0 
+        #define FREQ_X25519        100.0    // 320.0
+        #define FREQ_MLKEM         100.0    // 320.0
+        #define FREQ_AES           100.0    // 375.0
     #endif
 #endif
 

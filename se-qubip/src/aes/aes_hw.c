@@ -192,7 +192,7 @@ static void ccmIncCounter(uint8_t *ctr, size_t n)
 // AES-ECB-CBC-CMAC HW
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void aes_ecb_cbc_cmac_hw(unsigned char *key, unsigned char *data_out, unsigned int *data_out_len, unsigned char *data_in, unsigned int data_in_len, unsigned char *IV, unsigned int encrypt, unsigned int aes_len, unsigned int aes_mode, INTF interface)
+void aes_ecb_cbc_cmac_hw(unsigned char *key, unsigned char *data_out, unsigned int *data_out_len, unsigned char *data_in, unsigned int data_in_len, unsigned char *IV, unsigned int encrypt, unsigned int aes_len, unsigned int aes_mode, bool ext_key, uint8_t key_id, INTF interface)
 {
     //-- AES MODES
     uint8_t AES_ECB     = (aes_mode >> 0) & 0x1;
@@ -228,7 +228,7 @@ void aes_ecb_cbc_cmac_hw(unsigned char *key, unsigned char *data_out, unsigned i
         picorv32_control(interface, &control);
     }
     const uint8_t aes_code = AES_SE_CODE;
-    uint16_t aes_op_sel = ((uint16_t) complete_cond << 8) + (aes_mode << 3) + (aes_len << 1) + encrypt; 
+    uint16_t aes_op_sel     = ((uint16_t) !ext_key << 15) + ((uint16_t) (key_id << 9)) + ((uint16_t) complete_cond << 8) + ((uint16_t) aes_mode << 3) + (aes_len << 1) + encrypt; 
     uint32_t data_packages = data_in_blocks * 2;
     
     uint64_t se_code = ((uint64_t) data_packages << 32) + ((uint32_t) aes_op_sel << 16) + aes_code;
@@ -241,10 +241,13 @@ void aes_ecb_cbc_cmac_hw(unsigned char *key, unsigned char *data_out, unsigned i
     }
     
     //-- Write Key
-    if (aes_len == 3) write_INTF(interface, key + 3 * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
-    if (aes_len >= 2) write_INTF(interface, key + 2 * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
-    write_INTF(interface, key + AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
-    write_INTF(interface, key, PICORV32_DATA_IN, AXI_BYTES);
+    if (ext_key)
+    {
+        if (aes_len == 3) write_INTF(interface, key + 3 * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+        if (aes_len >= 2) write_INTF(interface, key + 2 * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+        write_INTF(interface, key + AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+        write_INTF(interface, key, PICORV32_DATA_IN, AXI_BYTES);
+    }
 
     //-- Write IV if CBC
     if (AES_CBC)
@@ -325,9 +328,9 @@ void aes_ecb_cbc_cmac_hw(unsigned char *key, unsigned char *data_out, unsigned i
 // AES-ECB
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void aes_128_ecb_encrypt_hw(unsigned char *key, unsigned char *ciphertext, unsigned int *ciphertext_len, unsigned char *plaintext, unsigned int plaintext_len, INTF interface)
+void aes_128_ecb_encrypt_hw(unsigned char *key, unsigned char *ciphertext, unsigned int *ciphertext_len, unsigned char *plaintext, unsigned int plaintext_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, ciphertext, ciphertext_len, plaintext, plaintext_len, NULL, AES_ENCRYPT, AES_LEN_128, AES_MODE_ECB, interface);
+    aes_ecb_cbc_cmac_hw(key, ciphertext, ciphertext_len, plaintext, plaintext_len, NULL, AES_ENCRYPT, AES_LEN_128, AES_MODE_ECB, ext_key, key_id, interface);
     /*
     printf("\nciphertext = 0x");
     for (int i = 0; i < *ciphertext_len / 16; i++)
@@ -338,9 +341,9 @@ void aes_128_ecb_encrypt_hw(unsigned char *key, unsigned char *ciphertext, unsig
     */
 }
 
-void aes_128_ecb_decrypt_hw(unsigned char *key, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, INTF interface)
+void aes_128_ecb_decrypt_hw(unsigned char *key, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, plaintext, plaintext_len, ciphertext, ciphertext_len, NULL, AES_DECRYPT, AES_LEN_128, AES_MODE_ECB, interface);
+    aes_ecb_cbc_cmac_hw(key, plaintext, plaintext_len, ciphertext, ciphertext_len, NULL, AES_DECRYPT, AES_LEN_128, AES_MODE_ECB, ext_key, key_id, interface);
     /*
     printf("\nplaintext = 0x");
     for (int i = 0; i < *plaintext_len / 16; i++)
@@ -351,9 +354,9 @@ void aes_128_ecb_decrypt_hw(unsigned char *key, unsigned char *ciphertext, unsig
     */
 }
 
-void aes_192_ecb_encrypt_hw(unsigned char *key, unsigned char *ciphertext, unsigned int *ciphertext_len, unsigned char *plaintext, unsigned int plaintext_len, INTF interface)
+void aes_192_ecb_encrypt_hw(unsigned char *key, unsigned char *ciphertext, unsigned int *ciphertext_len, unsigned char *plaintext, unsigned int plaintext_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, ciphertext, ciphertext_len, plaintext, plaintext_len, NULL, AES_ENCRYPT, AES_LEN_192, AES_MODE_ECB, interface);
+    aes_ecb_cbc_cmac_hw(key, ciphertext, ciphertext_len, plaintext, plaintext_len, NULL, AES_ENCRYPT, AES_LEN_192, AES_MODE_ECB, ext_key, key_id, interface);
     /*
     printf("\nciphertext = 0x");
     for (int i = 0; i < *ciphertext_len / 16; i++)
@@ -364,9 +367,9 @@ void aes_192_ecb_encrypt_hw(unsigned char *key, unsigned char *ciphertext, unsig
     */
 }
 
-void aes_192_ecb_decrypt_hw(unsigned char *key, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, INTF interface)
+void aes_192_ecb_decrypt_hw(unsigned char *key, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, plaintext, plaintext_len, ciphertext, ciphertext_len, NULL, AES_DECRYPT, AES_LEN_192, AES_MODE_ECB, interface);
+    aes_ecb_cbc_cmac_hw(key, plaintext, plaintext_len, ciphertext, ciphertext_len, NULL, AES_DECRYPT, AES_LEN_192, AES_MODE_ECB, ext_key, key_id, interface);
     /*
     printf("\nplaintext = 0x");
     for (int i = 0; i < *plaintext_len / 16; i++)
@@ -377,9 +380,9 @@ void aes_192_ecb_decrypt_hw(unsigned char *key, unsigned char *ciphertext, unsig
      */
 }
 
-void aes_256_ecb_encrypt_hw(unsigned char *key, unsigned char *ciphertext, unsigned int *ciphertext_len, unsigned char *plaintext, unsigned int plaintext_len, INTF interface)
+void aes_256_ecb_encrypt_hw(unsigned char *key, unsigned char *ciphertext, unsigned int *ciphertext_len, unsigned char *plaintext, unsigned int plaintext_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, ciphertext, ciphertext_len, plaintext, plaintext_len, NULL, AES_ENCRYPT, AES_LEN_256, AES_MODE_ECB, interface);
+    aes_ecb_cbc_cmac_hw(key, ciphertext, ciphertext_len, plaintext, plaintext_len, NULL, AES_ENCRYPT, AES_LEN_256, AES_MODE_ECB, ext_key, key_id, interface);
     /*
     printf("\nciphertext = 0x");
     for (int i = 0; i < *ciphertext_len / 16; i++)
@@ -390,9 +393,9 @@ void aes_256_ecb_encrypt_hw(unsigned char *key, unsigned char *ciphertext, unsig
     */
 }
 
-void aes_256_ecb_decrypt_hw(unsigned char *key, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, INTF interface)
+void aes_256_ecb_decrypt_hw(unsigned char *key, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, plaintext, plaintext_len, ciphertext, ciphertext_len, NULL, AES_DECRYPT, AES_LEN_256, AES_MODE_ECB, interface);
+    aes_ecb_cbc_cmac_hw(key, plaintext, plaintext_len, ciphertext, ciphertext_len, NULL, AES_DECRYPT, AES_LEN_256, AES_MODE_ECB, ext_key, key_id, interface);
     /*
     printf("\nplaintext = 0x");
     for (int i = 0; i < *plaintext_len / 16; i++)
@@ -407,9 +410,9 @@ void aes_256_ecb_decrypt_hw(unsigned char *key, unsigned char *ciphertext, unsig
 // AES-CBC
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void aes_128_cbc_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned int *ciphertext_len, unsigned char *plaintext, unsigned int plaintext_len, INTF interface)
+void aes_128_cbc_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned int *ciphertext_len, unsigned char *plaintext, unsigned int plaintext_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, ciphertext, ciphertext_len, plaintext, plaintext_len, iv, AES_ENCRYPT, AES_LEN_128, AES_MODE_CBC, interface);
+    aes_ecb_cbc_cmac_hw(key, ciphertext, ciphertext_len, plaintext, plaintext_len, iv, AES_ENCRYPT, AES_LEN_128, AES_MODE_CBC, ext_key, key_id, interface);
     /*
     printf("\nciphertext = 0x");
     for (int i = 0; i < *ciphertext_len / 16; i++)
@@ -420,9 +423,9 @@ void aes_128_cbc_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned char
     */
 }
 
-void aes_128_cbc_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, INTF interface)
+void aes_128_cbc_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, plaintext, plaintext_len, ciphertext, ciphertext_len, iv, AES_DECRYPT, AES_LEN_128, AES_MODE_CBC, interface);
+    aes_ecb_cbc_cmac_hw(key, plaintext, plaintext_len, ciphertext, ciphertext_len, iv, AES_DECRYPT, AES_LEN_128, AES_MODE_CBC, ext_key, key_id, interface);
     /*
     printf("\nplaintext = 0x");
     for (int i = 0; i < *plaintext_len / 16; i++)
@@ -433,9 +436,9 @@ void aes_128_cbc_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned char
     */
 }
 
-void aes_192_cbc_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned int *ciphertext_len, unsigned char *plaintext, unsigned int plaintext_len, INTF interface)
+void aes_192_cbc_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned int *ciphertext_len, unsigned char *plaintext, unsigned int plaintext_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, ciphertext, ciphertext_len, plaintext, plaintext_len, iv, AES_ENCRYPT, AES_LEN_192, AES_MODE_CBC, interface);
+    aes_ecb_cbc_cmac_hw(key, ciphertext, ciphertext_len, plaintext, plaintext_len, iv, AES_ENCRYPT, AES_LEN_192, AES_MODE_CBC, ext_key, key_id, interface);
     /*
     printf("\nciphertext = 0x");
     for (int i = 0; i < *ciphertext_len / 16; i++)
@@ -446,9 +449,9 @@ void aes_192_cbc_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned char
     */
 }
 
-void aes_192_cbc_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, INTF interface)
+void aes_192_cbc_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, plaintext, plaintext_len, ciphertext, ciphertext_len, iv, AES_DECRYPT, AES_LEN_192, AES_MODE_CBC, interface);
+    aes_ecb_cbc_cmac_hw(key, plaintext, plaintext_len, ciphertext, ciphertext_len, iv, AES_DECRYPT, AES_LEN_192, AES_MODE_CBC, ext_key, key_id, interface);
     /*
     printf("\nplaintext = 0x");
     for (int i = 0; i < *plaintext_len / 16; i++)
@@ -459,9 +462,9 @@ void aes_192_cbc_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned char
     */
 }
 
-void aes_256_cbc_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned int *ciphertext_len, unsigned char *plaintext, unsigned int plaintext_len, INTF interface)
+void aes_256_cbc_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned int *ciphertext_len, unsigned char *plaintext, unsigned int plaintext_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, ciphertext, ciphertext_len, plaintext, plaintext_len, iv, AES_ENCRYPT, AES_LEN_256, AES_MODE_CBC, interface);
+    aes_ecb_cbc_cmac_hw(key, ciphertext, ciphertext_len, plaintext, plaintext_len, iv, AES_ENCRYPT, AES_LEN_256, AES_MODE_CBC, ext_key, key_id, interface);
     /*
     printf("\nciphertext = 0x");
     for (int i = 0; i < *ciphertext_len / 16; i++)
@@ -472,9 +475,9 @@ void aes_256_cbc_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned char
     */
 }
 
-void aes_256_cbc_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, INTF interface)
+void aes_256_cbc_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, plaintext, plaintext_len, ciphertext, ciphertext_len, iv, AES_DECRYPT, AES_LEN_256, AES_MODE_CBC, interface);
+    aes_ecb_cbc_cmac_hw(key, plaintext, plaintext_len, ciphertext, ciphertext_len, iv, AES_DECRYPT, AES_LEN_256, AES_MODE_CBC, ext_key, key_id, interface);
     /*
     printf("\nplaintext = 0x");
     for (int i = 0; i < *plaintext_len / 16; i++)
@@ -490,25 +493,25 @@ void aes_256_cbc_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned char
 // AES-CMAC
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void aes_128_cmac_hw(unsigned char *key, unsigned char *mac, unsigned int *mac_len, unsigned char *msg, unsigned int msg_len, INTF interface)
+void aes_128_cmac_hw(unsigned char *key, unsigned char *mac, unsigned int *mac_len, unsigned char *msg, unsigned int msg_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, mac, mac_len, msg, msg_len, NULL, AES_ENCRYPT, AES_LEN_128, AES_MODE_CMAC, interface);
+    aes_ecb_cbc_cmac_hw(key, mac, mac_len, msg, msg_len, NULL, AES_ENCRYPT, AES_LEN_128, AES_MODE_CMAC, ext_key, key_id, interface);
     
     // printf("\nMAC = 0x");
     // for (int i = 0; i < AES_BLOCK; i++) printf("%02x", mac[i]);
 }
 
-void aes_192_cmac_hw(unsigned char *key, unsigned char *mac, unsigned int *mac_len, unsigned char *msg, unsigned int msg_len, INTF interface)
+void aes_192_cmac_hw(unsigned char *key, unsigned char *mac, unsigned int *mac_len, unsigned char *msg, unsigned int msg_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, mac, mac_len, msg, msg_len, NULL, AES_ENCRYPT, AES_LEN_192, AES_MODE_CMAC, interface);
+    aes_ecb_cbc_cmac_hw(key, mac, mac_len, msg, msg_len, NULL, AES_ENCRYPT, AES_LEN_192, AES_MODE_CMAC, ext_key, key_id, interface);
     
     // printf("\nMAC = 0x");
     // for (int i = 0; i < AES_BLOCK; i++) printf("%02x", mac[i]);
 }
 
-void aes_256_cmac_hw(unsigned char *key, unsigned char *mac, unsigned int *mac_len, unsigned char *msg, unsigned int msg_len, INTF interface)
+void aes_256_cmac_hw(unsigned char *key, unsigned char *mac, unsigned int *mac_len, unsigned char *msg, unsigned int msg_len, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ecb_cbc_cmac_hw(key, mac, mac_len, msg, msg_len, NULL, AES_ENCRYPT, AES_LEN_256, AES_MODE_CMAC, interface);
+    aes_ecb_cbc_cmac_hw(key, mac, mac_len, msg, msg_len, NULL, AES_ENCRYPT, AES_LEN_256, AES_MODE_CMAC, ext_key, key_id, interface);
     
     // printf("\nMAC = 0x");
     // for (int i = 0; i < AES_BLOCK; i++) printf("%02x", mac[i]);
@@ -519,7 +522,7 @@ void aes_256_cmac_hw(unsigned char *key, unsigned char *mac, unsigned int *mac_l
 // AES-CCM-8 HW
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void aes_ccm_8_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *data_out, unsigned int *data_out_len, unsigned char *data_in, unsigned int data_in_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, unsigned int encrypt, unsigned int aes_len, INTF interface)
+void aes_ccm_8_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *data_out, unsigned int *data_out_len, unsigned char *data_in, unsigned int data_in_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, unsigned int encrypt, unsigned int aes_len, bool ext_key, uint8_t key_id, INTF interface)
 {
     //-- Number of Blocks and Padding
     unsigned int complete_len;
@@ -557,7 +560,7 @@ void aes_ccm_8_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, un
     }
 
     const uint8_t aes_code = AES_SE_CODE;
-    uint16_t aes_op_sel = ((uint16_t) AES_MODE_CCM_8 << 3) + (aes_len << 1) + encrypt; 
+    uint16_t aes_op_sel = ((uint16_t) !ext_key << 15) + ((uint16_t) (key_id << 9)) + ((uint16_t) AES_MODE_CCM_8 << 3) + (aes_len << 1) + encrypt; 
     uint32_t data_packages;
     uint64_t aad_packages;
 
@@ -580,14 +583,17 @@ void aes_ccm_8_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, un
    // fflush(stdout);
     
     //-- Write Key
-    while (control != CMD_SE_WRITE) 
+    if (ext_key)
     {
-        picorv32_control(interface, &control);
+        while (control != CMD_SE_WRITE) 
+        {
+            picorv32_control(interface, &control);
+        }
+        if (aes_len == 3) write_INTF(interface, key + 3 * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+        if (aes_len >= 2) write_INTF(interface, key + 2 * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+        write_INTF(interface, key + AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+        write_INTF(interface, key, PICORV32_DATA_IN, AXI_BYTES);
     }
-    if (aes_len == 3) write_INTF(interface, key + 3 * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
-    if (aes_len >= 2) write_INTF(interface, key + 2 * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
-    write_INTF(interface, key + AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
-    write_INTF(interface, key, PICORV32_DATA_IN, AXI_BYTES);
 
     //-- Format Input
     size_t m;
@@ -602,6 +608,10 @@ void aes_ccm_8_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, un
     ccmFormatBlock0(data_in_len, n, iv_len, aad_len, 8, b);
 
     //-- Write B(0)
+    while (control != CMD_SE_WRITE) 
+    {
+        picorv32_control(interface, &control);
+    }
     write_INTF(interface, b + AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);       
     write_INTF(interface, b, PICORV32_DATA_IN, AXI_BYTES);
 
@@ -829,9 +839,9 @@ void aes_ccm_8_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, un
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void aes_128_ccm_8_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int *ciphertext_len,
-                              unsigned char *plaintext, unsigned int plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, INTF interface)
+                              unsigned char *plaintext, unsigned int plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ccm_8_hw(key, iv, iv_len, ciphertext, ciphertext_len, plaintext, plaintext_len, aad, aad_len, tag, NULL, AES_ENCRYPT, AES_LEN_128, interface);
+    aes_ccm_8_hw(key, iv, iv_len, ciphertext, ciphertext_len, plaintext, plaintext_len, aad, aad_len, tag, NULL, AES_ENCRYPT, AES_LEN_128, ext_key, key_id, interface);
 
     // printf("\n\nciphertext = 0x");
     // for (int i = 0; i < *ciphertext_len; i++)
@@ -845,9 +855,9 @@ void aes_128_ccm_8_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned in
     // } 
 }
 
-void aes_128_ccm_8_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, INTF interface)
+void aes_128_ccm_8_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ccm_8_hw(key, iv, iv_len, plaintext, plaintext_len, ciphertext, ciphertext_len, aad, aad_len, tag, result, AES_DECRYPT, AES_LEN_128, interface);
+    aes_ccm_8_hw(key, iv, iv_len, plaintext, plaintext_len, ciphertext, ciphertext_len, aad, aad_len, tag, result, AES_DECRYPT, AES_LEN_128, ext_key, key_id, interface);
 
     // printf("\n\nplaintext = 0x");
     // for (int i = 0; i < *plaintext_len; i++)
@@ -861,9 +871,9 @@ void aes_128_ccm_8_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned in
 }
 
 void aes_192_ccm_8_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int *ciphertext_len,
-                              unsigned char *plaintext, unsigned int plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, INTF interface)
+                              unsigned char *plaintext, unsigned int plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ccm_8_hw(key, iv, iv_len, ciphertext, ciphertext_len, plaintext, plaintext_len, aad, aad_len, tag, NULL, AES_ENCRYPT, AES_LEN_192, interface);
+    aes_ccm_8_hw(key, iv, iv_len, ciphertext, ciphertext_len, plaintext, plaintext_len, aad, aad_len, tag, NULL, AES_ENCRYPT, AES_LEN_192, ext_key, key_id, interface);
 
     // printf("\n\nciphertext = 0x");
     // for (int i = 0; i < *ciphertext_len; i++)
@@ -877,9 +887,9 @@ void aes_192_ccm_8_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned in
     // } 
 }
 
-void aes_192_ccm_8_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, INTF interface)
+void aes_192_ccm_8_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ccm_8_hw(key, iv, iv_len, plaintext, plaintext_len, ciphertext, ciphertext_len, aad, aad_len, tag, result, AES_DECRYPT, AES_LEN_192, interface);
+    aes_ccm_8_hw(key, iv, iv_len, plaintext, plaintext_len, ciphertext, ciphertext_len, aad, aad_len, tag, result, AES_DECRYPT, AES_LEN_192, ext_key, key_id, interface);
 
     // printf("\n\nplaintext = 0x");
     // for (int i = 0; i < *plaintext_len; i++)
@@ -893,9 +903,9 @@ void aes_192_ccm_8_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned in
 }
 
 void aes_256_ccm_8_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int *ciphertext_len,
-                              unsigned char *plaintext, unsigned int plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, INTF interface)
+                              unsigned char *plaintext, unsigned int plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ccm_8_hw(key, iv, iv_len, ciphertext, ciphertext_len, plaintext, plaintext_len, aad, aad_len, tag, NULL, AES_ENCRYPT, AES_LEN_256, interface);
+    aes_ccm_8_hw(key, iv, iv_len, ciphertext, ciphertext_len, plaintext, plaintext_len, aad, aad_len, tag, NULL, AES_ENCRYPT, AES_LEN_256, ext_key, key_id, interface);
 
     // printf("\n\nciphertext = 0x");
     // for (int i = 0; i < *ciphertext_len; i++)
@@ -909,9 +919,9 @@ void aes_256_ccm_8_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned in
     // } 
 }
 
-void aes_256_ccm_8_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, INTF interface)
+void aes_256_ccm_8_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_ccm_8_hw(key, iv, iv_len, plaintext, plaintext_len, ciphertext, ciphertext_len, aad, aad_len, tag, result, AES_DECRYPT, AES_LEN_256, interface);
+    aes_ccm_8_hw(key, iv, iv_len, plaintext, plaintext_len, ciphertext, ciphertext_len, aad, aad_len, tag, result, AES_DECRYPT, AES_LEN_256, ext_key, key_id, interface);
 
     // printf("\n\nplaintext = 0x");
     // for (int i = 0; i < *plaintext_len; i++)
@@ -928,7 +938,7 @@ void aes_256_ccm_8_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned in
 // AES-GCM HW
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void aes_gcm_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *data_out, unsigned int *data_out_len, unsigned char *data_in, unsigned int data_in_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, unsigned int encrypt, unsigned int aes_len, INTF interface)
+void aes_gcm_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *data_out, unsigned int *data_out_len, unsigned char *data_in, unsigned int data_in_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, unsigned int encrypt, unsigned int aes_len, bool ext_key, uint8_t key_id, INTF interface)
 {
     //-- Number of Blocks and Padding
     unsigned int data_in_blocks;
@@ -967,7 +977,7 @@ void aes_gcm_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsi
         picorv32_control(interface, &control);
     }
     const uint8_t aes_code  = AES_SE_CODE;
-    uint16_t aes_op_sel     = ((uint16_t) AES_MODE_GCM << 3) + (aes_len << 1) + encrypt; 
+    uint16_t aes_op_sel     = ((uint16_t) !ext_key << 15) + ((uint16_t) (key_id << 9)) + ((uint16_t) AES_MODE_GCM << 3) + (aes_len << 1) + encrypt; 
     uint32_t data_packages  = data_in_blocks * 2;
 
     uint64_t se_code = ((uint64_t) data_packages << 32) + ((uint32_t) aes_op_sel << 16) + aes_code;
@@ -1000,18 +1010,26 @@ void aes_gcm_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsi
     write_INTF(interface, &u64_iv_len, PICORV32_DATA_IN, AXI_BYTES);
     
     //-- Write Key
-    while (control != CMD_SE_WRITE) 
+    if (ext_key)
     {
-        picorv32_control(interface, &control);
+        while (control != CMD_SE_WRITE) 
+        {
+            picorv32_control(interface, &control);
+        }
+        if (aes_len == 3) write_INTF(interface, key + 3 * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+        if (aes_len >= 2) write_INTF(interface, key + 2 * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+        write_INTF(interface, key + 1 * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+        write_INTF(interface, key, PICORV32_DATA_IN, AXI_BYTES);
     }
-    if (aes_len == 3) write_INTF(interface, key + 3 * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
-    if (aes_len >= 2) write_INTF(interface, key + 2 * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
-    write_INTF(interface, key + 1 * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
-    write_INTF(interface, key, PICORV32_DATA_IN, AXI_BYTES);
 
     //-- Send IV
     uint32_t blocks_sent = 0;
     uint32_t packages_sent = 0;
+
+    while (control != CMD_SE_WRITE) 
+    {
+        picorv32_control(interface, &control);
+    }
 
     if (iv_len == 12)
     {
@@ -1144,9 +1162,9 @@ void aes_gcm_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsi
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void aes_128_gcm_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int *ciphertext_len,
-                              unsigned char *plaintext, unsigned int plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, INTF interface)
+                              unsigned char *plaintext, unsigned int plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_gcm_hw(key, iv, iv_len, ciphertext, ciphertext_len, plaintext, plaintext_len, aad, aad_len, tag, NULL, AES_ENCRYPT, AES_LEN_128, interface);
+    aes_gcm_hw(key, iv, iv_len, ciphertext, ciphertext_len, plaintext, plaintext_len, aad, aad_len, tag, NULL, AES_ENCRYPT, AES_LEN_128, ext_key, key_id, interface);
 
     // printf("\n\nciphertext = 0x");
     // for (int i = 0; i < *ciphertext_len; i++)
@@ -1160,9 +1178,9 @@ void aes_128_gcm_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned int 
     // } 
 }
 
-void aes_128_gcm_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, INTF interface)
+void aes_128_gcm_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_gcm_hw(key, iv, iv_len, plaintext, plaintext_len, ciphertext, ciphertext_len, aad, aad_len, tag, result, AES_DECRYPT, AES_LEN_128, interface);
+    aes_gcm_hw(key, iv, iv_len, plaintext, plaintext_len, ciphertext, ciphertext_len, aad, aad_len, tag, result, AES_DECRYPT, AES_LEN_128, ext_key, key_id, interface);
 
     // printf("\n\nplaintext = 0x");
     // for (int i = 0; i < *plaintext_len; i++)
@@ -1176,9 +1194,9 @@ void aes_128_gcm_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned int 
 }
 
 void aes_192_gcm_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int *ciphertext_len,
-                              unsigned char *plaintext, unsigned int plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, INTF interface)
+                              unsigned char *plaintext, unsigned int plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_gcm_hw(key, iv, iv_len, ciphertext, ciphertext_len, plaintext, plaintext_len, aad, aad_len, tag, NULL, AES_ENCRYPT, AES_LEN_192, interface);
+    aes_gcm_hw(key, iv, iv_len, ciphertext, ciphertext_len, plaintext, plaintext_len, aad, aad_len, tag, NULL, AES_ENCRYPT, AES_LEN_192, ext_key, key_id, interface);
 
     // printf("\n\nciphertext = 0x");
     // for (int i = 0; i < *ciphertext_len; i++)
@@ -1192,9 +1210,9 @@ void aes_192_gcm_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned int 
     // } 
 }
 
-void aes_192_gcm_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, INTF interface)
+void aes_192_gcm_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_gcm_hw(key, iv, iv_len, plaintext, plaintext_len, ciphertext, ciphertext_len, aad, aad_len, tag, result, AES_DECRYPT, AES_LEN_192, interface);
+    aes_gcm_hw(key, iv, iv_len, plaintext, plaintext_len, ciphertext, ciphertext_len, aad, aad_len, tag, result, AES_DECRYPT, AES_LEN_192, ext_key, key_id, interface);
 
     // printf("\n\nplaintext = 0x");
     // for (int i = 0; i < *plaintext_len; i++)
@@ -1208,9 +1226,9 @@ void aes_192_gcm_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned int 
 }// 
 
 void aes_256_gcm_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int *ciphertext_len,
-                              unsigned char *plaintext, unsigned int plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, INTF interface)
+                              unsigned char *plaintext, unsigned int plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_gcm_hw(key, iv, iv_len, ciphertext, ciphertext_len, plaintext, plaintext_len, aad, aad_len, tag, NULL, AES_ENCRYPT, AES_LEN_256, interface);
+    aes_gcm_hw(key, iv, iv_len, ciphertext, ciphertext_len, plaintext, plaintext_len, aad, aad_len, tag, NULL, AES_ENCRYPT, AES_LEN_256, ext_key, key_id, interface);
 
     // printf("\n\nciphertext = 0x");
     // for (int i = 0; i < *ciphertext_len; i++)
@@ -1224,9 +1242,9 @@ void aes_256_gcm_encrypt_hw(unsigned char *key, unsigned char *iv, unsigned int 
     // } 
 }
 
-void aes_256_gcm_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, INTF interface)
+void aes_256_gcm_decrypt_hw(unsigned char *key, unsigned char *iv, unsigned int iv_len, unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *plaintext, unsigned int *plaintext_len, unsigned char *aad, unsigned int aad_len, unsigned char *tag, unsigned int *result, bool ext_key, uint8_t key_id, INTF interface)
 {
-    aes_gcm_hw(key, iv, iv_len, plaintext, plaintext_len, ciphertext, ciphertext_len, aad, aad_len, tag, result, AES_DECRYPT, AES_LEN_256, interface);
+    aes_gcm_hw(key, iv, iv_len, plaintext, plaintext_len, ciphertext, ciphertext_len, aad, aad_len, tag, result, AES_DECRYPT, AES_LEN_256, ext_key, key_id, interface);
 
     // printf("\n\nplaintext = 0x");
     // for (int i = 0; i < *plaintext_len; i++)
