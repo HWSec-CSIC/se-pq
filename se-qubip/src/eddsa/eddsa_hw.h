@@ -81,54 +81,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "../common/intf.h"
 #include "../common/conf.h"
+#include "../common/picorv32.h"
 #include "../common/extra_func.h"
 
 //-- Elements Bit Sizes
-#define BLOCK_BYTES         128
-#define SHA_BYTES           64
-#define EDDSA_BYTES         32
-#define AXI_BYTES           8
+#define MSG_BLOCK_BYTES         128
+#define HASH_1_OFFSET_BYTES     96
+#define HASH_2_OFFSET_BYTES     64
+#define SIG_BYTES               64
+#define EDDSA_BYTES             32
 
-//-- Max. Message Length
-#define MAX_MSG_LENGTH      2048
-
-//-- Control Operations
-#define EDDSA_RST_OFF       0x00
-#define EDDSA_RST_ON        0x01
-#define EDDSA_INTF_RST      0x02
-#define EDDSA_INTF_OPER     0x00
-#define EDDSA_INTF_LOAD     0x04
-#define EDDSA_INTF_READ     0x08
-
-//-- I/O Addresses
-#define EDDSA_ADDR_CTRL     0x0
-#define EDDSA_ADDR_PRIV     0x1
-#define EDDSA_ADDR_PUB      0x5
-#define EDDSA_ADDR_MSG      0x9
-#define EDDSA_ADDR_LEN      0x19
-#define EDDSA_ADDR_SIGVER   0x1A
-#define EDDSA_ADDR_SIGPUB   0x1
-
-//-- Operation Modes
-#define EDDSA_OP_GEN_KEY    0x4
-#define EDDSA_OP_SIGN       0x8
-#define EDDSA_OP_VERIFY     0xC
-
-//-- Debug
-#ifdef I2C
-    #define EDDSA_WAIT_TIME     50
-#else
-    #define EDDSA_WAIT_TIME     5000
-#endif
-#define EDDSA_N_ITER        1000
-
-//-- INTERFACE INIT/START & READ/WRITE
-void eddsa25519_init(unsigned long long operation, INTF interface);
-void eddsa25519_start(INTF interface);
-void eddsa25519_write(unsigned long long address, unsigned long long size, void *data, unsigned long long reset, INTF interface);
-void eddsa25519_read(unsigned long long address, unsigned long long size, void *data, INTF interface);
+#define EDDSA_OP_KEY_GEN    0x01
+#define EDDSA_OP_SIGN       0x02
+#define EDDSA_OP_VERIFY     0x04
 
 //-- GENERATE PUBLIC KEY
 void eddsa25519_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, unsigned int *pri_len, unsigned int *pub_len, INTF interface);

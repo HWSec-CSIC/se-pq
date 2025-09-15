@@ -62,7 +62,7 @@
 // Company: IMSE-CNM CSIC
 // Engineer: Pablo Navarro Torrero
 //
-// Create Date: 13/06/2024
+// Create Date: 01/07/2025
 // File Name: x25519_hw.c
 // Project Name: SE-QUBIP
 // Target Devices: PYNQ-Z2
@@ -75,68 +75,12 @@
 #include "x25519_hw.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////
-// INTERFACE INIT/START & READ/WRITE
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-void x25519_init(INTF interface)
-{
-    unsigned long long control;
-
-    //-- General and Interface Reset
-    control = (ADD_X25519 << 32) + X25519_INTF_RST + X25519_RST_ON;
-    write_INTF(interface, &control, CONTROL, AXI_BYTES);
-    control = (ADD_X25519 << 32) + X25519_INTF_OPER + X25519_RST_ON;
-    write_INTF(interface, &control, CONTROL, AXI_BYTES);
-}
-
-void x25519_start(INTF interface)
-{
-    unsigned long long control = (ADD_X25519 << 32) + X25519_RST_OFF;
-    write_INTF(interface, &control, CONTROL, AXI_BYTES);
-}
-
-void x25519_write(unsigned long long address, unsigned long long size, void *data, unsigned long long reset, INTF interface)
-{
-    unsigned long long addr = address;
-    unsigned long long control = (reset) ? (ADD_X25519 << 32) + X25519_INTF_LOAD + X25519_RST_ON : (ADD_X25519 << 32) + X25519_INTF_LOAD + X25519_RST_OFF;
-
-    write_INTF(interface, &addr, ADDRESS, AXI_BYTES);
-    write_INTF(interface, data, DATA_IN, AXI_BYTES);
-    write_INTF(interface, &control, CONTROL, AXI_BYTES);
-
-    for (int i = 1; i < size; i++)
-    {
-        addr = address + i;
-        write_INTF(interface, &addr, ADDRESS, AXI_BYTES);
-        write_INTF(interface, data + AXI_BYTES * i, DATA_IN, AXI_BYTES);
-    }
-
-    control = (reset) ? (ADD_X25519 << 32) + X25519_INTF_OPER + X25519_RST_ON : (ADD_X25519 << 32) + X25519_INTF_OPER + X25519_RST_OFF;
-    write_INTF(interface, &control, CONTROL, AXI_BYTES);
-}
-
-void x25519_read(unsigned long long address, unsigned long long size, void *data, INTF interface)
-{
-    unsigned long long control = (ADD_X25519 << 32) +   X25519_INTF_READ;
-    unsigned long long addr;
-
-    write_INTF(interface, &control, CONTROL, AXI_BYTES);
-
-    for (int i = 0; i < size; i++)
-    {
-        addr = address + i;
-        write_INTF(interface, &addr, ADDRESS, AXI_BYTES);
-        read_INTF(interface, data + AXI_BYTES * i, DATA_OUT, AXI_BYTES);
-    }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////
 // GENERATE PUBLIC KEY
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 void x25519_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, unsigned int *pri_len, unsigned int *pub_len, INTF interface)
 {
-
+    //-- Generate a random private key
     *pri_len = X25519_BYTES;
     *pub_len = X25519_BYTES;
 
@@ -145,73 +89,56 @@ void x25519_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, unsigne
 
     gen_priv_key(*pri_key, *pri_len);
 
+    /* unsigned char test_x25519[32] = {0x77, 0x07, 0x6d, 0x0a, 0x73, 0x18, 0xa5, 0x7d, 0x3c, 0x16, 0xc1, 0x72, 0x51, 0xb2, 0x66, 0x45, 0xdf, 0x4c, 0x2f, 0x87, 0xeb, 0xc0, 0x99, 0x2a, 0xb1, 0x77, 0xfb, 0xa5, 0x1d, 0xb9, 0x2c, 0x2a};
+    memcpy(*pri_key, test_x25519, 32); */
+
     /*
     printf("Private = 0x");
     for (int i = 0; i < X25519_BYTES; i++)
-    {
+    { 
         printf("%02x", *(*pri_key + i));
     }
     printf("\n");
     */
 
-    //////////////////////////////////////////////////////////////
-    // WRITING ON DEVICE
-    //////////////////////////////////////////////////////////////
-
-    unsigned char x25519_base_point[32] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09};
-
-    unsigned long long info;
-
-    //-- INITIALIZATION: General/Interface Reset & Select Operation
-    x25519_init(interface);
-
-    //-- Write Scalar and Input Point
-    x25519_write(X25519_SCALAR, X25519_BYTES / AXI_BYTES, *pri_key, X25519_RST_ON, interface);
-    x25519_write(X25519_POINT_IN, X25519_BYTES / AXI_BYTES, x25519_base_point, X25519_RST_ON, interface);
-
-    //-- Start Execution
-    x25519_start(interface);
-
-    //-- Detect when finish
-    int count = 0;
-
-    while (count < X25519_WAIT_TIME)
+    //-- se_code = { {(32'b) 64-bit data_packages}, {14'b0}, {x25519_ss_gen, x25519_genkeys}, {(16'b)X25519} }
+    uint64_t control = 0;
+    while (control != CMD_SE_CODE)
     {
-        read_INTF(interface, &info, END_OP, AXI_BYTES);
+        picorv32_control(interface, &control);
+    }
+    uint64_t se_code = (1 << 16) | ECDH_SE_CODE;
+    write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
 
-        if (info & 0x1) break;
-
-        count++;
+    //-- Send Private Key
+    while (control != CMD_SE_WRITE)
+    {
+        picorv32_control(interface, &control);
+    }
+    for (int i = X25519_BYTES / AXI_BYTES - 1; i >= 0; i--)
+    // for (int i = 0; i < X25519_BYTES / AXI_BYTES; i++)
+	{
+		write_INTF(interface, *pri_key + i * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
     }
 
-    if (count == X25519_WAIT_TIME) printf("X25519 FAIL!: TIMEOUT \t%d\n", count);
-
-    count = 0;
-
-    //////////////////////////////////////////////////////////////
-    // RESULTS
-    //////////////////////////////////////////////////////////////
-
-    x25519_read(X25519_POINT_OUT, X25519_BYTES / AXI_BYTES, *pub_key, interface);
-
-    /*
-    printf("point_out = 0x");
-    for (int i = 0; i < X25519_BYTES; i++)
+    //-- Read Private Key
+    while (control != CMD_SE_READ)
     {
-        printf("%02x", *(*pub_key + i));
+        picorv32_control(interface, &control);
     }
-    printf("\n");
-    */
+    for (int i = X25519_BYTES / AXI_BYTES - 1; i >= 0; i--)
+	{
+		read_INTF(interface, *pub_key + i * AXI_BYTES, PICORV32_DATA_OUT, AXI_BYTES);
+	}
 
-    swapEndianness(*pub_key, *pub_len);
-    swapEndianness(*pri_key, *pri_len);
+    while (control != CMD_SE_CODE) 
+    {
+        picorv32_control(interface, &control);
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
-// X25519
+// X25519 ECDH
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 void x25519_ss_gen_hw(unsigned char **shared_secret, unsigned int *shared_secret_len, unsigned char *pub_key, unsigned int pub_len, unsigned char *pri_key, unsigned int pri_len, INTF interface)
@@ -223,78 +150,46 @@ void x25519_ss_gen_hw(unsigned char **shared_secret, unsigned int *shared_secret
 
     *shared_secret = (unsigned char *) malloc(*shared_secret_len);
 
-    unsigned long long info;
-
-    /*
-    //-- Scalar
-    printf("pri_key = 0x");
-    for (int i = 0; i < X25519_BYTES; i++)
+    //-- se_code = { {(32'b) 64-bit data_packages}, {14'b0}, {x25519_ss_gen, x25519_genkeys}, {(16'b)X25519} }
+    uint64_t control = 0;
+    while (control != CMD_SE_CODE)
     {
-        printf("%02x", *pri_key + i);
+        picorv32_control(interface, &control);
     }
-    printf("\n");
-    */
+    uint64_t se_code = (1 << 17) | ECDH_SE_CODE;
+    write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
 
-    /*
-    //-- Point_in
-    printf("point_in = 0x");
-    for (int i = 0; i < X25519_BYTES; i++)
+    //-- Send Private Key
+    while (control != CMD_SE_WRITE)
     {
-        printf("%02x", *pub_key + i);
+        picorv32_control(interface, &control);
     }
-    printf("\n");
-    */
+    for (int i = X25519_BYTES / AXI_BYTES - 1; i >= 0; i--)
+	{
+		write_INTF(interface, pri_key + i * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+    }
 
-    swapEndianness(pri_key, X25519_BYTES);
-    swapEndianness(pub_key, X25519_BYTES);
+    //-- Send Public Key
+    for (int i = X25519_BYTES / AXI_BYTES - 1; i >= 0; i--)
+	{
+		write_INTF(interface, pub_key + i * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+    }
 
-    //////////////////////////////////////////////////////////////
-    // WRITING ON DEVICE
-    //////////////////////////////////////////////////////////////
-
-    //-- INITIALIZATION: General/Interface Reset & Select Operation
-    x25519_init(interface);
-
-    //-- Write Scalar and Input Point
-    x25519_write(X25519_SCALAR, X25519_BYTES / AXI_BYTES, pri_key, X25519_RST_ON, interface);
-    x25519_write(X25519_POINT_IN, X25519_BYTES / AXI_BYTES, pub_key, X25519_RST_ON, interface);
-
-    //-- Start Execution
-    x25519_start(interface);
-
-    //-- Detect when finish
-    int count = 0;
-
-    while (count < X25519_WAIT_TIME)
+    //-- Read Shared Secret
+    while (control != CMD_SE_READ)
     {
-        read_INTF(interface, &info, END_OP, AXI_BYTES);
-
-        if (info & 0x1) break;
-
-        count++;
+        picorv32_control(interface, &control);
     }
-    
-    if (count == X25519_WAIT_TIME) printf("X25519 FAIL!: TIMEOUT \t%d\n", count);
+    for (int i = X25519_BYTES / AXI_BYTES - 1; i >= 0; i--)
+	{
+		read_INTF(interface, *shared_secret + i * AXI_BYTES, PICORV32_DATA_OUT, AXI_BYTES);
+	}
 
-    count = 0;
-
-    //////////////////////////////////////////////////////////////
-    // RESULTS
-    //////////////////////////////////////////////////////////////
-
-    x25519_read(X25519_POINT_OUT, X25519_BYTES / AXI_BYTES, *shared_secret, interface);
-    
-    /*
-    printf("Point_out = 0x");
-    for (int i = 0; i < SHA_BYTES; i++)
+    while (control != CMD_SE_CODE) 
     {
-        printf("%02x", *(point_out + i));
+        picorv32_control(interface, &control);
     }
-    printf("\n");
-    */
-    
-    swapEndianness(pri_key, X25519_BYTES);
-    swapEndianness(pub_key, X25519_BYTES);
-    swapEndianness(*shared_secret, X25519_BYTES);
 }
+
+
 

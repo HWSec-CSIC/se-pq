@@ -80,6 +80,8 @@ typedef struct {
 	unsigned int ecdh;
 	unsigned int mlkem;
 	unsigned int drbg;
+  unsigned int mldsa;
+  unsigned int slhdsa; 
 	unsigned int n_test;
 } data_conf;
 

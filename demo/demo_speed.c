@@ -94,14 +94,29 @@ void main(int argc, char** argv) {
 	// --- Open Interface --- //
 	INTF interface;
 	open_INTF(&interface, INTF_ADDRESS, INTF_LENGTH);
+// --- Is it already programmed? --- //
+	bool is_dev_prog = false;
+	uint64_t control = 0;
+    read_INTF(interface, &control, PICORV32_CONTROL, AXI_BYTES);
+	if (control == CMD_SE_CODE) is_dev_prog = true;
 
 #ifdef AXI
 	// --- Loading Bitstream --- //
-	load_bitstream(BITSTREAM_AXI);
+	if (!is_dev_prog) 
+	{
+		printf("\n\nPROGRAMMING DEVICE...\n\n");
+		load_bitstream(BITSTREAM_AXI);
+	}
 #endif
 
-	data_conf data_conf;
+	// --- Load PICORV32 Program --- // 
+	if (!is_dev_prog) 
+	{
+		WRITE_PICORV_PROGRAM(interface);
+		// READ_PICORV_PROGRAM(interface);
+	}
 
+	data_conf data_conf;
 	read_conf(&data_conf);
 
 	printf("\n\t ---- Performance Evaluation --- ");
@@ -113,6 +128,9 @@ void main(int argc, char** argv) {
 	printf("\n %-10s: ", "ECDH");		if (data_conf.ecdh)		printf("yes"); else printf("no");
 	printf("\n %-10s: ", "MLKEM");		if (data_conf.mlkem)	printf("yes"); else printf("no");
 	printf("\n %-10s: ", "DRBG");		if (data_conf.drbg)		printf("yes"); else printf("no");
+	printf("\n %-10s: ", "MLDSA");		if (data_conf.mldsa)	printf("yes"); else printf("no");
+  	printf("\n %-10s: ", "SLHDSA");		if (data_conf.slhdsa)	printf("yes"); else printf("no");
+
 	printf("\n Number of Tests: \t%d\n", data_conf.n_test);
 
 	printf("\n\n %-30s | %-30s | %-30s | Validation Test ", "Algorithm", "Execution Time (ms)", "Execution Time (us)");
@@ -126,48 +144,48 @@ void main(int argc, char** argv) {
 		// 128
 		test_aes_hw("ecb", 128, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_2(data_conf.n_test, "AES-128-ECB", tr_en, tr_de);
-
+		
 		test_aes_hw("cbc", 128, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_2(data_conf.n_test, "AES-128-CBC", tr_en, tr_de);
-
+		
 		test_aes_hw("cmac", 128, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_1(data_conf.n_test, "AES-128-CMAC", tr_en);
 		
 		test_aes_hw("gcm", 128, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_2(data_conf.n_test, "AES-128-GCM", tr_en, tr_de);
-
+		
 		test_aes_hw("ccm", 128, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_2(data_conf.n_test, "AES-128-CCM-8", tr_en, tr_de);
 		
 		// 192
 		test_aes_hw("ecb", 192, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_2(data_conf.n_test, "AES-192-ECB", tr_en, tr_de);
-
+		
 		test_aes_hw("cbc", 192, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_2(data_conf.n_test, "AES-192-CBC", tr_en, tr_de);
-
+		
 		test_aes_hw("cmac", 192, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_1(data_conf.n_test, "AES-192-CMAC", tr_en);
-
+		
 		test_aes_hw("gcm", 192, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_2(data_conf.n_test, "AES-192-GCM", tr_en, tr_de);
-
+		
 		test_aes_hw("ccm", 192, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_2(data_conf.n_test, "AES-192-CCM-8", tr_en, tr_de);
 		
 		// 256
 		test_aes_hw("ecb", 256, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_2(data_conf.n_test, "AES-256-ECB", tr_en, tr_de);
-
+		
 		test_aes_hw("cbc", 256, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_2(data_conf.n_test, "AES-256-CBC", tr_en, tr_de);
-
+		
 		test_aes_hw("cmac", 256, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_1(data_conf.n_test, "AES-256-CMAC", tr_en);
 		
 		test_aes_hw("gcm", 256, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_2(data_conf.n_test, "AES-256-GCM", tr_en, tr_de);
-
+		
 		test_aes_hw("ccm", 256, data_conf.n_test, verb, &tr_en, &tr_de, interface);
 		print_results_str_1_tab_2(data_conf.n_test, "AES-256-CCM-8", tr_en, tr_de);
 		
@@ -181,14 +199,8 @@ void main(int argc, char** argv) {
 
 		time_result tr;
 
-		// test_sha3(4, data_conf.n_test, &tr, verb); // SHA3-224
-		// print_results_str_1_tab_1(data_conf.n_test, "SHA3-224", tr);
-
 		test_sha3_hw(0, data_conf.n_test, &tr, verb, interface); // SHA3-256
 		print_results_str_1_tab_1(data_conf.n_test, "SHA3-256", tr);
-
-		// test_sha3(5, data_conf.n_test, &tr, verb); // SHA3-384
-		// print_results_str_1_tab_1(data_conf.n_test, "SHA3-384", tr);
 
 		test_sha3_hw(1, data_conf.n_test, &tr, verb, interface); // SHA3-512
 		print_results_str_1_tab_1(data_conf.n_test, "SHA3-512", tr);
@@ -285,7 +297,6 @@ void main(int argc, char** argv) {
 
 
 	if (data_conf.drbg) {
-
 		time_result tr;
 
 		test_trng_hw(0, 128, data_conf.n_test, &tr, verb, interface); print_results_str_2_tab_1(data_conf.n_test, "TRNG", "128 bits", tr);
@@ -311,6 +322,75 @@ void main(int argc, char** argv) {
 	else {
 		printf("\n TRNG has not been selected ... Moving to next test ... ");
 	}
+
+	if (data_conf.mldsa) {
+
+		time_result tr_kg;
+		time_result tr_si;
+		time_result tr_ve;
+
+		test_mldsa_hw(44, data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve, interface);
+		print_results_str_1_tab_3(data_conf.n_test, "MLDSA-44", tr_kg, tr_si, tr_ve);
+
+		test_mldsa_hw(65, data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve, interface);
+		print_results_str_1_tab_3(data_conf.n_test, "MLDSA-65", tr_kg, tr_si, tr_ve);
+
+		test_mldsa_hw(87, data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve, interface);
+		print_results_str_1_tab_3(data_conf.n_test, "MLDSA-87", tr_kg, tr_si, tr_ve);
+	}
+	else {
+		printf("\n MLDSA has not been selected ... Moving to next test ... ");
+	}
+
+
+	if (data_conf.slhdsa) {
+
+		const slh_ph_func_t *ph = &slh_dsa_ph_shake_256;
+
+		time_result tr_kg;
+		time_result tr_si;
+		time_result tr_ve;
+
+		test_slhdsa_hw(interface, ph, "shake-128-f", data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve);
+		print_results_str_1_tab_3(data_conf.n_test, "SLHDSA-SHAKE128F", tr_kg, tr_si, tr_ve);
+
+		test_slhdsa_hw(interface, ph, "shake-128-s", data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve);
+		print_results_str_1_tab_3(data_conf.n_test, "SLHDSA-SHAKE128S", tr_kg, tr_si, tr_ve);
+
+		test_slhdsa_hw(interface, ph, "shake-192-f", data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve);
+		print_results_str_1_tab_3(data_conf.n_test, "SLHDSA-SHAKE192F", tr_kg, tr_si, tr_ve);
+
+		test_slhdsa_hw(interface, ph, "shake-192-s", data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve);
+		print_results_str_1_tab_3(data_conf.n_test, "SLHDSA-SHAKE192S", tr_kg, tr_si, tr_ve);
+
+		test_slhdsa_hw(interface, ph, "shake-256-f", data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve);
+		print_results_str_1_tab_3(data_conf.n_test, "SLHDSA-SHAKE256F", tr_kg, tr_si, tr_ve);
+
+		test_slhdsa_hw(interface, ph, "shake-256-s", data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve);
+		print_results_str_1_tab_3(data_conf.n_test, "SLHDSA-SHAKE256S", tr_kg, tr_si, tr_ve);
+
+		test_slhdsa_hw(interface, ph, "sha-2-128-f", data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve);
+		print_results_str_1_tab_3(data_conf.n_test, "SLHDSA-SHA2-128F", tr_kg, tr_si, tr_ve);
+
+		test_slhdsa_hw(interface, ph, "sha-2-128-s", data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve);
+		print_results_str_1_tab_3(data_conf.n_test, "SLHDSA-SHA2-128S", tr_kg, tr_si, tr_ve);
+
+		test_slhdsa_hw(interface, ph, "sha-2-192-f", data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve);
+		print_results_str_1_tab_3(data_conf.n_test, "SLHDSA-SHA2-192F", tr_kg, tr_si, tr_ve);
+
+		test_slhdsa_hw(interface, ph, "sha-2-192-s", data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve);
+		print_results_str_1_tab_3(data_conf.n_test, "SLHDSA-SHA2-192S", tr_kg, tr_si, tr_ve);
+
+		test_slhdsa_hw(interface, ph, "sha-2-256-f", data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve);
+		print_results_str_1_tab_3(data_conf.n_test, "SLHDSA-SHA2-256F", tr_kg, tr_si, tr_ve);
+
+		test_slhdsa_hw(interface, ph, "sha-2-256-s", data_conf.n_test, verb, &tr_kg, &tr_si, &tr_ve);
+		print_results_str_1_tab_3(data_conf.n_test, "SLHDSA-SHA2-256S", tr_kg, tr_si, tr_ve);
+	}
+	else {
+		printf("\n SLHDSA has not been selected ... Moving to next test ... ");
+	}
+
 
 
 	printf("\n\n");

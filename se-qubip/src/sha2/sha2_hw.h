@@ -61,21 +61,28 @@
 #ifndef SHA2_H
 #define SHA2_H
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include "../common/intf.h"
 #include "../common/extra_func.h"
-#include "../common/conf.h"
+#include "../common/picorv32.h"
+#include "../common/conf.h" 
 
 /************************ interface Constant Definitions **********************/
 
-#define LOAD_LENGTH_SHA2			1
-#define LOAD_SHA2					2
-#define START_SHA2					3
+#define MODE_SHA_2_256              1
+#define MODE_SHA_2_384              2
+#define MODE_SHA_2_512              3
+#define MODE_SHA_2_512_256          4
+
+#define SHA_2_256_DIGEST_LENGTH     32
+#define SHA_2_384_DIGEST_LENGTH     48
+#define SHA_2_512_DIGEST_LENGTH     64
 
 /************************ interface Function Definitions **********************/
 
-void sha2_interface_init(INTF interface, unsigned long long int length, int VERSION, int DBG);
-void sha2_interface(INTF interface, unsigned long long int* a, unsigned long long int* b, unsigned long long int length, int last_hb, int VERSION, int DBG);
 void sha2_hw(INTF interface, unsigned char* in, unsigned char* out, unsigned long long int length, unsigned int VERSION, int DBG);
 
 /************************ Main Functions **********************/

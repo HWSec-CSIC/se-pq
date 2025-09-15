@@ -159,3 +159,20 @@ unsigned long long Wtime() {
     gettimeofday(&time_val, NULL);
     return time_val.tv_sec * 1000000 + time_val.tv_usec;
 }
+
+//-- Getchar modified function
+int getch(void)
+{
+    //-- Pre-config for getchar function
+    struct termios oldt, newt;
+
+    // Get current terminal settings
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    
+    // Disable canonical mode and echo
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+    return getchar();
+}

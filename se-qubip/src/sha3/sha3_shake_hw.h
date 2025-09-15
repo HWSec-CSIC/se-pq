@@ -67,22 +67,34 @@
 #include <math.h>
 #include "../common/intf.h"
 #include "../common/conf.h"
+#include "../common/picorv32.h"
 #include "../common/extra_func.h"
 
 /************************ Interface Constant Definitions **********************/
 
-#define LOAD_LENGTH				1
-#define LOAD					2
-#define START					3
+#define MODE_SHA_3_256              1
+#define MODE_SHA_3_512              2
+#define MODE_SHAKE_128              3
+#define MODE_SHAKE_256              4
 
-    void sha3_shake_interface_init(INTF interface, int VERSION);
-    void sha3_shake_interface(unsigned long long int* a, unsigned long long int* b, INTF interface, unsigned int pos_pad, int pad, int shake, int VERSION, int SIZE_SHA3, int SIZE_BLOCK, int DBG);
-    void sha3_shake_hw(unsigned char* in, unsigned char* out, unsigned int length, unsigned int length_out, int VERSION, int SIZE_BLOCK, int SIZE_SHA3, INTF interface, int DBG);
+#define OP_SHA_3_256                0x08
+#define OP_SHA_3_512                0x0C
+#define OP_SHAKE_128                0x00
+#define OP_SHAKE_256                0x04
 
-    /************************ Main Functions **********************/
+#define SHA_3_256_SIZE_BLOCK        1088
+#define SHA_3_512_SIZE_BLOCK        576
+#define SHAKE_128_SIZE_BLOCK        1344
+#define SHAKE_256_SIZE_BLOCK        1088
 
-    void sha3_256_hw_func(unsigned char* in, unsigned int length, unsigned char* out, INTF interface);
-    void sha3_512_hw_func(unsigned char* in, unsigned int length, unsigned char* out, INTF interface);
-    void shake128_hw_func(unsigned char* in, unsigned int length, unsigned char* out, unsigned int length_out, INTF interface);
-    void shake256_hw_func(unsigned char* in, unsigned int length, unsigned char* out, unsigned int length_out, INTF interface);
+#define SHA_3_256_LEN_OUT           256
+#define SHA_3_512_LEN_OUT           512
+
+void sha3_shake_hw(unsigned char* in, unsigned char* out, unsigned int length, unsigned int length_out, int VERSION, int SIZE_BLOCK, INTF interface, int DBG);
+
+/************************ Main Functions **********************/
+void sha3_256_hw_func(unsigned char* in, unsigned int length, unsigned char* out, INTF interface);
+void sha3_512_hw_func(unsigned char* in, unsigned int length, unsigned char* out, INTF interface);
+void shake128_hw_func(unsigned char* in, unsigned int length, unsigned char* out, unsigned int length_out, INTF interface);
+void shake256_hw_func(unsigned char* in, unsigned int length, unsigned char* out, unsigned int length_out, INTF interface);
 #endif

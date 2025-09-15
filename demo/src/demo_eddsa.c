@@ -72,6 +72,9 @@ void demo_eddsa_hw(unsigned int mode, unsigned int verb, INTF interface) {
 
     seed_rng();
 
+    unsigned char msg[1024] = "Hello, this is the SE of QUBIP project";
+    unsigned int msg_len = 38;
+
     // ---- EDDSA ---- //
     if (mode == 25519) {
         unsigned char* pub_key;
@@ -87,21 +90,21 @@ void demo_eddsa_hw(unsigned int mode, unsigned int verb, INTF interface) {
         if (verb >= 3) { printf("\n public key: ");   show_array(pub_key, pub_len, 32); }
         if (verb >= 3) { printf("\n private key: "); show_array(pri_key, pri_len, 32); }
 
-
-        unsigned char msg[] = "Hello, this is the SE of QUBIP project";
-
         unsigned char* sig; 
         unsigned int sig_len;
-        eddsa25519_sign_hw(msg, strlen(msg), pri_key, pri_len, pub_key, pub_len, &sig, &sig_len, interface);
+        eddsa25519_sign_hw(msg, msg_len, pri_key, pri_len, pub_key, pub_len, &sig, &sig_len, interface);
 
         if (verb >= 3)
         {
+            printf("\n msg: \n");
+            for (int i = 0; i < msg_len; i++) printf("%02x", msg[i]);
+            printf("\n");
             printf("\n signature: ");
             show_array(sig, sig_len, 32);
         }
 
         unsigned int result;
-        eddsa25519_verify_hw(msg, strlen(msg), pub_key, pub_len, sig, sig_len, &result, interface);
+        eddsa25519_verify_hw(msg, msg_len, pub_key, pub_len, sig, sig_len, &result, interface);
 
         print_result_valid("EdDSA-25519", !result);
     }

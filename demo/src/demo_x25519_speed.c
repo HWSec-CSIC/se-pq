@@ -10,7 +10,7 @@
   * BSD 3-Clause License below.
   *
   * Copyright (c) 2024,
-  *         Eros Camacho-Ruiz
+  *         Eros Camacho-Ruiz 
   *         Pablo Navarro-Torrero
   *         Pau Ortega-Castro
   *         Apurba Karmakar

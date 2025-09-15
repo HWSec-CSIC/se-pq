@@ -66,39 +66,9 @@
 #include <string.h>
 #include <math.h>
 #include "../common/intf.h"
-#include "../common/conf.h"
-
-#include "../../../se-qubip.h"
-
-/************************ MS2XL Constant Definitions **********************/
-
-#define MLKEM_RESET		    0x01
-#define MLKEM_LOAD_COINS	0x02
-#define MLKEM_LOAD_SK		0x03
-#define MLKEM_READ_SK		0x04
-#define MLKEM_LOAD_PK		0x05
-#define MLKEM_READ_PK		0x06
-#define MLKEM_LOAD_CT		0x07
-#define MLKEM_READ_CT		0x08
-#define MLKEM_LOAD_SS		0x09
-#define MLKEM_READ_SS		0x0a
-#define MLKEM_LOAD_HEK		0x0b
-#define MLKEM_READ_HEK		0x0c
-#define MLKEM_LOAD_PS		0x0d
-#define MLKEM_READ_PS		0x0e
-#define MLKEM_START		    0x0f
-
-#define MLKEM_GEN_KEYS_512	0x05
-#define MLKEM_GEN_KEYS_768	0x06
-#define MLKEM_GEN_KEYS_1024	0x07
-#define MLKEM_ENCAP_512		0x09
-#define MLKEM_ENCAP_768		0x0a
-#define MLKEM_ENCAP_1024	0x0b
-#define MLKEM_DECAP_512		0x0d
-#define MLKEM_DECAP_768		0x0e
-#define MLKEM_DECAP_1024	0x0f
-
-/************************ MS2XL Function Definitions **********************/
+#include "../common/extra_func.h"
+#include "../common/picorv32.h"
+#include "../common/conf.h" 
 
 /************************ Gen Keys Functions **********************/
 void mlkem_512_gen_keys_hw(unsigned char* pk, unsigned char* sk, INTF interface);
@@ -116,4 +86,5 @@ void mlkem_512_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, u
 void mlkem_768_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface);
 void mlkem_1024_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface);
 void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface);
+
 #endif
