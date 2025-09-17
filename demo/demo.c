@@ -97,7 +97,7 @@ void main(int argc, char** argv) {
 	// --- Is it already programmed? --- //
 	bool is_dev_prog = false;
 	uint64_t control = 0;
-    read_INTF(interface, &control, PICORV32_CONTROL, AXI_BYTES);
+    // read_INTF(interface, &control, PICORV32_CONTROL, AXI_BYTES);
 	if (control == CMD_SE_CODE) is_dev_prog = true;
 
 #ifdef AXI
@@ -203,4 +203,5 @@ void main(int argc, char** argv) {
 
 	// --- Close Interface --- //
 	close_INTF(interface);
+
 }
