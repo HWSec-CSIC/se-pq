@@ -16,6 +16,7 @@ ifeq ($(INTERFACE), AXI)
 else ifeq ($(INTERFACE), I2C)
 	LDFLAGS_DEMO = -lm 
 	LDFLAGS_DEMO_BUILD = -lm -L../se-qubip/build/ -lsequbip 
+	LDFLAGS_DEMO_INSTALL = -lm -lsequbip 
 	CFLAGS_DEMO = 
 else
 	@echo "ERROR: SELECT INTERFACE TYPE!"

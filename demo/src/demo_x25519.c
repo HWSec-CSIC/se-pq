@@ -72,13 +72,23 @@ void demo_x25519_hw(unsigned int mode, unsigned int verb, INTF interface) {
 
     seed_rng();
 
+    bool is_external = false;
+    uint8_t key_id_A = 0;
+    uint8_t key_id_B = 0;
+
     // ---- KEY GEN ---- //
     unsigned char* pub_key_A;
     unsigned char* pri_key_A;
     unsigned int pub_len_A;
     unsigned int pri_len_A;
 
-    if (mode == 25519)   x25519_genkeys_hw(&pri_key_A, &pub_key_A, &pri_len_A, &pub_len_A, interface);
+    if (!is_external)
+    {
+        secmem_store_key(ID_X25519, &key_id_A, is_external, NULL, 0, interface);
+        secmem_store_key(ID_X25519, &key_id_B, is_external, NULL, 0, interface);
+    }
+
+    if (mode == 25519)   x25519_genkeys_hw(&pri_key_A, &pub_key_A, &pri_len_A, &pub_len_A, is_external, &key_id_A, interface);
     // else                x448_genkeys(&pri_key_A, &pub_key_A, &pri_len_A, &pub_len_A);
 
     if (verb >= 2) printf("\n pub_len: %d (bytes)", pub_len_A);
@@ -92,7 +102,7 @@ void demo_x25519_hw(unsigned int mode, unsigned int verb, INTF interface) {
     unsigned int pub_len_B;
     unsigned int pri_len_B;
  
-    if (mode == 25519)   x25519_genkeys_hw(&pri_key_B, &pub_key_B, &pri_len_B, &pub_len_B, interface);
+    if (mode == 25519)   x25519_genkeys_hw(&pri_key_B, &pub_key_B, &pri_len_B, &pub_len_B, is_external, &key_id_B, interface);
     // else                x448_genkeys(&pri_key_B, &pub_key_B, &pri_len_B, &pub_len_B);
 
     if (verb >= 2) printf("\n pub_len: %d (bytes)", pub_len_B);
@@ -106,14 +116,14 @@ void demo_x25519_hw(unsigned int mode, unsigned int verb, INTF interface) {
     unsigned char* ss_A;
     unsigned int ss_len_A;
     if (mode == 25519)
-        x25519_ss_gen_hw(&ss_A, &ss_len_A, pub_key_B, pub_len_B, pri_key_A, pri_len_A, interface); // A Side
+        x25519_ss_gen_hw(&ss_A, &ss_len_A, pub_key_B, pub_len_B, pri_key_A, pri_len_A, is_external, &key_id_A, interface); // A Side
     // else
         // x448_ss_gen(&ss_A, &ss_len_A, (const unsigned char*)pub_key_B, pub_len_B, (const unsigned char*)pri_key_A, pri_len_A); // A Side
 
     unsigned char* ss_B;
     unsigned int ss_len_B;
     if (mode == 25519)
-        x25519_ss_gen_hw(&ss_B, &ss_len_B, pub_key_A, pub_len_A, pri_key_B, pri_len_B, interface); // B Side
+        x25519_ss_gen_hw(&ss_B, &ss_len_B, pub_key_A, pub_len_A, pri_key_B, pri_len_B, is_external, &key_id_B, interface); // B Side
     // else
         // x448_ss_gen(&ss_B, &ss_len_B, (const unsigned char*)pub_key_A, pub_len_A, (const unsigned char*)pri_key_B, pri_len_B); // B Side
 

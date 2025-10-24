@@ -192,6 +192,8 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
         sig = malloc(sig_len);
     }
 
+    bool ext_key  	= true;
+    uint8_t key_id	= 0;
 
     for (int test = 1; test <= n_test; test++) {
 
@@ -206,7 +208,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            slhdsa_shake_128_f_gen_keys_hw(pri_key, pub_key, interface);
+            slhdsa_shake_128_f_gen_keys_hw(pri_key, pub_key, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN keys_hw: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -234,7 +236,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
 
             // sign_hw
             start_t = timeInMicroseconds();
-            slhdsa_shake_128_f_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, interface);
+            slhdsa_shake_128_f_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -253,7 +255,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // dec_hw
 
             start_t = timeInMicroseconds();
-            slhdsa_shake_128_f_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, interface);
+            slhdsa_shake_128_f_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW VERIFY: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -273,7 +275,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            slhdsa_shake_128_s_gen_keys_hw(pri_key, pub_key, interface);
+            slhdsa_shake_128_s_gen_keys_hw(pri_key, pub_key, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN keys_hw: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -301,7 +303,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
 
             // sign_hw
             start_t = timeInMicroseconds();
-            slhdsa_shake_128_s_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, interface);
+            slhdsa_shake_128_s_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -320,7 +322,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // dec_hw
 
             start_t = timeInMicroseconds();
-            slhdsa_shake_128_s_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, interface);
+            slhdsa_shake_128_s_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW VERIFY: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -340,7 +342,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            slhdsa_shake_192_f_gen_keys_hw(pri_key, pub_key, interface);
+            slhdsa_shake_192_f_gen_keys_hw(pri_key, pub_key, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN keys_hw: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -368,7 +370,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
 
             // sign_hw
             start_t = timeInMicroseconds();
-            slhdsa_shake_192_f_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, interface);
+            slhdsa_shake_192_f_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -387,7 +389,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // dec_hw
 
             start_t = timeInMicroseconds();
-            slhdsa_shake_192_f_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, interface);
+            slhdsa_shake_192_f_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW VERIFY: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -407,7 +409,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            slhdsa_shake_192_s_gen_keys_hw(pri_key, pub_key, interface);
+            slhdsa_shake_192_s_gen_keys_hw(pri_key, pub_key, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN keys_hw: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -435,7 +437,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
 
             // sign_hw
             start_t = timeInMicroseconds();
-            slhdsa_shake_192_s_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, interface);
+            slhdsa_shake_192_s_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -454,7 +456,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // dec_hw
 
             start_t = timeInMicroseconds();
-            slhdsa_shake_192_s_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, interface);
+            slhdsa_shake_192_s_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW VERIFY: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -474,7 +476,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            slhdsa_shake_256_f_gen_keys_hw(pri_key, pub_key, interface);
+            slhdsa_shake_256_f_gen_keys_hw(pri_key, pub_key, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN keys_hw: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -502,7 +504,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
 
             // sign_hw
             start_t = timeInMicroseconds();
-            slhdsa_shake_256_f_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, interface);
+            slhdsa_shake_256_f_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -521,7 +523,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // dec_hw
 
             start_t = timeInMicroseconds();
-            slhdsa_shake_256_f_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, interface);
+            slhdsa_shake_256_f_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW VERIFY: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -541,7 +543,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            slhdsa_shake_256_s_gen_keys_hw(pri_key, pub_key, interface);
+            slhdsa_shake_256_s_gen_keys_hw(pri_key, pub_key, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN keys_hw: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -569,7 +571,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
 
             // sign_hw
             start_t = timeInMicroseconds();
-            slhdsa_shake_256_s_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, interface);
+            slhdsa_shake_256_s_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -588,7 +590,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // dec_hw
 
             start_t = timeInMicroseconds();
-            slhdsa_shake_256_s_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, interface);
+            slhdsa_shake_256_s_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW VERIFY: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -607,7 +609,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            slhdsa_sha2_128_f_gen_keys_hw(pri_key, pub_key, interface);
+            slhdsa_sha2_128_f_gen_keys_hw(pri_key, pub_key, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN keys_hw: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -635,7 +637,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
 
             // sign_hw
             start_t = timeInMicroseconds();
-            slhdsa_sha2_128_f_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, interface);
+            slhdsa_sha2_128_f_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -654,7 +656,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // dec_hw
 
             start_t = timeInMicroseconds();
-            slhdsa_sha2_128_f_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, interface);
+            slhdsa_sha2_128_f_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW VERIFY: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -674,7 +676,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            slhdsa_sha2_128_s_gen_keys_hw(pri_key, pub_key, interface);
+            slhdsa_sha2_128_s_gen_keys_hw(pri_key, pub_key, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN keys_hw: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -702,7 +704,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
 
             // sign_hw
             start_t = timeInMicroseconds();
-            slhdsa_sha2_128_s_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, interface);
+            slhdsa_sha2_128_s_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -721,7 +723,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // dec_hw
 
             start_t = timeInMicroseconds();
-            slhdsa_sha2_128_s_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, interface);
+            slhdsa_sha2_128_s_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW VERIFY: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -741,7 +743,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            slhdsa_sha2_192_f_gen_keys_hw(pri_key, pub_key, interface);
+            slhdsa_sha2_192_f_gen_keys_hw(pri_key, pub_key, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN keys_hw: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -769,7 +771,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
 
             // sign_hw
             start_t = timeInMicroseconds();
-            slhdsa_sha2_192_f_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, interface);
+            slhdsa_sha2_192_f_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -788,7 +790,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // dec_hw
 
             start_t = timeInMicroseconds();
-            slhdsa_sha2_192_f_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, interface);
+            slhdsa_sha2_192_f_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW VERIFY: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -808,7 +810,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            slhdsa_sha2_192_s_gen_keys_hw(pri_key, pub_key, interface);
+            slhdsa_sha2_192_s_gen_keys_hw(pri_key, pub_key, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN keys_hw: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -836,7 +838,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
 
             // sign_hw
             start_t = timeInMicroseconds();
-            slhdsa_sha2_192_s_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, interface);
+            slhdsa_sha2_192_s_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -855,7 +857,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // dec_hw
 
             start_t = timeInMicroseconds();
-            slhdsa_sha2_192_s_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, interface);
+            slhdsa_sha2_192_s_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW VERIFY: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -875,7 +877,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            slhdsa_sha2_256_f_gen_keys_hw(pri_key, pub_key, interface);
+            slhdsa_sha2_256_f_gen_keys_hw(pri_key, pub_key, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN keys_hw: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -903,7 +905,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
 
             // sign_hw
             start_t = timeInMicroseconds();
-            slhdsa_sha2_256_f_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, interface);
+            slhdsa_sha2_256_f_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -922,7 +924,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // dec_hw
 
             start_t = timeInMicroseconds();
-            slhdsa_sha2_256_f_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, interface);
+            slhdsa_sha2_256_f_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW VERIFY: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -942,7 +944,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            slhdsa_sha2_256_s_gen_keys_hw(pri_key, pub_key, interface);
+            slhdsa_sha2_256_s_gen_keys_hw(pri_key, pub_key, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN keys_hw: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -970,7 +972,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
 
             // sign_hw
             start_t = timeInMicroseconds();
-            slhdsa_sha2_256_s_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, interface);
+            slhdsa_sha2_256_s_ph_sign_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pri_key, sig, &sig_len, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -989,7 +991,7 @@ void test_slhdsa_hw(INTF interface, const slh_ph_func_t *ph, const char mode[12]
             // dec_hw
 
             start_t = timeInMicroseconds();
-            slhdsa_sha2_256_s_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, interface);
+            slhdsa_sha2_256_s_ph_verify_hw(ph, msg, len_msg, ctx, ctx_len, (const unsigned char*)pub_key, (const unsigned char*)sig, sig_len, &result, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW VERIFY: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;

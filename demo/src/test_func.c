@@ -403,7 +403,7 @@ void show_array(const unsigned char* r, const unsigned int size, const unsigned 
 	for (int i = 0; i < (int)ceil((double)size / (double)mod); i++) {
 		for (int j = 0; j < mod; j++) {
 			ind = i * mod + j;
-			if (ind < size) printf("%02x", r[ind]);
+			if (ind < size) printf("%02X", r[ind]);
 			else printf("  ");
 		}
 		printf("\n");
@@ -798,7 +798,7 @@ void print_title_demo() {
 	printf("\n\t╚════██║██╔══╝╚════╝██║▄▄ ██║██║   ██║██╔══██╗██║██╔═══╝ ");
 	printf("\n\t███████║███████╗    ╚██████╔╝╚██████╔╝██████╔╝██║██║     ");
 	printf("\n\t╚══════╝╚══════╝     ╚══▀▀═╝  ╚═════╝ ╚═════╝ ╚═╝╚═╝     ");
-	printf("\n\t Developers:                                         v3.0");
+	printf("\n\t Developers:                                         v3.3");
 	printf("\n\t \t\t Eros Camacho-Ruiz");
 	printf("\n\t \t\t Pablo Navarro-Torrero");
 	printf("\n\t \t\t Pau Ortega-Castro");

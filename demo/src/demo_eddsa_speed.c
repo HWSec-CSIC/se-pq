@@ -115,6 +115,9 @@ void test_eddsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
     if (mode == 448)            printf("\n\n -- Test EdDSA-448 --");
     */
 
+    bool ext_key            = true;
+    uint8_t key_id          = 0;
+
     for (int test = 1; test <= n_test; test++) {
 
         if (verb >= 1) printf("\n test: %d", test);
@@ -128,7 +131,7 @@ void test_eddsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
             // -----------------
             // keygen_sw
             start_t = timeInMicroseconds();
-            eddsa25519_genkeys_hw(&pri_key, &pub_key, &pri_len, &pub_len, interface); 
+            eddsa25519_genkeys_hw(&pri_key, &pub_key, &pri_len, &pub_len, ext_key, &key_id, interface); 
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN KEYS: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time_hw = stop_t - start_t;
@@ -156,7 +159,7 @@ void test_eddsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
             // sign_hw
             start_t = timeInMicroseconds();
-            eddsa25519_sign_hw(msg, msg_len, pri_key, pri_len, pub_key, pub_len, &sig, &sig_len, interface);
+            eddsa25519_sign_hw(msg, msg_len, pri_key, pri_len, pub_key, pub_len, &sig, &sig_len, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time_hw = stop_t - start_t;
@@ -174,7 +177,7 @@ void test_eddsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
             // dec_hw
             start_t = timeInMicroseconds();
-            eddsa25519_verify_hw(msg, msg_len, pub_key, pub_len, sig, sig_len, &result, interface);
+            eddsa25519_verify_hw(msg, msg_len, pub_key, pub_len, sig, sig_len, &result, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW VERIFY: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time_hw = stop_t - start_t;

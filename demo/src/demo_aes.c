@@ -76,7 +76,7 @@ void demo_aes_hw(unsigned int bits, unsigned int verb, INTF interface) {
     unsigned int result = 1;
 
     bool ext_key            = true;
-    bool ext_key_no_secmem  = true;
+    bool ext_key_no_secmem  = false;
     uint8_t key_id          = 0;
 
     // ---- AES-128 ---- //

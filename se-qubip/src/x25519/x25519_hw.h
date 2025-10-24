@@ -85,14 +85,15 @@
 #include "../common/conf.h"
 #include "../common/picorv32.h"
 #include "../common/extra_func.h"
+#include "../secmem/secmem_hw.h"
 
 //-- Elements Bit Sizes
 #define X25519_BYTES          32
 
 //-- GENERATE PUBLIC KEY
-void x25519_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, unsigned int *pri_len, unsigned int *pub_len, INTF interface);
+void x25519_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, unsigned int *pri_len, unsigned int *pub_len, bool ext_key, uint8_t* key_id, INTF interface);
 
 //-- ECDH X25519 OPERATION
-void x25519_ss_gen_hw(unsigned char **shared_secret, unsigned int *shared_secret_len, unsigned char *pub_key, unsigned int pub_len, unsigned char *pri_key, unsigned int pri_len, INTF interface);
+void x25519_ss_gen_hw(unsigned char **shared_secret, unsigned int *shared_secret_len, unsigned char *pub_key, unsigned int pub_len, unsigned char *pri_key, unsigned int pri_len, bool ext_key, uint8_t* key_id, INTF interface);
 
 #endif

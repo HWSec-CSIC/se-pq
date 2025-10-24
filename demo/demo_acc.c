@@ -98,10 +98,14 @@ void main(int argc, char** argv) {
 #ifdef AXI
 	// --- Loading Bitstream --- //
 	load_bitstream(BITSTREAM_AXI);
+	unsigned int clk_index = 0;
+	float clk_frequency;
+	float set_clk_frequency = FREQ_TYPICAL;
+    Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int) verb);
 #endif
 
 	// --- Load PICORV32 Program --- // 
-	WRITE_PICORV_PROGRAM(interface);
+	// WRITE_PICORV_PROGRAM(interface);
 
 	data_conf data_conf;
 

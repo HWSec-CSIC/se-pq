@@ -66,24 +66,25 @@
 #include "../common/picorv32.h"
 #include "../sha2/sha2_hw.h"
 #include "../sha3/sha3_shake_hw.h"
+#include <stdbool.h>
 
 /************************ Gen Keys Functions **********************/
-void mldsa44_genkeys_hw(unsigned char d[32], unsigned char* pk, unsigned char* sk, INTF interface);
-void mldsa65_genkeys_hw(unsigned char d[32], unsigned char* pk, unsigned char* sk, INTF interface);
-void mldsa87_genkeys_hw(unsigned char d[32], unsigned char* pk, unsigned char* sk, INTF interface);
-void mldsa_genkeys_hw(INTF interface, int mode, unsigned char d[32], unsigned char* pk, unsigned char* sk);
+void mldsa44_genkeys_hw(unsigned char d[32], unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface);
+void mldsa65_genkeys_hw(unsigned char d[32], unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface);
+void mldsa87_genkeys_hw(unsigned char d[32], unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface);
+void mldsa_genkeys_hw(int mode, unsigned char d[32], unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface);
 
 /************************ Signature Functions **********************/
-void mldsa44_sign_hw(unsigned char* msg, unsigned int msg_len, unsigned char* sk, unsigned char* sig, unsigned int* sig_len, unsigned char* ctx, unsigned int ctx_len , INTF interface);
-void mldsa65_sign_hw(unsigned char* msg, unsigned int msg_len, unsigned char* sk, unsigned char* sig, unsigned int* sig_len, unsigned char* ctx, unsigned int ctx_len , INTF interface);
-void mldsa87_sign_hw(unsigned char* msg, unsigned int msg_len, unsigned char* sk, unsigned char* sig, unsigned int* sig_len, unsigned char* ctx, unsigned int ctx_len , INTF interface);
-void mldsa_sign_hw(INTF interface, int mode, unsigned char* msg, unsigned int msg_len, unsigned char* sk, unsigned char* sig, unsigned int* sig_len, unsigned char* ctx, unsigned int ctx_len);
+void mldsa44_sign_hw(unsigned char* msg, unsigned int msg_len, unsigned char* sk, unsigned char* sig, unsigned int* sig_len, unsigned char* ctx, unsigned int ctx_len , bool ext_key, uint8_t* key_id, INTF interface);
+void mldsa65_sign_hw(unsigned char* msg, unsigned int msg_len, unsigned char* sk, unsigned char* sig, unsigned int* sig_len, unsigned char* ctx, unsigned int ctx_len , bool ext_key, uint8_t* key_id, INTF interface);
+void mldsa87_sign_hw(unsigned char* msg, unsigned int msg_len, unsigned char* sk, unsigned char* sig, unsigned int* sig_len, unsigned char* ctx, unsigned int ctx_len , bool ext_key, uint8_t* key_id, INTF interface);
+void mldsa_sign_hw(int mode, unsigned char* msg, unsigned int msg_len, unsigned char* sk, unsigned char* sig, unsigned int* sig_len, unsigned char* ctx, unsigned int ctx_len, bool ext_key, uint8_t* key_id, INTF interface);
 
 /************************ Verification Functions **********************/
 void mldsa44_verify_hw(unsigned char* msg, unsigned int msg_len, unsigned char* pk, unsigned char* sig, unsigned int sig_len, unsigned char* ctx, unsigned int ctx_len, unsigned int* result , INTF interface);
 void mldsa65_verify_hw(unsigned char* msg, unsigned int msg_len, unsigned char* pk, unsigned char* sig, unsigned int sig_len, unsigned char* ctx, unsigned int ctx_len, unsigned int* result , INTF interface);
 void mldsa87_verify_hw(unsigned char* msg, unsigned int msg_len, unsigned char* pk, unsigned char* sig, unsigned int sig_len, unsigned char* ctx, unsigned int ctx_len, unsigned int* result , INTF interface);
-void mldsa_verify_hw(INTF interface, int mode, unsigned char* msg, unsigned int msg_len, unsigned char* pk, unsigned char* sig, unsigned int sig_len, unsigned char* ctx, unsigned int ctx_len, unsigned int* result);
+void mldsa_verify_hw(int mode, unsigned char* msg, unsigned int msg_len, unsigned char* pk, unsigned char* sig, unsigned int sig_len, unsigned char* ctx, unsigned int ctx_len, unsigned int* result, INTF interface);
 
 
 #endif

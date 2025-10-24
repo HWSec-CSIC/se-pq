@@ -86,6 +86,7 @@
 #include "../common/conf.h"
 #include "../common/picorv32.h"
 #include "../common/extra_func.h"
+#include "../secmem/secmem_hw.h"
 
 //-- Elements Bit Sizes
 #define MSG_BLOCK_BYTES         128
@@ -99,12 +100,12 @@
 #define EDDSA_OP_VERIFY     0x04
 
 //-- GENERATE PUBLIC KEY
-void eddsa25519_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, unsigned int *pri_len, unsigned int *pub_len, INTF interface);
+void eddsa25519_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, unsigned int *pri_len, unsigned int *pub_len, bool ext_key, uint8_t* key_id, INTF interface);
 
 //-- SIGN
-void eddsa25519_sign_hw(unsigned char *msg, unsigned int msg_len, unsigned char *pri_key, unsigned int pri_len, unsigned char *pub_key, unsigned int pub_len, unsigned char **sig, unsigned int *sig_len, INTF interface);
+void eddsa25519_sign_hw(unsigned char *msg, unsigned int msg_len, unsigned char *pri_key, unsigned int pri_len, unsigned char *pub_key, unsigned int pub_len, unsigned char **sig, unsigned int *sig_len, bool ext_key, uint8_t* key_id, INTF interface);
 
 //-- VERIFY
-void eddsa25519_verify_hw(unsigned char *msg, unsigned int msg_len, unsigned char *pub_key, unsigned int pub_len, unsigned char *sig, unsigned int sig_len, unsigned int *result, INTF interface);
+void eddsa25519_verify_hw(unsigned char *msg, unsigned int msg_len, unsigned char *pub_key, unsigned int pub_len, unsigned char *sig, unsigned int sig_len, unsigned int *result, bool ext_key, uint8_t* key_id, INTF interface);
 
 #endif

@@ -10,25 +10,25 @@
 // KEY GENERATION
 //==============================================================================
 
-void mldsa44_genkeys_hw(unsigned char d[32], unsigned char* pk, unsigned char* sk, INTF interface) {
+void mldsa44_genkeys_hw(unsigned char d[32], unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface) {
 
-	mldsa_genkeys_hw(interface, 44, d, pk, sk);
-
-}
-
-void mldsa65_genkeys_hw(unsigned char d[32], unsigned char* pk, unsigned char* sk, INTF interface) {
-
-	mldsa_genkeys_hw(interface, 65, d, pk, sk);
+	mldsa_genkeys_hw(44, d, pk, sk, ext_key, key_id, interface);
 
 }
 
-void mldsa87_genkeys_hw(unsigned char d[32], unsigned char* pk, unsigned char* sk, INTF interface) {
+void mldsa65_genkeys_hw(unsigned char d[32], unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface) {
 
-	mldsa_genkeys_hw(interface, 87, d, pk, sk);
+	mldsa_genkeys_hw(65, d, pk, sk, ext_key, key_id, interface);
 
 }
 
-void mldsa_genkeys_hw(INTF interface, int mode, unsigned char d[32], unsigned char* pk, unsigned char* sk) 
+void mldsa87_genkeys_hw(unsigned char d[32], unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface) {
+
+	mldsa_genkeys_hw(87, d, pk, sk, ext_key, key_id, interface);
+
+}
+
+void mldsa_genkeys_hw(int mode, unsigned char d[32], unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface) 
 {
 	//-- se_code = { {(32'b) 64-bit data_packages}, {10'b0}, {k = 4, k = 3, k = 2, DEC, ENC, KEY_GEN}, {(16'b)MLKEM} }
 	uint64_t next_block = 0;
@@ -45,7 +45,7 @@ void mldsa_genkeys_hw(INTF interface, int mode, unsigned char d[32], unsigned ch
 	else k = 2; // Default to 44
 
     const uint8_t mldsa_code  = MLDSA_SE_CODE;
-    uint16_t mldsa_op_sel     = (1 << (k + 1)) | (1 << 0); 
+    uint16_t mldsa_op_sel     = ((uint16_t) !ext_key << 15) | ((uint16_t) (*key_id << 9)) | (1 << (k + 1)) | (1 << 0); 
     
     uint64_t se_code = ((uint32_t) mldsa_op_sel << 16) + mldsa_code;
     write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
@@ -97,16 +97,20 @@ void mldsa_genkeys_hw(INTF interface, int mode, unsigned char d[32], unsigned ch
 	uint64_t d64[4];
 	memcpy(d64, d, 32);
 
-	while (control != CMD_SE_WRITE)
-    {
-        picorv32_control(interface, &control);
-    }
-
-	//-- Send seed (d)
-	for (int i = 0; i < 4; i++)
+	if (ext_key)
 	{
-		write_INTF(interface, d64 + i, PICORV32_DATA_IN, AXI_BYTES);
+		while (control != CMD_SE_WRITE)
+    	{
+    	    picorv32_control(interface, &control);
+    	}
+	
+		//-- Send seed (d)
+		for (int i = 0; i < 4; i++)
+		{
+			write_INTF(interface, d64 + i, PICORV32_DATA_IN, AXI_BYTES);
+		}
 	}
+	
 
 	//-- Read pk
 	uint32_t packages_read = 0;
@@ -208,9 +212,9 @@ void mldsa44_sign_hw(
   	unsigned char* msg, unsigned int msg_len, 
   	unsigned char* sk, 
   	unsigned char* sig, unsigned int* sig_len, 
-  	unsigned char* ctx, unsigned int ctx_len , INTF interface) {
+  	unsigned char* ctx, unsigned int ctx_len, bool ext_key, uint8_t* key_id, INTF interface) {
 		
-		mldsa_sign_hw(interface, 44, msg, msg_len, sk, sig, sig_len, ctx, ctx_len);
+		mldsa_sign_hw(44, msg, msg_len, sk, sig, sig_len, ctx, ctx_len, ext_key, key_id, interface);
 
 }
 
@@ -218,9 +222,9 @@ void mldsa65_sign_hw(
   	unsigned char* msg, unsigned int msg_len, 
   	unsigned char* sk, 
   	unsigned char* sig, unsigned int* sig_len, 
-  	unsigned char* ctx, unsigned int ctx_len , INTF interface) {
+  	unsigned char* ctx, unsigned int ctx_len, bool ext_key, uint8_t* key_id, INTF interface) {
 		
-		mldsa_sign_hw(interface, 65, msg, msg_len, sk, sig, sig_len, ctx, ctx_len);
+		mldsa_sign_hw(65, msg, msg_len, sk, sig, sig_len, ctx, ctx_len, ext_key, key_id, interface);
 
 }
 
@@ -228,19 +232,18 @@ void mldsa87_sign_hw(
   	unsigned char* msg, unsigned int msg_len, 
   	unsigned char* sk, 
   	unsigned char* sig, unsigned int* sig_len, 
-  	unsigned char* ctx, unsigned int ctx_len , INTF interface) {
+  	unsigned char* ctx, unsigned int ctx_len, bool ext_key, uint8_t* key_id, INTF interface) {
 		
-		mldsa_sign_hw(interface, 87, msg, msg_len, sk, sig, sig_len, ctx, ctx_len);
+		mldsa_sign_hw(87, msg, msg_len, sk, sig, sig_len, ctx, ctx_len, ext_key, key_id, interface);
 
 }
 
 void mldsa_sign_hw(
-    INTF interface,
 	int mode, 
   	unsigned char* msg, unsigned int msg_len, 
   	unsigned char* sk, 
   	unsigned char* sig, unsigned int* sig_len, 
-  	unsigned char* ctx, unsigned int ctx_len )
+  	unsigned char* ctx, unsigned int ctx_len, bool ext_key, uint8_t* key_id, INTF interface)
   {
 	//-- se_code = { {(32'b) 64-bit data_packages}, {10'b0}, {k = 4, k = 3, k = 2, DEC, ENC, KEY_GEN}, {(16'b)MLKEM} }
 	uint64_t next_block = 0;
@@ -257,7 +260,7 @@ void mldsa_sign_hw(
 	else k = 2; // Default to 44
 
     const uint8_t mldsa_code  = MLDSA_SE_CODE;
-    uint16_t mldsa_op_sel     = (1 << (k + 1)) | (1 << 1); 
+    uint16_t mldsa_op_sel     = ((uint16_t) !ext_key << 15) | ((uint16_t) (*key_id << 9)) | (1 << (k + 1)) | (1 << 1); 
     
     uint64_t se_code = ((uint32_t) mldsa_op_sel << 16) + mldsa_code;
     write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
@@ -339,19 +342,44 @@ void mldsa_sign_hw(
 
 	//-- Send SK
 	uint32_t packages_send = 0;
-	for (int i = 0; i < LEN_SK_blocks; i++)
+	if (ext_key)
 	{
-		while (control != CMD_SE_WRITE)
+		for (int i = 0; i < LEN_SK_blocks; i++)
 		{
-			picorv32_control(interface, &control);
+			while (control != CMD_SE_WRITE)
+			{
+				picorv32_control(interface, &control);
+			}
+
+			for (int j = 0; j < FIFO_OUT_DEPTH - 2; j++)
+			{
+				write_INTF(interface, sk + (j + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+				// printf("\n sk[%d]: %02x", j, sk[(j + packages_send) * AXI_BYTES]);
+			}
+			packages_send += FIFO_OUT_DEPTH - 2;
+
+			while (control != CMD_SE_WAIT)
+    		{
+    		    picorv32_control(interface, &control);
+				if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    		}
 		}
-		
-		for (int j = 0; j < FIFO_OUT_DEPTH - 2; j++)
+
+		if (LEN_SK_rem)
 		{
-			write_INTF(interface, sk + (j + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
-			// printf("\n sk[%d]: %02x", j, sk[(j + packages_send) * AXI_BYTES]);
+			while (control != CMD_SE_WRITE)
+			{
+				picorv32_control(interface, &control);
+				// printf("\n control = %d", control);
+				// fflush(stdout);
+			}
 		}
-		packages_send += FIFO_OUT_DEPTH - 2;
+
+		for (int i = 0; i < LEN_SK_rem; i++)
+		{
+			write_INTF(interface, sk + (i + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+		}
+		packages_send += LEN_SK_rem;
 
 		while (control != CMD_SE_WAIT)
     	{
@@ -359,31 +387,7 @@ void mldsa_sign_hw(
 			if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
     	}
 	}
-
-	if (LEN_SK_rem)
-	{
-		while (control != CMD_SE_WRITE)
-		{
-			picorv32_control(interface, &control);
-			// printf("\n control = %d", control);
-			// fflush(stdout);
-		}
-	}
 	
-	for (int i = 0; i < LEN_SK_rem; i++)
-	{
-		write_INTF(interface, sk + (i + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
-	}
-	packages_send += LEN_SK_rem;
-	
-	
-
-	while (control != CMD_SE_WAIT)
-    {
-        picorv32_control(interface, &control);
-		if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
-    }
-
 	//-- Send MSG
 	packages_send = 0;
 	if(LEN_MSG_blocks) {
@@ -534,7 +538,7 @@ void mldsa44_verify_hw(
   	unsigned char* ctx, unsigned int ctx_len, 
 	unsigned int* result, INTF interface) {
 		
-		mldsa_verify_hw(interface, 44, msg, msg_len, pk, sig, sig_len, ctx, ctx_len, result);
+		mldsa_verify_hw(44, msg, msg_len, pk, sig, sig_len, ctx, ctx_len, result, interface);
 
 }
 
@@ -545,7 +549,7 @@ void mldsa65_verify_hw(
   	unsigned char* ctx, unsigned int ctx_len, 
 	unsigned int* result, INTF interface) {
 		
-		mldsa_verify_hw(interface, 65, msg, msg_len, pk, sig, sig_len, ctx, ctx_len, result);
+		mldsa_verify_hw(65, msg, msg_len, pk, sig, sig_len, ctx, ctx_len, result, interface);
 
 }
 
@@ -556,18 +560,17 @@ void mldsa87_verify_hw(
   	unsigned char* ctx, unsigned int ctx_len, 
 	unsigned int* result, INTF interface) {
 		
-		mldsa_verify_hw(interface, 87, msg, msg_len, pk, sig, sig_len, ctx, ctx_len, result);
+		mldsa_verify_hw(87, msg, msg_len, pk, sig, sig_len, ctx, ctx_len, result, interface);
 
 }
 
 void mldsa_verify_hw(
-	INTF interface,
     int mode,
   	unsigned char* msg, unsigned int msg_len, 
   	unsigned char* pk, 
   	unsigned char* sig, unsigned int sig_len, 
   	unsigned char* ctx, unsigned int ctx_len, 
-	unsigned int* result)
+	unsigned int* result, INTF interface)
   {
 	//-- se_code = { {(32'b) 64-bit data_packages}, {10'b0}, {k = 4, k = 3, k = 2, DEC, ENC, KEY_GEN}, {(16'b)MLKEM} }
 	uint64_t next_block = 0;

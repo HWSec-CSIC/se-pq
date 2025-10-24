@@ -126,6 +126,9 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 	else if (mode == 1024)  printf("\n\n -- Test MLKEM-1024 --");
 	*/
 
+	bool ext_key  	= true;
+    uint8_t key_id	= 0;
+
 	for (int test = 1; test <= n_test; test++) {
 
 		if (verb >= 1) printf("\n test: %d", test);
@@ -134,7 +137,7 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 			// keygen_sw
 			start_t = timeInMicroseconds();
-			mlkem512_genkeys_hw(pk_512, sk_512, interface);
+			mlkem512_genkeys_hw(pk_512, sk_512, ext_key, &key_id, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN KEYS: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
 			time_hw = stop_t - start_t;
@@ -167,7 +170,7 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 			// dec_sw
 			start_t = timeInMicroseconds();
-			mlkem512_dec_hw(sk_512, ct_512, ss1, &result, interface);
+			mlkem512_dec_hw(sk_512, ct_512, ss1, &result, ext_key, &key_id, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW DECAP: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
 			time_hw = stop_t - start_t;
@@ -190,7 +193,7 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 			// keygen_sw
 			start_t = timeInMicroseconds();
-			mlkem768_genkeys_hw(pk_768, sk_768, interface);
+			mlkem768_genkeys_hw(pk_768, sk_768, ext_key, &key_id, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN KEYS: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
 			time_hw = stop_t - start_t;
@@ -223,7 +226,7 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 			// dec_sw
 			start_t = timeInMicroseconds();
-			mlkem768_dec_hw(sk_768, ct_768, ss1, &result, interface);
+			mlkem768_dec_hw(sk_768, ct_768, ss1, &result, ext_key, &key_id, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW DECAP: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
 			time_hw = stop_t - start_t;
@@ -245,7 +248,7 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 			// keygen_sw
 			start_t = timeInMicroseconds();
-			mlkem1024_genkeys_hw(pk_1024, sk_1024, interface);
+			mlkem1024_genkeys_hw(pk_1024, sk_1024, ext_key, &key_id, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN KEYS: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
 			time_hw = stop_t - start_t;
@@ -278,7 +281,7 @@ void test_mlkem_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
 			// dec_sw
 			start_t = timeInMicroseconds();
-			mlkem1024_dec_hw(sk_1024, ct_1024, ss1, &result, interface);
+			mlkem1024_dec_hw(sk_1024, ct_1024, ss1, &result, ext_key, &key_id, interface);
 			stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW DECAP: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
 			time_hw = stop_t - start_t;

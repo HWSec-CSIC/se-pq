@@ -72,6 +72,9 @@ void demo_eddsa_hw(unsigned int mode, unsigned int verb, INTF interface) {
 
     seed_rng();
 
+    bool is_external    = false;
+    uint8_t key_id      = 0;
+
     unsigned char msg[1024] = "Hello, this is the SE of QUBIP project";
     unsigned int msg_len = 38;
 
@@ -82,7 +85,12 @@ void demo_eddsa_hw(unsigned int mode, unsigned int verb, INTF interface) {
         unsigned int pub_len;
         unsigned int pri_len;
 
-        eddsa25519_genkeys_hw(&pri_key, &pub_key, &pri_len, &pub_len, interface);
+        if (!is_external)
+        {
+            secmem_store_key(ID_EDDSA, &key_id, is_external, NULL, 0, interface);
+        }
+
+        eddsa25519_genkeys_hw(&pri_key, &pub_key, &pri_len, &pub_len, is_external, &key_id, interface);
 
         if (verb >= 2) printf("\n pub_len: %d (bytes)", pub_len);
         if (verb >= 2) printf("\n pri_len: %d (bytes)", pri_len);
@@ -92,7 +100,7 @@ void demo_eddsa_hw(unsigned int mode, unsigned int verb, INTF interface) {
 
         unsigned char* sig; 
         unsigned int sig_len;
-        eddsa25519_sign_hw(msg, msg_len, pri_key, pri_len, pub_key, pub_len, &sig, &sig_len, interface);
+        eddsa25519_sign_hw(msg, msg_len, pri_key, pri_len, pub_key, pub_len, &sig, &sig_len, is_external, &key_id, interface);
 
         if (verb >= 3)
         {
@@ -104,7 +112,7 @@ void demo_eddsa_hw(unsigned int mode, unsigned int verb, INTF interface) {
         }
 
         unsigned int result;
-        eddsa25519_verify_hw(msg, msg_len, pub_key, pub_len, sig, sig_len, &result, interface);
+        eddsa25519_verify_hw(msg, msg_len, pub_key, pub_len, sig, sig_len, &result, true, &key_id, interface);
 
         print_result_valid("EdDSA-25519", !result);
     }

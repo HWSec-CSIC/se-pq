@@ -209,6 +209,12 @@
 #define slhdsa_sha2_256_f_ph_verify_hw      slhdsa_sha2_256_f_ph_verify_hw
 #define slhdsa_sha2_256_s_ph_verify_hw      slhdsa_sha2_256_s_ph_verify_hw
 
+//-- SECMEM
+#define secmem_store_key                    secmem_store_key
+#define secmem_delete_key                   secmem_delete_key
+#define secmem_get_key                      secmem_get_key
+#define secmem_info                         secmem_info
+
 
 //-- INTERFACE
 #ifdef I2C
@@ -228,9 +234,9 @@
 
     // ------- BITSTREAM_FILE ------- //
     #ifdef PYNQZ2
-        #define BITSTREAM_AXI       "../se-qubip/bit/PYNQZ2_SE_QUBIP_3.2.bit"
+        #define BITSTREAM_AXI       "../se-qubip/bit/PYNQZ2_SE_QUBIP_3.3.bit"
     #elif ZCU104
-        #define BITSTREAM_AXI       "../se-qubip/bit/ZCU104_SE_QUBIP_3.2.bit"
+        #define BITSTREAM_AXI       "../se-qubip/bit/ZCU104_SE_QUBIP_3.3.bit"
     #endif
 
     /* ------- FREQUENCIES DEFINITION ------- */
@@ -243,13 +249,13 @@
         #define FREQ_MLKEM         100.0
         #define FREQ_AES           100.0
     #elif ZCU104
-        #define FREQ_TYPICAL       375.0
-        #define FREQ_SHA2          375.0
-        #define FREQ_SHA3          375.0
+        #define FREQ_TYPICAL       320.0
+        #define FREQ_SHA2          320.0
+        #define FREQ_SHA3          320.0
         #define FREQ_EDDSA         320.0 
         #define FREQ_X25519        320.0
         #define FREQ_MLKEM         320.0
-        #define FREQ_AES           375.0
+        #define FREQ_AES           320.0
     #endif
 #endif
 

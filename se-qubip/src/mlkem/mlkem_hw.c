@@ -101,19 +101,19 @@ static void randombytes(uint8_t* out, size_t outlen) {
 }
 #endif
 
-void mlkem_512_gen_keys_hw(unsigned char* pk, unsigned char* sk, INTF interface) {
+void mlkem_512_gen_keys_hw(unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface) {
 
-	mlkem_gen_keys_hw(2, pk, sk, interface);
-
-}
-void mlkem_768_gen_keys_hw(unsigned char* pk, unsigned char* sk, INTF interface) {
-
-	mlkem_gen_keys_hw(3, pk, sk, interface);
+	mlkem_gen_keys_hw(2, pk, sk, ext_key, key_id, interface);
 
 }
-void mlkem_1024_gen_keys_hw(unsigned char* pk, unsigned char* sk, INTF interface) {
+void mlkem_768_gen_keys_hw(unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface) {
 
-	mlkem_gen_keys_hw(4, pk, sk, interface);
+	mlkem_gen_keys_hw(3, pk, sk, ext_key, key_id, interface);
+
+}
+void mlkem_1024_gen_keys_hw(unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface) {
+
+	mlkem_gen_keys_hw(4, pk, sk, ext_key, key_id, interface);
 
 }
 
@@ -133,24 +133,45 @@ void mlkem_1024_enc_hw(unsigned char* pk, unsigned char* ct, unsigned char* ss, 
 
 }
 
-void mlkem_512_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface) {
+void mlkem_512_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface) {
 
-	mlkem_dec_hw(2, sk, ct, ss, result, interface);
+	mlkem_dec_hw(2, sk, ct, ss, result, ext_key, key_id, interface);
 	
 }
-void mlkem_768_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface) {
+void mlkem_768_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface) {
 	
-	mlkem_dec_hw(3, sk, ct, ss, result, interface);
+	mlkem_dec_hw(3, sk, ct, ss, result, ext_key, key_id, interface);
 
 }
-void mlkem_1024_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface) {
+void mlkem_1024_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface) {
 	
-	mlkem_dec_hw(4, sk, ct, ss, result, interface);
+	mlkem_dec_hw(4, sk, ct, ss, result, ext_key, key_id, interface);
 
 }
 
-void mlkem_gen_keys_hw(int k, unsigned char* pk, unsigned char* sk, INTF interface) 
+void mlkem_gen_keys_hw(int k, unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface)
 {
+	//-- Generate random
+	unsigned long long int d64[4];
+	unsigned long long int z64[4];
+
+	if (ext_key)
+	{
+		uint8_t d[32]; uint8_t z[32];
+		randombytes(d, 32); memcpy(d64, d, 32);
+		randombytes(z, 32); memcpy(z64, z, 32);
+		
+		/* d64[0] = 0x519d62010a40b41e;
+		d64[1] = 0xf5deb985cde27479;
+		d64[2] = 0x2b9c6f8e50de8290;
+		d64[3] = 0xca555996121e340e;
+
+		z64[0] = 0xfe0338161141391a;
+		z64[1] = 0x7586a635c319852e;
+		z64[2] = 0x5f2ba2afad8e3356;
+		z64[3] = 0x93d6cc60054357c5; */
+	}
+	
 	//-- se_code = { {(32'b) 64-bit data_packages}, {10'b0}, {k = 4, k = 3, k = 2, DEC, ENC, KEY_GEN}, {(16'b)MLKEM} }
 	uint64_t next_block = 0;
 	uint64_t control = 0;
@@ -159,7 +180,7 @@ void mlkem_gen_keys_hw(int k, unsigned char* pk, unsigned char* sk, INTF interfa
         picorv32_control(interface, &control);
     }
     const uint8_t mlkem_code  = MLKEM_SE_CODE;
-    uint16_t mlkem_op_sel     = (1 << (k + 1)) | (1 << 0); 
+    uint16_t mlkem_op_sel     = ((uint16_t) !ext_key << 15) | ((uint16_t) (*key_id << 9)) | (1 << (k + 1)) | (1 << 0); 
     
     uint64_t se_code = ((uint32_t) mlkem_op_sel << 16) + mlkem_code;
     write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
@@ -204,39 +225,24 @@ void mlkem_gen_keys_hw(int k, unsigned char* pk, unsigned char* sk, INTF interfa
 	LEN_EK_rem 		= LEN_EK_packages % (FIFO_OUT_DEPTH - 2);
 	LEN_DK_rem 		= LEN_DK_packages % (FIFO_OUT_DEPTH - 2);
 
-	//-- Generate random
-	uint8_t d[32]; unsigned long long int d64[4];
-	uint8_t z[32]; unsigned long long int z64[4];
-	randombytes(d, 32); memcpy(d64, d, 32);
-	randombytes(z, 32); memcpy(z64, z, 32);
-	
-	/* unsigned long long int d64[4];
-	d64[0] = 0x519d62010a40b41e;
-	d64[1] = 0xf5deb985cde27479;
-	d64[2] = 0x2b9c6f8e50de8290;
-	d64[3] = 0xca555996121e340e;
-
-	unsigned long long int z64[4];
-	z64[0] = 0xfe0338161141391a;
-	z64[1] = 0x7586a635c319852e;
-	z64[2] = 0x5f2ba2afad8e3356;
-	z64[3] = 0x93d6cc60054357c5; */
-
-	while (control != CMD_SE_WRITE)
-    {
-        picorv32_control(interface, &control);
-    }
-
-	//-- Send seed (d)
-	for (int i = 0; i < 4; i++)
+	if (ext_key)
 	{
-		write_INTF(interface, d64 + i, PICORV32_DATA_IN, AXI_BYTES);
-	}
+		while (control != CMD_SE_WRITE)
+    	{
+    	    picorv32_control(interface, &control);
+    	}
 
-	//-- Send seed z
-	for (int i = 0; i < 4; i++)
-	{
-		write_INTF(interface, z64 + i, PICORV32_DATA_IN, AXI_BYTES);
+		//-- Send seed (d)
+		for (int i = 0; i < 4; i++)
+		{
+			write_INTF(interface, d64 + i, PICORV32_DATA_IN, AXI_BYTES);
+		}
+
+		//-- Send seed z
+		for (int i = 0; i < 4; i++)
+		{
+			write_INTF(interface, z64 + i, PICORV32_DATA_IN, AXI_BYTES);
+		}
 	}
 
 	//-- Read sk
@@ -371,14 +377,14 @@ void mlkem_enc_hw(int k, unsigned char* pk, unsigned char* ct, unsigned char* ss
 	LEN_CT_rem 		= LEN_CT_packages % (FIFO_OUT_DEPTH - 2);
 
 	//-- Generate random
-	uint8_t m[32]; unsigned long long int m64[4];
-	randombytes(m, 32); memcpy(m64, m, 32);
+	/* uint8_t m[32]; unsigned long long int m64[4];
+	randombytes(m, 32); memcpy(m64, m, 32); */
 	
-	/* unsigned long long int m64[4];
+	unsigned long long int m64[4];
 	m64[0] = 0x72407c18ae6c9baf;
 	m64[1] = 0x1070e33b3f9dfc56;
 	m64[2] = 0x28a187e6d055afff;
-	m64[3] = 0xd38468eb627f7cf1; */
+	m64[3] = 0xd38468eb627f7cf1;
 
 	//-- Send PK
 	uint32_t packages_send = 0;
@@ -491,7 +497,7 @@ void mlkem_enc_hw(int k, unsigned char* pk, unsigned char* ct, unsigned char* ss
     }
 }
 
-void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface) 
+void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface) 
 {
 	//-- se_code = { {(32'b) 64-bit data_packages}, {10'b0}, {k = 4, k = 3, k = 2, DEC, ENC, KEY_GEN}, {(16'b)MLKEM} }
 	uint64_t next_block = 0;
@@ -501,7 +507,7 @@ void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss
         picorv32_control(interface, &control);
     }
     const uint8_t mlkem_code  = MLKEM_SE_CODE;
-    uint16_t mlkem_op_sel     = (1 << (k + 1)) | (1 << 2); 
+    uint16_t mlkem_op_sel     = ((uint16_t) !ext_key << 15) | ((uint16_t) (*key_id << 9)) | (1 << (k + 1)) | (1 << 2); 
     
     uint64_t se_code = ((uint32_t) mlkem_op_sel << 16) + mlkem_code;
     write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
@@ -558,18 +564,74 @@ void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss
 
 	//-- Send SK
 	uint32_t packages_send = 0;
-	for (int i = 0; i < LEN_PKE_blocks; i++)
+	if (ext_key)
 	{
+		for (int i = 0; i < LEN_PKE_blocks; i++)
+		{
+			while (control != CMD_SE_WRITE)
+			{
+				picorv32_control(interface, &control);
+			}
+
+			for (int j = 0; j < FIFO_OUT_DEPTH - 2; j++)
+			{
+				write_INTF(interface, sk + (j + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+			}
+			packages_send += FIFO_OUT_DEPTH - 2;
+
+			while (control != CMD_SE_WAIT)
+    		{
+    		    picorv32_control(interface, &control);
+				if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    		}
+		}
 		while (control != CMD_SE_WRITE)
 		{
 			picorv32_control(interface, &control);
 		}
-		
-		for (int j = 0; j < FIFO_OUT_DEPTH - 2; j++)
+
+		for (int i = 0; i < LEN_PKE_rem; i++)
 		{
-			write_INTF(interface, sk + (j + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+			write_INTF(interface, sk + (i + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
 		}
-		packages_send += FIFO_OUT_DEPTH - 2;
+		packages_send += LEN_PKE_rem;
+
+		while (control != CMD_SE_WAIT)
+    	{
+    	    picorv32_control(interface, &control);
+			if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    	}
+
+		//-- Send PK
+		for (int i = 0; i < LEN_PKE_blocks; i++)
+		{
+			while (control != CMD_SE_WRITE)
+			{
+				picorv32_control(interface, &control);
+			}
+
+			for (int j = 0; j < FIFO_OUT_DEPTH - 2; j++)
+			{
+				write_INTF(interface, sk + (j + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+			}
+			packages_send += FIFO_OUT_DEPTH - 2;
+
+			while (control != CMD_SE_WAIT)
+    		{
+    		    picorv32_control(interface, &control);
+				if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
+    		}
+		}
+		while (control != CMD_SE_WRITE)
+		{
+			picorv32_control(interface, &control);
+		}
+
+		for (int i = 0; i < LEN_PKE_rem; i++)
+		{
+			write_INTF(interface, sk + (i + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+		}
+		packages_send += LEN_PKE_rem;
 
 		while (control != CMD_SE_WAIT)
     	{
@@ -577,59 +639,6 @@ void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss
 			if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
     	}
 	}
-	while (control != CMD_SE_WRITE)
-	{
-		picorv32_control(interface, &control);
-	}
-	
-	for (int i = 0; i < LEN_PKE_rem; i++)
-	{
-		write_INTF(interface, sk + (i + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
-	}
-	packages_send += LEN_PKE_rem;
-	
-	while (control != CMD_SE_WAIT)
-    {
-        picorv32_control(interface, &control);
-		if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
-    }
-
-	//-- Send PK
-	for (int i = 0; i < LEN_PKE_blocks; i++)
-	{
-		while (control != CMD_SE_WRITE)
-		{
-			picorv32_control(interface, &control);
-		}
-		
-		for (int j = 0; j < FIFO_OUT_DEPTH - 2; j++)
-		{
-			write_INTF(interface, sk + (j + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
-		}
-		packages_send += FIFO_OUT_DEPTH - 2;
-
-		while (control != CMD_SE_WAIT)
-    	{
-    	    picorv32_control(interface, &control);
-			if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
-    	}
-	}
-	while (control != CMD_SE_WRITE)
-	{
-		picorv32_control(interface, &control);
-	}
-	
-	for (int i = 0; i < LEN_PKE_rem; i++)
-	{
-		write_INTF(interface, sk + (i + packages_send) * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
-	}
-	packages_send += LEN_PKE_rem;
-	
-	while (control != CMD_SE_WAIT)
-    {
-        picorv32_control(interface, &control);
-		if (control == CMD_SE_WAIT) read_INTF(interface, &next_block, PICORV32_DATA_OUT, AXI_BYTES); // Send a read signal to continue
-    }
 
 	//-- Send CT
 	packages_send = 0;
@@ -671,25 +680,28 @@ void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss
 	packages_send = 0;
 
 	//-- Send Seed
-	while (control != CMD_SE_WRITE)
+	if (ext_key)
 	{
-		picorv32_control(interface, &control);
-	}
-	for (int i = 0; i < 4; i++)
-	{
-		write_INTF(interface, sk + i * AXI_BYTES + LEN_DK - 32 - 32 - 32, PICORV32_DATA_IN, AXI_BYTES);
-	}
+		while (control != CMD_SE_WRITE)
+		{
+			picorv32_control(interface, &control);
+		}
+		for (int i = 0; i < 4; i++)
+		{
+			write_INTF(interface, sk + i * AXI_BYTES + LEN_DK - 32 - 32 - 32, PICORV32_DATA_IN, AXI_BYTES);
+		}
 
-	//-- Send HEK
-	for (int i = 0; i < 4; i++)
-	{
-		write_INTF(interface, sk + i * AXI_BYTES + LEN_DK - 32 - 32, PICORV32_DATA_IN, AXI_BYTES);
-	}
+		//-- Send HEK
+		for (int i = 0; i < 4; i++)
+		{
+			write_INTF(interface, sk + i * AXI_BYTES + LEN_DK - 32 - 32, PICORV32_DATA_IN, AXI_BYTES);
+		}
 
-	//-- Send Z
-	for (int i = 0; i < 4; i++)
-	{
-		write_INTF(interface, sk + i * AXI_BYTES + LEN_DK - 32, PICORV32_DATA_IN, AXI_BYTES);
+		//-- Send Z
+		for (int i = 0; i < 4; i++)
+		{
+			write_INTF(interface, sk + i * AXI_BYTES + LEN_DK - 32, PICORV32_DATA_IN, AXI_BYTES);
+		}
 	}
 
 	//-- Read SS

@@ -322,6 +322,7 @@ static void demo_mldsa_nist_key(INTF interface, const char* mode, unsigned int v
 
 
     unsigned int result = 1;
+    uint8_t key_id = 0;
 
     // ---- EDDSA ---- //
 
@@ -368,13 +369,13 @@ static void demo_mldsa_nist_key(INTF interface, const char* mode, unsigned int v
         
 
         if (!memcmp(mode, "44", 2)) {
-            mldsa44_genkeys_hw(seed, pk, sk, interface);
+            mldsa44_genkeys_hw(seed, pk, sk, true, &key_id, interface);
         }
         else if (!memcmp(mode, "65", 2)) {
-            mldsa65_genkeys_hw(seed, pk, sk, interface);
+            mldsa65_genkeys_hw(seed, pk, sk, true, &key_id, interface);
         }
         else if (!memcmp(mode, "87", 2)) {
-            mldsa87_genkeys_hw(seed, pk, sk, interface);
+            mldsa87_genkeys_hw(seed, pk, sk, true, &key_id, interface);
         }
 
         if (verb >= 3) { printf("\n public key: ");     show_array(pk, pk_len, 32); }
@@ -395,6 +396,7 @@ static void demo_mldsa_nist_sign(INTF interface, const char* mode, unsigned int 
 
 
     unsigned int result = 1;
+    uint8_t key_id = 0;
     TEST = 0;
 
     // ---- EDDSA ---- //
@@ -458,13 +460,13 @@ static void demo_mldsa_nist_sign(INTF interface, const char* mode, unsigned int 
         if (verb >= 3) { printf("\n exp_sig_len: %d", exp_sig_len); }
 
         if (!memcmp(mode, "44", 2)) {
-            mldsa44_sign_hw(msg, msg_len, sk, sig, &sig_len, ctx, ctx_len, interface);
+            mldsa44_sign_hw(msg, msg_len, sk, sig, &sig_len, ctx, ctx_len, true, &key_id, interface);
         }
         else if (!memcmp(mode, "65", 2)) {
-            mldsa65_sign_hw(msg, msg_len, sk, sig, &sig_len, ctx, ctx_len, interface);
+            mldsa65_sign_hw(msg, msg_len, sk, sig, &sig_len, ctx, ctx_len, true, &key_id, interface);
         }
         else if (!memcmp(mode, "87", 2)) {
-            mldsa87_sign_hw(msg, msg_len, sk, sig, &sig_len, ctx, ctx_len, interface);
+            mldsa87_sign_hw(msg, msg_len, sk, sig, &sig_len, ctx, ctx_len, true, &key_id, interface);
         }
 
         if (verb >= 3) { printf("\n signature: ");          show_array(sig, sig_len, 32); }

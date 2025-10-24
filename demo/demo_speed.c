@@ -104,15 +104,19 @@ void main(int argc, char** argv) {
 	// --- Loading Bitstream --- //
 	if (!is_dev_prog) 
 	{
-		printf("\n\nPROGRAMMING DEVICE...\n\n");
+		// printf("\n\nPROGRAMMING DEVICE...\n\n");
 		load_bitstream(BITSTREAM_AXI);
+		unsigned int clk_index = 0;
+		float clk_frequency;
+		float set_clk_frequency = FREQ_TYPICAL;
+    	Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int) verb);
 	}
 #endif
 
 	// --- Load PICORV32 Program --- // 
 	if (!is_dev_prog) 
 	{
-		WRITE_PICORV_PROGRAM(interface);
+		// WRITE_PICORV_PROGRAM(interface);
 		// READ_PICORV_PROGRAM(interface);
 	}
 
@@ -397,5 +401,4 @@ void main(int argc, char** argv) {
 
 	// --- Close Interface --- //
 	close_INTF(interface);
-
 }

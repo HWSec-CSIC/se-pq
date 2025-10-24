@@ -65,16 +65,18 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <stdbool.h>
 #include "../common/intf.h"
 #include "../common/extra_func.h"
 #include "../common/picorv32.h"
 #include "../common/conf.h" 
+#include "../secmem/secmem_hw.h"
 
 /************************ Gen Keys Functions **********************/
-void mlkem_512_gen_keys_hw(unsigned char* pk, unsigned char* sk, INTF interface);
-void mlkem_768_gen_keys_hw(unsigned char* pk, unsigned char* sk, INTF interface);
-void mlkem_1024_gen_keys_hw(unsigned char* pk, unsigned char* sk, INTF interface);
-void mlkem_gen_keys_hw(int k, unsigned char* pk, unsigned char* sk, INTF interface);
+void mlkem_512_gen_keys_hw(unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface);
+void mlkem_768_gen_keys_hw(unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface);
+void mlkem_1024_gen_keys_hw(unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface);
+void mlkem_gen_keys_hw(int k, unsigned char* pk, unsigned char* sk, bool ext_key, uint8_t* key_id, INTF interface);
 
 /************************ Encryption Functions **********************/
 void mlkem_512_enc_hw(unsigned char* pk, unsigned char* ct, unsigned char* ss, INTF interface);
@@ -82,9 +84,9 @@ void mlkem_768_enc_hw(unsigned char* pk, unsigned char* ct, unsigned char* ss, I
 void mlkem_1024_enc_hw(unsigned char* pk, unsigned char* ct, unsigned char* ss, INTF interface);
 void mlkem_enc_hw(int k, unsigned char* pk, unsigned char* ct, unsigned char* ss, INTF interface);
 /************************ Decryption Functions **********************/
-void mlkem_512_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface);
-void mlkem_768_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface);
-void mlkem_1024_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface);
-void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, INTF interface);
+void mlkem_512_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface);
+void mlkem_768_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface);
+void mlkem_1024_dec_hw(unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface);
+void mlkem_dec_hw(int k, unsigned char* sk, unsigned char* ct, unsigned char* ss, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface);
 
 #endif

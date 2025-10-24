@@ -14,6 +14,69 @@
 
 #include "secmem_hw.h"
 
+secmem_alg_t secmem_aes     = {
+                               .alg_id          = "AES",
+                               .max_keys        = KEY_NUM_AES,
+                               .key_len         = KEY_LEN_AES, 
+                               .addr_offset     = KEY_OFFSET_AES,
+                               .num_keys_stored = 0,
+                               .key_slot_in_use = {false}
+                               };
+                                  
+secmem_alg_t secmem_x25519  = {
+                               .alg_id          = "X25519",
+                               .max_keys        = KEY_NUM_X25519,
+                               .key_len         = KEY_LEN_X25519, 
+                               .addr_offset     = KEY_OFFSET_X25519,
+                               .num_keys_stored = 0,
+                               .key_slot_in_use = {false}
+                               };
+
+secmem_alg_t secmem_eddsa   = {
+                               .alg_id          = "EDDSA",
+                               .max_keys        = KEY_NUM_EDDSA,
+                               .key_len         = KEY_LEN_EDDSA, 
+                               .addr_offset     = KEY_OFFSET_EDDSA,
+                               .num_keys_stored = 0,
+                               .key_slot_in_use = {false}
+                               };    
+                                    
+secmem_alg_t secmem_slhdsa  = {
+                               .alg_id          = "SLHDSA",
+                               .max_keys        = KEY_NUM_SLHDSA,
+                               .key_len         = KEY_LEN_SLHDSA, 
+                               .addr_offset     = KEY_OFFSET_SLHDSA,
+                               .num_keys_stored = 0,
+                               .key_slot_in_use = {false}
+                               }; 
+
+secmem_alg_t secmem_mlkem   = {
+                               .alg_id          = "MLKEM",
+                               .max_keys        = KEY_NUM_MLKEM,
+                               .key_len         = KEY_LEN_MLKEM, 
+                               .addr_offset     = KEY_OFFSET_MLKEM,
+                               .num_keys_stored = 0,
+                               .key_slot_in_use = {false}
+                               };  
+
+secmem_alg_t secmem_mldsa   = {
+                               .alg_id          = "MLDSA",
+                               .max_keys        = KEY_NUM_MLDSA,
+                               .key_len         = KEY_LEN_MLDSA, 
+                               .addr_offset     = KEY_OFFSET_MLDSA,
+                               .num_keys_stored = 0,
+                               .key_slot_in_use = {false}
+                               };         
+
+secmem_alg_t* alg_info[] = {
+                            &secmem_aes,
+                            &secmem_x25519,
+                            &secmem_eddsa,
+                            &secmem_slhdsa,
+                            &secmem_mlkem,
+                            &secmem_mldsa
+                            };  
+
 /**
  * --- op_select bit mapping ---
  * [15:11]: Select Algorithm
@@ -252,10 +315,11 @@ void secmem_info(int DBG, INTF interface)
                     secmem_get_key(i, key_id, key_data, interface);
                     
                     // Print the formatted line for this specific key
-                    printf(" %-8s|   Key ID: %2u     | Value:  0x", alg_name, key_id);
+                    printf(" %-8s|   Key ID: %2u     | Value:  ", alg_name, key_id);
                     
                     for (size_t k = 0; k < key_len; ++k) {
                         printf("%02X", key_data[k]);
+                        if (((k + 1) % 32 == 0) && (k != 0) && ((k + 1) != key_len)) printf("\n                                      ");
                     }
                     printf("\n");
                 }
@@ -272,7 +336,5 @@ void secmem_info(int DBG, INTF interface)
         picorv32_control(interface, &control);
     }
 }
-
-
 
 

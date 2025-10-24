@@ -107,6 +107,9 @@ void test_mldsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
         sig = malloc(sig_len);
     }
 
+    bool ext_key            = true;
+    uint8_t key_id          = 0;
+
     for (int test = 1; test <= n_test; test++) {
 
         if (verb >= 1) printf("\n test: %d", test);
@@ -120,7 +123,7 @@ void test_mldsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            mldsa44_genkeys_hw(seed, pub_key, pri_key, interface);
+            mldsa44_genkeys_hw(seed, pub_key, pri_key, ext_key, &key_id, interface);
 
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN KEYS: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
@@ -149,7 +152,7 @@ void test_mldsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
             // sign_hw
             start_t = timeInMicroseconds();
-            mldsa44_sign_hw(msg, strlen(msg), (unsigned char*)pri_key, sig, &sig_len, NULL, 0, interface);
+            mldsa44_sign_hw(msg, strlen(msg), (unsigned char*)pri_key, sig, &sig_len, NULL, 0, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -189,7 +192,7 @@ void test_mldsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            mldsa65_genkeys_hw(seed, pub_key, pri_key, interface);
+            mldsa65_genkeys_hw(seed, pub_key, pri_key, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN KEYS: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -217,7 +220,7 @@ void test_mldsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
             // sign_hw
             start_t = timeInMicroseconds();
-            mldsa65_sign_hw(msg, strlen(msg), (unsigned char*)pri_key, sig, &sig_len, NULL, 0, interface);
+            mldsa65_sign_hw(msg, strlen(msg), (unsigned char*)pri_key, sig, &sig_len, NULL, 0, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -256,7 +259,7 @@ void test_mldsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
             // -----------------
             // keygen
             start_t = timeInMicroseconds();
-            mldsa87_genkeys_hw(seed, pub_key, pri_key, interface);
+            mldsa87_genkeys_hw(seed, pub_key, pri_key, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN KEYS: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;
@@ -284,7 +287,7 @@ void test_mldsa_hw(unsigned int mode, unsigned int n_test, unsigned int verb, ti
 
             // sign_hw
             start_t = timeInMicroseconds();
-            mldsa87_sign_hw(msg, strlen(msg), (unsigned char*)pri_key, sig, &sig_len, NULL, 0, interface);
+            mldsa87_sign_hw(msg, strlen(msg), (unsigned char*)pri_key, sig, &sig_len, NULL, 0, ext_key, &key_id, interface);
             stop_t = timeInMicroseconds(); if (verb >= 1) printf("\n SW SIGN: ET: %.3f s \t %.3f ms \t %d us", (stop_t - start_t) / 1000000.0, (stop_t - start_t) / 1000.0, (unsigned int)(stop_t - start_t));
 
             time = stop_t - start_t;

@@ -78,7 +78,7 @@
 // EDDSA25519 GENERATE PUBLIC KEY
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-void eddsa25519_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, unsigned int *pri_len, unsigned int *pub_len, INTF interface)
+void eddsa25519_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, unsigned int *pri_len, unsigned int *pub_len, bool ext_key, uint8_t* key_id, INTF interface)
 {
     //-- Generate a random private key
     *pri_len = EDDSA_BYTES;
@@ -87,7 +87,16 @@ void eddsa25519_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, uns
     *pri_key = (unsigned char*) malloc(*pri_len);
     *pub_key = (unsigned char*) malloc(*pub_len);
 
-    gen_priv_key(*pri_key, *pri_len);
+    if (ext_key) 
+    {
+        gen_priv_key(*pri_key, *pri_len);
+    }
+    else 
+    {
+        uint8_t key[64];
+        secmem_get_key(ID_EDDSA, *key_id, key, interface);
+        memcpy(*pri_key, key, 32);
+    }   
 
     // unsigned char test_private_key[32] = {0x64, 0x39, 0xe5, 0x39, 0x4f, 0x42, 0x67, 0x2c, 0x44, 0x0f, 0x9b, 0x18, 0x2f, 0x7e, 0x1c, 0x50, 0xb5, 0x4a, 0xb6, 0x61, 0x06, 0x8d, 0xc6, 0x02, 0xbb, 0x84, 0x67, 0x45, 0xa3, 0xca, 0xb0, 0x22};
     // memcpy(*pri_key, test_private_key, 32);
@@ -107,18 +116,21 @@ void eddsa25519_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, uns
     {
         picorv32_control(interface, &control);
     }
-    uint64_t se_code = (EDDSA_OP_KEY_GEN << 16) | ECDSA_SE_CODE;
+    uint64_t eddsa_op_sel   = ((uint16_t) !ext_key << 15) | ((uint16_t) (*key_id << 9)) | EDDSA_OP_KEY_GEN;
+    uint64_t se_code        = ((uint32_t) eddsa_op_sel << 16) | ECDSA_SE_CODE;
     write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
 
     //-- Send Private Key
-    while (control != CMD_SE_WRITE) 
+    if (ext_key)
     {
-        picorv32_control(interface, &control);
-    }
-    for (int i = EDDSA_BYTES / AXI_BYTES - 1; i >= 0; i--)
-    // for (int i = 0; i < EDDSA_BYTES / AXI_BYTES; i++)
-	{
-		write_INTF(interface, *pri_key + i * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+        while (control != CMD_SE_WRITE) 
+        {
+            picorv32_control(interface, &control);
+        }
+        for (int i = EDDSA_BYTES / AXI_BYTES - 1; i >= 0; i--)
+	    {
+	    	write_INTF(interface, *pri_key + i * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+	    }
     }
 
     //-- Read Private Key
@@ -141,7 +153,7 @@ void eddsa25519_genkeys_hw(unsigned char **pri_key, unsigned char **pub_key, uns
 // EDDSA25519 SIGNATURE GENERATION
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-void eddsa25519_sign_hw(unsigned char *msg, unsigned int msg_len, unsigned char *pri_key, unsigned int pri_len, unsigned char *pub_key, unsigned int pub_len, unsigned char **sig, unsigned int *sig_len, INTF interface)
+void eddsa25519_sign_hw(unsigned char *msg, unsigned int msg_len, unsigned char *pri_key, unsigned int pri_len, unsigned char *pub_key, unsigned int pub_len, unsigned char **sig, unsigned int *sig_len, bool ext_key, uint8_t* key_id, INTF interface)
 {    
     //-- Signature Size
     *sig_len = SIG_BYTES;
@@ -161,7 +173,8 @@ void eddsa25519_sign_hw(unsigned char *msg, unsigned int msg_len, unsigned char 
     {
         picorv32_control(interface, &control);
     }
-    uint64_t se_code = (EDDSA_OP_SIGN << 16) | ECDSA_SE_CODE;
+    uint64_t eddsa_op_sel   = ((uint16_t) !ext_key << 15) | ((uint16_t) (*key_id << 9)) | EDDSA_OP_SIGN;
+    uint64_t se_code        = ((uint32_t) eddsa_op_sel << 16) | ECDSA_SE_CODE;
     write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
 
     //-- Send Message Length
@@ -173,20 +186,29 @@ void eddsa25519_sign_hw(unsigned char *msg, unsigned int msg_len, unsigned char 
     write_INTF(interface, &msg_len_bits, PICORV32_DATA_IN, AXI_BYTES);                // MESSAGE LENGTH
 
     //-- Send Public & Private Key & 1st Message
+    if (ext_key)
+    {
+        while (control != CMD_SE_WRITE) 
+        {
+            picorv32_control(interface, &control);
+        }
+
+        for (int i = EDDSA_BYTES / AXI_BYTES - 1; i >= 0; i--)
+	    {
+	    	write_INTF(interface, pri_key + i * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);   // PRIVATE KEY
+        }
+
+        for (int i = EDDSA_BYTES / AXI_BYTES - 1; i >= 0; i--)
+	    {
+	    	write_INTF(interface, pub_key + i * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);   // PUBLIC KEY
+        }
+    }
+
+    
     while (control != CMD_SE_WRITE) 
     {
         picorv32_control(interface, &control);
     }
-
-    for (int i = EDDSA_BYTES / AXI_BYTES - 1; i >= 0; i--)
-	{
-		write_INTF(interface, pri_key + i * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);   // PRIVATE KEY
-	}
-    
-    for (int i = EDDSA_BYTES / AXI_BYTES - 1; i >= 0; i--)
-	{
-		write_INTF(interface, pub_key + i * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);   // PUBLIC KEY
-	}
 
     for (int i = MSG_BLOCK_BYTES / AXI_BYTES - 1; i >= 0; i--)
 	{
@@ -285,7 +307,7 @@ void eddsa25519_sign_hw(unsigned char *msg, unsigned int msg_len, unsigned char 
 // EDDSA25519 SIGNATURE VERIFICATION
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-void eddsa25519_verify_hw(unsigned char *msg, unsigned int msg_len, unsigned char *pub_key, unsigned int pub_len, unsigned char *sig, unsigned int sig_len, unsigned int *result, INTF interface)
+void eddsa25519_verify_hw(unsigned char *msg, unsigned int msg_len, unsigned char *pub_key, unsigned int pub_len, unsigned char *sig, unsigned int sig_len, unsigned int *result, bool ext_key, uint8_t* key_id, INTF interface)
 {
     //-- Number of Message Blocks and Padding
     unsigned int complete_len = ((msg_len + MSG_BLOCK_BYTES - 1) / MSG_BLOCK_BYTES) * MSG_BLOCK_BYTES + HASH_1_OFFSET_BYTES;    // Add extra BYTES for the Hash offset
@@ -301,7 +323,8 @@ void eddsa25519_verify_hw(unsigned char *msg, unsigned int msg_len, unsigned cha
     {
         picorv32_control(interface, &control);
     }
-    uint64_t se_code = (EDDSA_OP_VERIFY << 16) | ECDSA_SE_CODE;
+    uint64_t eddsa_op_sel   = ((uint16_t) !ext_key << 15) | ((uint16_t) (*key_id << 9)) | EDDSA_OP_VERIFY;
+    uint64_t se_code        = ((uint32_t) eddsa_op_sel << 16) | ECDSA_SE_CODE;
     write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
 
     //-- Send Message Length
@@ -313,17 +336,23 @@ void eddsa25519_verify_hw(unsigned char *msg, unsigned int msg_len, unsigned cha
     write_INTF(interface, &msg_len_bits, PICORV32_DATA_IN, AXI_BYTES);                // MESSAGE LENGTH
 
     //-- Send Public Key & 1st Message
+    if (ext_key)
+    {
+        while (control != CMD_SE_WRITE) 
+        {
+            picorv32_control(interface, &control);
+        }
+
+        for (int i = EDDSA_BYTES / AXI_BYTES - 1; i >= 0; i--)
+	    {
+	    	write_INTF(interface, pub_key + i * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);   // PUBLIC KEY
+        }
+    }
+
     while (control != CMD_SE_WRITE) 
     {
         picorv32_control(interface, &control);
     }
-
-    for (int i = EDDSA_BYTES / AXI_BYTES - 1; i >= 0; i--)
-	{
-		write_INTF(interface, pub_key + i * AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);   // PUBLIC KEY
- 
-        // verilog_display(true, "buffer_in = 0x%02x%02x%02x%02x%02x%02x%02x%02x", buffer_in[0+(i+packages_sent)*AXI_BYTES], buffer_in[1+(i+packages_sent)*AXI_BYTES], buffer_in[2+(i+packages_sent)*AXI_BYTES], buffer_in[3+(i+packages_sent)*AXI_BYTES], buffer_in[4+(i+packages_sent)*AXI_BYTES], buffer_in[5+(i+packages_sent)*AXI_BYTES], buffer_in[6+(i+packages_sent)*AXI_BYTES], buffer_in[7+(i+packages_sent)*AXI_BYTES]);
-	}
 
     for (int i = MSG_BLOCK_BYTES / AXI_BYTES - 1; i >= 0; i--)
 	{

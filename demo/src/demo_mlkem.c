@@ -70,7 +70,22 @@ void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface) {
     Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
 #endif
 
+    bool is_external    = false;
+    uint8_t key_id_1    = 0;
+    uint8_t key_id_2    = 0;
+    uint8_t key_id_3    = 0;
+
+    /* unsigned char* char_seed_test = "1EB4400A01629D517974E2CD85B9DEF59082DE508E6F9C2B0E341E12965955CA";
+    unsigned char seed_test[32]; char2hex(char_seed_test, seed_test); */
+
     if (mode == 512) {
+
+        if (!is_external)
+	    {
+	    	secmem_store_key(ID_MLKEM, &key_id_1, is_external, NULL, 0, interface);
+            // secmem_store_key(ID_MLKEM, &key_id_1, 1, seed_test, 32, interface);      // Test specific Key
+	    }
+
         // ---- MLKEM-512 ---- //
         unsigned char *pk_512;
 		unsigned char *sk_512;
@@ -78,7 +93,7 @@ void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface) {
 		pk_512 = malloc(800);
 		sk_512 = malloc(1632);
 
-		mlkem512_genkeys_hw(pk_512, sk_512, interface);
+		mlkem512_genkeys_hw(pk_512, sk_512, is_external, &key_id_1, interface);
 
         if (verb >= 3) printf("\n pub_len: %d (bytes)", 800);
         if (verb >= 3) printf("\n pri_len: %d (bytes)", 1632);
@@ -101,7 +116,7 @@ void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface) {
         unsigned char ss1[32];
 		unsigned int result;
 
-		mlkem512_dec_hw(sk_512, ct_512, ss1, &result, interface);
+		mlkem512_dec_hw(sk_512, ct_512, ss1, &result, is_external, &key_id_1, interface);
 
         if (verb >= 3) printf("\n ss1_len: %d (bytes)", 32);
         if (verb >= 1) { printf("\n ss1: ");    show_array(ss1, 32, 32); }
@@ -114,6 +129,13 @@ void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface) {
 
     }
     else if (mode == 768) {
+
+        if (!is_external)
+	    {
+	    	secmem_store_key(ID_MLKEM, &key_id_2, is_external, NULL, 0, interface);
+            // secmem_store_key(ID_MLKEM, &key_id_2, 1, seed_test, 32, interface);
+	    }
+
         // ---- MLKEM-768 ---- //
         unsigned char* pk_768;
 		unsigned char* sk_768;
@@ -121,7 +143,7 @@ void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface) {
 		pk_768 = malloc(1184);
 		sk_768 = malloc(2400);
 
-		mlkem768_genkeys_hw(pk_768, sk_768, interface);
+		mlkem768_genkeys_hw(pk_768, sk_768, is_external, &key_id_2, interface);
 
         if (verb >= 3) printf("\n pub_len: %d (bytes)", 1184);
         if (verb >= 3) printf("\n pri_len: %d (bytes)", 2400);
@@ -144,7 +166,7 @@ void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface) {
         unsigned char ss1[32];
 		unsigned int result = 0;
 
-		mlkem768_dec_hw(sk_768, ct_768, ss1, &result, interface);
+		mlkem768_dec_hw(sk_768, ct_768, ss1, &result, is_external, &key_id_2, interface);
 
         if (verb >= 3) printf("\n ss1_len: %d (bytes)", 32);
         if (verb >= 1) { printf("\n ss1: ");    show_array(ss1, 32, 32); }
@@ -157,6 +179,13 @@ void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface) {
     
     }
     else {
+
+        if (!is_external)
+	    {
+	    	secmem_store_key(ID_MLKEM, &key_id_3, is_external, NULL, 0, interface);
+            // secmem_store_key(ID_MLKEM, &key_id_3, 1, seed_test, 32, interface);
+	    }
+
         // ---- MLKEM-1024 ---- //
         unsigned char* pk_1024;
 		unsigned char* sk_1024;
@@ -164,7 +193,7 @@ void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface) {
 		pk_1024 = malloc(1568);
 		sk_1024 = malloc(3168);
 
-		mlkem1024_genkeys_hw(pk_1024, sk_1024, interface);
+		mlkem1024_genkeys_hw(pk_1024, sk_1024, is_external, &key_id_3, interface);
 
         if (verb >= 3) printf("\n pub_len: %d (bytes)", 1568);
         if (verb >= 3) printf("\n pri_len: %d (bytes)", 3168);
@@ -187,7 +216,7 @@ void demo_mlkem_hw(unsigned int mode, unsigned int verb, INTF interface) {
         unsigned char ss1[32];
 		unsigned int result = 0;
 
-		mlkem1024_dec_hw(sk_1024, ct_1024, ss1, &result, interface);
+		mlkem1024_dec_hw(sk_1024, ct_1024, ss1, &result, is_external, &key_id_3, interface);
 
         if (verb >= 3) printf("\n ss1_len: %d (bytes)", 32);
         if (verb >= 1) { printf("\n ss1: ");    show_array(ss1, 32, 32); }

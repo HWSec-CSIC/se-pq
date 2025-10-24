@@ -62,8 +62,6 @@
 
 void demo_mldsa_hw(unsigned int mode, unsigned int verb, INTF interface) 
 {
-
-    
     unsigned char msg_char[65] = "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF";
     unsigned char msg[32];
     char2hex(msg_char, msg);
@@ -87,8 +85,19 @@ void demo_mldsa_hw(unsigned int mode, unsigned int verb, INTF interface)
     Set_Clk_Freq(clk_index, &clk_frequency, &set_clk_frequency, (int)verb);
 #endif
 
+    bool is_external    = false;
+    uint8_t key_id_1    = 0;
+    uint8_t key_id_2    = 0;
+    uint8_t key_id_3    = 0;
+
     if (mode == 44) {
         // ---- MLDSA-44 ---- //
+        if (!is_external)
+	    {
+	    	secmem_store_key(ID_MLDSA, &key_id_1, is_external, NULL, 0, interface);
+            // secmem_store_key(ID_MLDSA, &key_id_1, true, d, 32, interface);      // Test specific Key
+	    }
+
         unsigned char *pk_44;
 		unsigned char *sk_44;
         unsigned char *sig_44;
@@ -98,7 +107,7 @@ void demo_mldsa_hw(unsigned int mode, unsigned int verb, INTF interface)
         sig_44  = (unsigned char*) malloc(2420); memset(sig_44, 0, 2420);
         unsigned int sig_len;
 
-		mldsa44_genkeys_hw(d, pk_44, sk_44, interface);
+		mldsa44_genkeys_hw(d, pk_44, sk_44, is_external, &key_id_1, interface);
 
         if (verb >= 3) {printf("\n pub_len: %d (bytes)", 1312); fflush(stdout);}
         if (verb >= 3) {printf("\n pri_len: %d (bytes)", 2560); fflush(stdout);}
@@ -112,7 +121,7 @@ void demo_mldsa_hw(unsigned int mode, unsigned int verb, INTF interface)
         if (verb >= 3) {printf("\n msg_len: %d (bytes)", msg_len); fflush(stdout);}
         if (verb >= 3) {printf("\n ctx_len: %d (bytes)", ctx_len); fflush(stdout);}
         
-        mldsa44_sign_hw(msg, msg_len, sk_44, sig_44, &sig_len, ctx, ctx_len, interface);
+        mldsa44_sign_hw(msg, msg_len, sk_44, sig_44, &sig_len, ctx, ctx_len, is_external, &key_id_1, interface);
 
         // TestId: 6 -> https://raw.githubusercontent.com/usnistgov/ACVP-Server/refs/heads/master/gen-val/json-files/ML-DSA-sigVer-FIPS204/internalProjection.json
         /*
@@ -146,6 +155,12 @@ void demo_mldsa_hw(unsigned int mode, unsigned int verb, INTF interface)
 
     else if (mode == 65) {
         // ---- MLDSA-65 ---- //
+        if (!is_external)
+	    {
+	    	secmem_store_key(ID_MLDSA, &key_id_2, is_external, NULL, 0, interface);
+            // secmem_store_key(ID_MLDSA, &key_id_2, true, d, 32, interface);      // Test specific Key
+	    }
+
         unsigned char *pk_65;
 		unsigned char *sk_65;
         unsigned char *sig_65;
@@ -155,7 +170,7 @@ void demo_mldsa_hw(unsigned int mode, unsigned int verb, INTF interface)
         sig_65  = (unsigned char*) malloc(3309); memset(sig_65, 0, 3309);
         unsigned int sig_len;
 
-		mldsa65_genkeys_hw(d, pk_65, sk_65, interface);
+		mldsa65_genkeys_hw(d, pk_65, sk_65, is_external, &key_id_2, interface);
 
         if (verb >= 3) {printf("\n pub_len: %d (bytes)", 1952); fflush(stdout);}
         if (verb >= 3) {printf("\n pri_len: %d (bytes)", 4032); fflush(stdout);}
@@ -169,7 +184,7 @@ void demo_mldsa_hw(unsigned int mode, unsigned int verb, INTF interface)
         if (verb >= 3) {printf("\n msg_len: %d (bytes)", msg_len); fflush(stdout);}
         if (verb >= 3) {printf("\n ctx_len: %d (bytes)", ctx_len); fflush(stdout);}
         
-        mldsa65_sign_hw(msg, msg_len, sk_65, sig_65, &sig_len, ctx, ctx_len, interface);
+        mldsa65_sign_hw(msg, msg_len, sk_65, sig_65, &sig_len, ctx, ctx_len, is_external, &key_id_2, interface);
 
         if (verb >= 3) { printf("\n signature: ");      show_array(sig_65, sig_len, 32); }
         
@@ -186,6 +201,12 @@ void demo_mldsa_hw(unsigned int mode, unsigned int verb, INTF interface)
 
     else {
         // ---- MLDSA-87 ---- //
+        if (!is_external)
+	    {
+	    	secmem_store_key(ID_MLDSA, &key_id_3, is_external, NULL, 0, interface);
+            // secmem_store_key(ID_MLDSA, &key_id_3, true, d, 32, interface);      // Test specific Key
+	    }
+
         unsigned char *pk_87;
 		unsigned char *sk_87;
         unsigned char *sig_87;
@@ -195,7 +216,7 @@ void demo_mldsa_hw(unsigned int mode, unsigned int verb, INTF interface)
         sig_87  = (unsigned char*) malloc(4627); memset(sig_87, 0, 4627);
         unsigned int sig_len;
 
-		mldsa87_genkeys_hw(d, pk_87, sk_87, interface);
+		mldsa87_genkeys_hw(d, pk_87, sk_87, is_external, &key_id_3, interface);
 
         if (verb >= 3) {printf("\n pub_len: %d (bytes)", 2592); fflush(stdout);}
         if (verb >= 3) {printf("\n pri_len: %d (bytes)", 4896); fflush(stdout);}
@@ -209,7 +230,7 @@ void demo_mldsa_hw(unsigned int mode, unsigned int verb, INTF interface)
         if (verb >= 3) {printf("\n msg_len: %d (bytes)", msg_len); fflush(stdout);}
         if (verb >= 3) {printf("\n ctx_len: %d (bytes)", ctx_len); fflush(stdout);}
         
-        mldsa87_sign_hw(msg, msg_len, sk_87, sig_87, &sig_len, ctx, ctx_len, interface);
+        mldsa87_sign_hw(msg, msg_len, sk_87, sig_87, &sig_len, ctx, ctx_len, is_external, &key_id_3, interface);
 
         if (verb >= 3) { printf("\n signature: ");      show_array(sig_87, sig_len, 32); }
 

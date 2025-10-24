@@ -177,16 +177,22 @@ const slh_ph_func_t slh_dsa_ph_shake_256 = { .alg_id = "SHAKE-256",
 // SLH-DSA GENERATE PUBLIC KEY
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-void slhdsa_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, uint16_t op_select, const slh_param_t* slh_dsa_parameter, INTF interface)
+void slhdsa_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, uint16_t op_select, const slh_param_t* slh_dsa_parameter, bool ext_key, uint8_t* key_id, INTF interface)
 {
+    /* if (!ext_key)
+    {
+        uint8_t key[128];
+        secmem_get_key(ID_SLHDSA, *key_id, key, interface);
+    } */
+    
     //-- se_code = { {32'b0}, {8'b0}, {256, 192, 128, F/S, SHAKE/SHA2, VERIFY, SIGN, GEN_KEYS}, {(16'b)SLH-DSA} }
     uint64_t control = 0;
     while (control != CMD_SE_CODE)
     {
         picorv32_control(interface, &control);
     }
-
-    uint64_t se_code = (op_select << 16) | SLHDSA_SE_CODE;
+    uint32_t se_op_sel = ((uint16_t) !ext_key << 15) | ((uint16_t) (*key_id << 9)) | op_select;
+    uint64_t se_code = (se_op_sel << 16) | SLHDSA_SE_CODE;
     write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
 
     //-- Read Public and Private Key
@@ -214,83 +220,83 @@ void slhdsa_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, uint16_t
     }
 }
 
-void slhdsa_shake_128_f_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, INTF interface)
+void slhdsa_shake_128_f_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_128 | SLHDSA_SEL_F | SLHDSA_SEL_SHAKE | SLHDSA_SEL_KEY_GEN;
-    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_shake_128f, interface);
+    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_shake_128f, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_128_s_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, INTF interface)
+void slhdsa_shake_128_s_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_128 | SLHDSA_SEL_S | SLHDSA_SEL_SHAKE | SLHDSA_SEL_KEY_GEN;
-    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_shake_128s, interface);
+    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_shake_128s, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_192_f_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, INTF interface)
+void slhdsa_shake_192_f_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_192 | SLHDSA_SEL_F | SLHDSA_SEL_SHAKE | SLHDSA_SEL_KEY_GEN;
-    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_shake_192f, interface);
+    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_shake_192f, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_192_s_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, INTF interface)
+void slhdsa_shake_192_s_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_192 | SLHDSA_SEL_S | SLHDSA_SEL_SHAKE | SLHDSA_SEL_KEY_GEN;
-    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_shake_192s, interface);
+    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_shake_192s, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_256_f_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, INTF interface)
+void slhdsa_shake_256_f_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_256 | SLHDSA_SEL_F | SLHDSA_SEL_SHAKE | SLHDSA_SEL_KEY_GEN;
-    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_shake_256f, interface);
+    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_shake_256f, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_256_s_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, INTF interface)
+void slhdsa_shake_256_s_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_256 | SLHDSA_SEL_S | SLHDSA_SEL_SHAKE | SLHDSA_SEL_KEY_GEN;
-    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_shake_256s, interface);
+    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_shake_256s, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_128_f_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, INTF interface)
+void slhdsa_sha2_128_f_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_128 | SLHDSA_SEL_F | SLHDSA_SEL_SHA2 | SLHDSA_SEL_KEY_GEN;
-    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_sha2_128f, interface);
+    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_sha2_128f, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_128_s_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, INTF interface)
+void slhdsa_sha2_128_s_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_128 | SLHDSA_SEL_S | SLHDSA_SEL_SHA2 | SLHDSA_SEL_KEY_GEN;
-    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_sha2_128s, interface);
+    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_sha2_128s, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_192_f_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, INTF interface)
+void slhdsa_sha2_192_f_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_192 | SLHDSA_SEL_F | SLHDSA_SEL_SHA2 | SLHDSA_SEL_KEY_GEN;
-    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_sha2_192f, interface);
+    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_sha2_192f, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_192_s_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, INTF interface)
+void slhdsa_sha2_192_s_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_192 | SLHDSA_SEL_S | SLHDSA_SEL_SHA2 | SLHDSA_SEL_KEY_GEN;
-    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_sha2_192s, interface);
+    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_sha2_192s, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_256_f_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, INTF interface)
+void slhdsa_sha2_256_f_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_256 | SLHDSA_SEL_F | SLHDSA_SEL_SHA2 | SLHDSA_SEL_KEY_GEN;
-    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_sha2_256f, interface);
+    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_sha2_256f, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_256_s_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, INTF interface)
+void slhdsa_sha2_256_s_gen_keys_hw(unsigned char* pri_key, unsigned char* pub_key, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_256 | SLHDSA_SEL_S | SLHDSA_SEL_SHA2 | SLHDSA_SEL_KEY_GEN;
-    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_sha2_256s, interface);
+    slhdsa_gen_keys_hw(pri_key, pub_key, op_select, &slh_dsa_sha2_256s, ext_key, key_id, interface);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // SLH-DSA SIGNATURE GENERATION
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-void slhdsa_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char *ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, uint16_t op_select, const slh_param_t* slh_dsa_parameter, INTF interface)
+void slhdsa_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char *ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, uint16_t op_select, const slh_param_t* slh_dsa_parameter, bool ext_key, uint8_t* key_id, INTF interface)
 {
     //-- Check ctx length
     if (ctx_len > 0xFF)
@@ -329,7 +335,8 @@ void slhdsa_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const 
     {
         picorv32_control(interface, &control);
     }
-    uint64_t se_code = ((uint64_t) M_len << 32) | ((uint64_t) op_select << 16) | SLHDSA_SE_CODE;
+    uint32_t se_op_sel = ((uint16_t) !ext_key << 15) | ((uint16_t) (*key_id << 9)) | op_select;
+    uint64_t se_code = (((uint64_t) M_len) << 32) | (se_op_sel << 16) | SLHDSA_SE_CODE;
     write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
 
     //-- Send Message
@@ -343,12 +350,21 @@ void slhdsa_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const 
         write_INTF(interface, (unsigned char*) M + i*AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
     }
 
+    /* printf("\n\nm_len = %d\n\n", M_len);
+
+    printf("\n\nmsg = ");
+    for (int i = 0; i < M_len; i < i++) printf("%02X", M[i]);
+    printf("\n\n") */;
+
     //-- Send Private Key
     size_t sk_packages = 4 * slh_dsa_parameter->n / AXI_BYTES;
 
-    for (int i = 0; i < sk_packages; i++)
+    if (ext_key)
     {
-        write_INTF(interface, (unsigned char*) pri_key + i*AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+        for (int i = 0; i < sk_packages; i++)
+        {
+            write_INTF(interface, (unsigned char*) pri_key + i*AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+        }
     }
 
     //-- Receive Signature
@@ -393,95 +409,95 @@ void slhdsa_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const 
     }
 }
 
-void slhdsa_shake_128_f_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, INTF interface)
+void slhdsa_shake_128_f_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, bool ext_key, uint8_t* key_id, INTF interface)
 {
     *sig_len = 17088;
     uint16_t op_select = SLHDSA_SEL_DETERMINISTIC | SLHDSA_SEL_128 | SLHDSA_SEL_F | SLHDSA_SEL_SHAKE | SLHDSA_SEL_SIGN;
-    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_shake_128f, interface);
+    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_shake_128f, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_128_s_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, INTF interface)
+void slhdsa_shake_128_s_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, bool ext_key, uint8_t* key_id, INTF interface)
 {
     *sig_len = 7856;
     uint16_t op_select = SLHDSA_SEL_DETERMINISTIC | SLHDSA_SEL_128 | SLHDSA_SEL_S | SLHDSA_SEL_SHAKE | SLHDSA_SEL_SIGN;
-    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_shake_128s, interface);
+    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_shake_128s, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_192_f_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, INTF interface)
+void slhdsa_shake_192_f_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, bool ext_key, uint8_t* key_id, INTF interface)
 {
     *sig_len = 35664;
     uint16_t op_select = SLHDSA_SEL_DETERMINISTIC | SLHDSA_SEL_192 | SLHDSA_SEL_F | SLHDSA_SEL_SHAKE | SLHDSA_SEL_SIGN;
-    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_shake_192f, interface);
+    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_shake_192f, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_192_s_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, INTF interface)
+void slhdsa_shake_192_s_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, bool ext_key, uint8_t* key_id, INTF interface)
 {
     *sig_len = 16224;
     uint16_t op_select = SLHDSA_SEL_DETERMINISTIC | SLHDSA_SEL_192 | SLHDSA_SEL_S | SLHDSA_SEL_SHAKE | SLHDSA_SEL_SIGN;
-    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_shake_192s, interface);
+    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_shake_192s, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_256_f_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, INTF interface)
+void slhdsa_shake_256_f_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, bool ext_key, uint8_t* key_id, INTF interface)
 {
     *sig_len = 49856;
     uint16_t op_select = SLHDSA_SEL_DETERMINISTIC | SLHDSA_SEL_256 | SLHDSA_SEL_F | SLHDSA_SEL_SHAKE | SLHDSA_SEL_SIGN;
-    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_shake_256f, interface);
+    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_shake_256f, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_256_s_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, INTF interface)
+void slhdsa_shake_256_s_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, bool ext_key, uint8_t* key_id, INTF interface)
 {
     *sig_len = 29792;
     uint16_t op_select = SLHDSA_SEL_DETERMINISTIC | SLHDSA_SEL_256 | SLHDSA_SEL_S | SLHDSA_SEL_SHAKE | SLHDSA_SEL_SIGN;
-    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_shake_256s, interface);
+    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_shake_256s, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_128_f_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, INTF interface)
+void slhdsa_sha2_128_f_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, bool ext_key, uint8_t* key_id, INTF interface)
 {
     *sig_len = 17088;
     uint16_t op_select = SLHDSA_SEL_DETERMINISTIC | SLHDSA_SEL_128 | SLHDSA_SEL_F | SLHDSA_SEL_SHA2 | SLHDSA_SEL_SIGN;
-    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_sha2_128f, interface);
+    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_sha2_128f, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_128_s_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, INTF interface)
+void slhdsa_sha2_128_s_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, bool ext_key, uint8_t* key_id, INTF interface)
 {
     *sig_len = 7856;
     uint16_t op_select = SLHDSA_SEL_DETERMINISTIC | SLHDSA_SEL_128 | SLHDSA_SEL_S | SLHDSA_SEL_SHA2 | SLHDSA_SEL_SIGN;
-    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_sha2_128s, interface);
+    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_sha2_128s, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_192_f_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, INTF interface)
+void slhdsa_sha2_192_f_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, bool ext_key, uint8_t* key_id, INTF interface)
 {
     *sig_len = 35664;
     uint16_t op_select = SLHDSA_SEL_DETERMINISTIC | SLHDSA_SEL_192 | SLHDSA_SEL_F | SLHDSA_SEL_SHA2 | SLHDSA_SEL_SIGN;
-    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_sha2_192f, interface);
+    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_sha2_192f, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_192_s_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, INTF interface)
+void slhdsa_sha2_192_s_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, bool ext_key, uint8_t* key_id, INTF interface)
 {
     *sig_len = 16224;
     uint16_t op_select = SLHDSA_SEL_DETERMINISTIC | SLHDSA_SEL_192 | SLHDSA_SEL_S | SLHDSA_SEL_SHA2 | SLHDSA_SEL_SIGN;
-    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_sha2_192s, interface);
+    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_sha2_192s, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_256_f_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, INTF interface)
+void slhdsa_sha2_256_f_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, bool ext_key, uint8_t* key_id, INTF interface)
 {
     *sig_len = 49856;
     uint16_t op_select = SLHDSA_SEL_DETERMINISTIC | SLHDSA_SEL_256 | SLHDSA_SEL_F | SLHDSA_SEL_SHA2 | SLHDSA_SEL_SIGN;
-    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_sha2_256f, interface);
+    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_sha2_256f, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_256_s_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, INTF interface)
+void slhdsa_sha2_256_s_ph_sign_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pri_key, unsigned char* sig, unsigned int* sig_len, bool ext_key, uint8_t* key_id, INTF interface)
 {
     *sig_len = 29792;
     uint16_t op_select = SLHDSA_SEL_DETERMINISTIC | SLHDSA_SEL_256 | SLHDSA_SEL_S | SLHDSA_SEL_SHA2 | SLHDSA_SEL_SIGN;
-    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_sha2_256s, interface);
+    slhdsa_ph_sign_hw(ph, msg, msg_len, ctx, ctx_len, pri_key, sig, sig_len, op_select, &slh_dsa_sha2_256s, ext_key, key_id, interface);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // SLGH-DSA SIGNATURE VERIFICATION
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-void slhdsa_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char *ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, uint16_t op_select, const slh_param_t* slh_dsa_parameter, INTF interface)
+void slhdsa_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char *ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, uint16_t op_select, const slh_param_t* slh_dsa_parameter, bool ext_key, uint8_t* key_id, INTF interface)
 {
     //-- Check ctx length
     if (ctx_len > 0xFF)
@@ -521,7 +537,8 @@ void slhdsa_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, cons
     {
         picorv32_control(interface, &control);
     }
-    uint64_t se_code = ((uint64_t) M_len << 32) | ((uint64_t) op_select << 16) | SLHDSA_SE_CODE;
+    uint32_t se_op_sel = ((uint16_t) !ext_key << 15) | ((uint16_t) (*key_id << 9)) | op_select;
+    uint64_t se_code = (((uint64_t) M_len) << 32) | (se_op_sel << 16) | SLHDSA_SE_CODE;
     write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
 
     //-- Send Message
@@ -538,9 +555,12 @@ void slhdsa_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, cons
     //-- Send Public Key
     size_t pk_packages = 2 * slh_dsa_parameter->n / AXI_BYTES;
 
-    for (int i = 0; i < pk_packages; i++)
+    if (ext_key)
     {
-        write_INTF(interface, (unsigned char*) pub_key + i*AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+        for (int i = 0; i < pk_packages; i++)
+        {
+            write_INTF(interface, (unsigned char*) pub_key + i*AXI_BYTES, PICORV32_DATA_IN, AXI_BYTES);
+        }
     }
 
     while (control != CMD_SE_WAIT)
@@ -609,74 +629,74 @@ void slhdsa_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, cons
     }
 }
 
-void slhdsa_shake_128_f_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, INTF interface)
+void slhdsa_shake_128_f_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_128 | SLHDSA_SEL_F | SLHDSA_SEL_SHAKE | SLHDSA_SEL_VERIFY;
-    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_shake_128f, interface);
+    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_shake_128f, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_128_s_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, INTF interface)
+void slhdsa_shake_128_s_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_128 | SLHDSA_SEL_S | SLHDSA_SEL_SHAKE | SLHDSA_SEL_VERIFY;
-    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_shake_128s, interface);
+    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_shake_128s, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_192_f_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, INTF interface)
+void slhdsa_shake_192_f_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_192 | SLHDSA_SEL_F | SLHDSA_SEL_SHAKE | SLHDSA_SEL_VERIFY;
-    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_shake_192f, interface);
+    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_shake_192f, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_192_s_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, INTF interface)
+void slhdsa_shake_192_s_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_192 | SLHDSA_SEL_S | SLHDSA_SEL_SHAKE | SLHDSA_SEL_VERIFY;
-    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_shake_192s, interface);
+    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_shake_192s, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_256_f_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, INTF interface)
+void slhdsa_shake_256_f_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_256 | SLHDSA_SEL_F | SLHDSA_SEL_SHAKE | SLHDSA_SEL_VERIFY;
-    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_shake_256f, interface);
+    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_shake_256f, ext_key, key_id, interface);
 }
 
-void slhdsa_shake_256_s_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, INTF interface)
+void slhdsa_shake_256_s_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_256 | SLHDSA_SEL_S | SLHDSA_SEL_SHAKE | SLHDSA_SEL_VERIFY;
-    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_shake_256s, interface);
+    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_shake_256s, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_128_f_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, INTF interface)
+void slhdsa_sha2_128_f_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_128 | SLHDSA_SEL_F | SLHDSA_SEL_SHA2 | SLHDSA_SEL_VERIFY;
-    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_sha2_128f, interface);
+    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_sha2_128f, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_128_s_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, INTF interface)
+void slhdsa_sha2_128_s_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_128 | SLHDSA_SEL_S | SLHDSA_SEL_SHA2 | SLHDSA_SEL_VERIFY;
-    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_sha2_128s, interface);
+    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_sha2_128s, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_192_f_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, INTF interface)
+void slhdsa_sha2_192_f_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_192 | SLHDSA_SEL_F | SLHDSA_SEL_SHA2 | SLHDSA_SEL_VERIFY;
-    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_sha2_192f, interface);
+    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_sha2_192f, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_192_s_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, INTF interface)
+void slhdsa_sha2_192_s_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_192 | SLHDSA_SEL_S | SLHDSA_SEL_SHA2 | SLHDSA_SEL_VERIFY;
-    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_sha2_192s, interface);
+    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_sha2_192s, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_256_f_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, INTF interface)
+void slhdsa_sha2_256_f_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_256 | SLHDSA_SEL_F | SLHDSA_SEL_SHA2 | SLHDSA_SEL_VERIFY;
-    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_sha2_256f, interface);
+    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_sha2_256f, ext_key, key_id, interface);
 }
 
-void slhdsa_sha2_256_s_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, INTF interface)
+void slhdsa_sha2_256_s_ph_verify_hw(const slh_ph_func_t *ph, const unsigned char* msg, const unsigned int msg_len, const unsigned char* ctx, const unsigned int ctx_len, const unsigned char* pub_key, const unsigned char* sig, const unsigned int sig_len, unsigned int* result, bool ext_key, uint8_t* key_id, INTF interface)
 {
     uint16_t op_select = SLHDSA_SEL_256 | SLHDSA_SEL_S | SLHDSA_SEL_SHA2 | SLHDSA_SEL_VERIFY;
-    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_sha2_256s, interface);
+    slhdsa_ph_verify_hw(ph, msg, msg_len, ctx, ctx_len, pub_key, sig, sig_len, result, op_select, &slh_dsa_sha2_256s, ext_key, key_id, interface);
 }
