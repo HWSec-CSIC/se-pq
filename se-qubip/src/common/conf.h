@@ -60,17 +60,17 @@
 
 /* --- SE CODES --- */
 
-#define SHA_2_SE_CODE             (1 << 0)        //-- SHA-2
-#define SHA_3_SE_CODE             (1 << 1)        //-- SHA-3
-#define ECDSA_SE_CODE             (1 << 2)        //-- EdDSA25519
-#define ECDH_SE_CODE              (1 << 3)        //-- X25519
-#define TRNG_SE_CODE              (1 << 4)        //-- TRNG
-#define AES_SE_CODE               (1 << 5)        //-- AES
-#define MLKEM_SE_CODE             (1 << 6)        //-- MLKEM
-#define MLDSA_SE_CODE             (1 << 7)        //-- MLDSA
-#define SLHDSA_SE_CODE            (1 << 8)        //-- SLHDSA
-#define SECMEM_SE_CODE            (1 << 9)        //-- SECMEM
-
+#define SHA_2_SE_CODE             (1ULL << 0)        //-- SHA-2
+#define SHA_3_SE_CODE             (1ULL << 1)        //-- SHA-3
+#define ECDSA_SE_CODE             (1ULL << 2)        //-- EdDSA25519
+#define ECDH_SE_CODE              (1ULL << 3)        //-- X25519
+#define TRNG_SE_CODE              (1ULL << 4)        //-- TRNG
+#define AES_SE_CODE               (1ULL << 5)        //-- AES
+#define MLKEM_SE_CODE             (1ULL << 6)        //-- MLKEM
+#define MLDSA_SE_CODE             (1ULL << 7)        //-- MLDSA
+#define SLHDSA_SE_CODE            (1ULL << 8)        //-- SLHDSA
+#define SECMEM_SE_CODE            (1ULL << 9)        //-- SECMEM
+#define SPI_SE_CODE               (1ULL << 10)       //-- SPI FLASH
 
 /* ---- REGISTERS DEFINITION --- */
 

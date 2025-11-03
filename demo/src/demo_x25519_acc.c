@@ -147,6 +147,9 @@ void test_x25519_acc(unsigned int mode, unsigned int n_test, unsigned int verb, 
     if (mode == 448)          printf("\n\n -- Test X448 --");
     */
 
+    bool ext_key  	= true;
+    uint8_t key_id	= 0;
+
 
     for (unsigned int test = 1; test <= n_test; test++) {
 
@@ -158,7 +161,7 @@ void test_x25519_acc(unsigned int mode, unsigned int n_test, unsigned int verb, 
             stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN KEY A: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
             start_t_hw = timeInMicroseconds();
-            x25519_genkeys_hw(&pri_key_A, &pub_key_A, &pri_len_A, &pub_len_A, interface);
+            x25519_genkeys_hw(&pri_key_A, &pub_key_A, &pri_len_A, &pub_len_A, ext_key, &key_id, interface);
             stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW GEN KEY A: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
 
             time_sw = stop_t_sw - start_t_sw;
@@ -185,7 +188,7 @@ void test_x25519_acc(unsigned int mode, unsigned int n_test, unsigned int verb, 
             stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW GEN KEY B: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
             start_t_hw = timeInMicroseconds();
-            x25519_genkeys_hw(&pri_key_B, &pub_key_B, &pri_len_B, &pub_len_B, interface);
+            x25519_genkeys_hw(&pri_key_B, &pub_key_B, &pri_len_B, &pub_len_B, ext_key, &key_id, interface);
             stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW GEN KEY B: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
 
             time_sw = stop_t_sw - start_t_sw;
@@ -214,7 +217,7 @@ void test_x25519_acc(unsigned int mode, unsigned int n_test, unsigned int verb, 
             stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
             start_t_hw = timeInMicroseconds();
-            x25519_ss_gen_hw(&ss_A, &ss_len_A, pub_key_B, pub_len_B, pri_key_A, pri_len_A, interface); // A Side
+            x25519_ss_gen_hw(&ss_A, &ss_len_A, pub_key_B, pub_len_B, pri_key_A, pri_len_A, ext_key, &key_id, interface); // A Side
             stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
 
             time_sw = stop_t_sw - start_t_sw;
@@ -238,7 +241,7 @@ void test_x25519_acc(unsigned int mode, unsigned int n_test, unsigned int verb, 
             stop_t_sw = timeInMicroseconds(); if (verb >= 1) printf("\n SW: ET: %.3f s \t %.3f ms \t %d us", (stop_t_sw - start_t_sw) / 1000000.0, (stop_t_sw - start_t_sw) / 1000.0, (unsigned int)(stop_t_sw - start_t_sw));
 
             start_t_hw = timeInMicroseconds();
-            x25519_ss_gen_hw(&ss_B, &ss_len_B, pub_key_A, pub_len_A, pri_key_B, pri_len_B, interface); // B Side
+            x25519_ss_gen_hw(&ss_B, &ss_len_B, pub_key_A, pub_len_A, pri_key_B, pri_len_B, ext_key, &key_id, interface); // B Side
             stop_t_hw = timeInMicroseconds(); if (verb >= 1) printf("\n HW: ET: %.3f s \t %.3f ms \t %d us", (stop_t_hw - start_t_hw) / 1000000.0, (stop_t_hw - start_t_hw) / 1000.0, (unsigned int)(stop_t_hw - start_t_hw));
 
             time_sw = stop_t_sw - start_t_sw;

@@ -242,7 +242,6 @@ void secmem_info(int DBG, INTF interface)
     uint64_t mem_occ[num_alg];
     uint64_t key_map[num_alg];
 
-    uint64_t data = 0;
     for (int i = 0; i < num_alg; i++)
     {
         read_INTF(interface, alg_id + i, PICORV32_DATA_OUT, AXI_BYTES);
@@ -338,3 +337,62 @@ void secmem_info(int DBG, INTF interface)
 }
 
 
+void secmem_delete_all_keys(INTF interface)
+{
+    //-- se_code = { {32'b0}, {(16'b)op_select}, {(16'b)SECMEM} }
+    uint64_t control = 0;
+    while (control != CMD_SE_CODE)
+    {
+        picorv32_control(interface, &control);
+    }
+
+    const uint16_t secmem_code  = SECMEM_SE_CODE;
+    uint16_t secmem_op_sel      = OP_INFO; 
+
+    uint64_t se_code = ((uint32_t) secmem_op_sel << 16) | secmem_code;
+
+    write_INTF(interface, &se_code, PICORV32_DATA_IN, AXI_BYTES);
+
+    //-- Wait till control is CMD_SE_READ
+    while (control != CMD_SE_READ) 
+    {
+        picorv32_control(interface, &control);
+    }
+
+    uint64_t num_alg = 0;
+    read_INTF(interface, &num_alg, PICORV32_DATA_OUT, AXI_BYTES);
+
+    uint64_t alg_id[num_alg];
+    uint64_t mem_occ[num_alg];
+    uint64_t key_map[num_alg];
+
+    for (int i = 0; i < num_alg; i++)
+    {
+        read_INTF(interface, alg_id + i, PICORV32_DATA_OUT, AXI_BYTES);
+        read_INTF(interface, mem_occ + i, PICORV32_DATA_OUT, AXI_BYTES);
+        read_INTF(interface, key_map + i, PICORV32_DATA_OUT, AXI_BYTES);
+    }
+
+    for (uint32_t i = 0; i < num_alg; i++) {
+        
+        uint8_t max_keys = (mem_occ[i] >> 0)  & 0xFF;
+
+        // Loop through all possible key slots for this algorithm
+        for (uint8_t key_id = 0; key_id < max_keys; key_id++) {
+            
+            bool is_in_use = ((key_map[i] >> (63 - key_id)) & 1);
+
+            // Only if the slot is marked as IN USE, delete the key.
+            if (is_in_use) 
+            {
+                secmem_delete_key(i, key_id, interface);
+            }
+        }
+    }
+
+    //-- Wait until the command processor is back to idle state
+    while (control != CMD_SE_CODE) 
+    {
+        picorv32_control(interface, &control);
+    }
+}

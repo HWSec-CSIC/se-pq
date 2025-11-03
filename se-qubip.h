@@ -75,6 +75,7 @@
 #include "se-qubip/src/mldsa/mldsa_hw.h"
 #include "se-qubip/src/slhdsa/slhdsa_hw.h"
 #include "se-qubip/src/secmem/secmem_hw.h"
+#include "se-qubip/src/spi/spi_hw.h"
 
 //-- SHA-3 / SHAKE
 #define sha3_512_hw			                sha3_512_hw_func
@@ -215,6 +216,12 @@
 #define secmem_get_key                      secmem_get_key
 #define secmem_info                         secmem_info
 
+//-- SPI FLASH
+#define save_secmem_flash                   save_secmem_flash
+#define recover_secmem_flash                recover_secmem_flash
+#define save_data_flash                     save_data_flash
+#define recover_data_flash                  recover_data_flash
+
 
 //-- INTERFACE
 #ifdef I2C
@@ -252,7 +259,7 @@
         #define FREQ_TYPICAL       320.0
         #define FREQ_SHA2          320.0
         #define FREQ_SHA3          320.0
-        #define FREQ_EDDSA         320.0 
+        #define FREQ_EDDSA         280.0 
         #define FREQ_X25519        320.0
         #define FREQ_MLKEM         320.0
         #define FREQ_AES           320.0

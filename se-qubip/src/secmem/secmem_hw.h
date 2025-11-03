@@ -89,5 +89,6 @@ void secmem_store_key(uint8_t alg_id, uint8_t* key_id, bool is_external, uint8_t
 void secmem_delete_key(uint8_t alg_id, uint8_t key_id, INTF interface);
 void secmem_get_key(uint8_t alg_id, uint8_t key_id, uint8_t* key_data, INTF interface);
 void secmem_info(int DBG, INTF interface);
+void secmem_delete_all_keys(INTF interface);
 
 #endif

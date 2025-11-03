@@ -124,6 +124,23 @@ void main(int argc, char** argv) {
 
 	read_conf(&data_conf);
 
+	// Software Reset
+	uint64_t sw_reset;
+	#ifdef AXI
+		sw_reset = 1ULL << 31;
+	#elif I2C
+		sw_reset = 1ULL << 63;
+	#endif
+	write_INTF(interface, &sw_reset, PICORV32_PROGRAM, AXI_BYTES);
+	sw_reset = 0;
+	write_INTF(interface, &sw_reset, PICORV32_PROGRAM, AXI_BYTES);
+
+	// Restore SECMEM keys
+	// recover_secmem_flash(interface);
+
+	// For the DEMO restart SECMEM at initial state
+	secmem_delete_all_keys(interface);
+
 	printf("\n\t ---- Test Evaluation --- ");
 	printf("\n Configuration: ");
 	printf("\n %-10s: ", "AES");		if (data_conf.aes)		printf("yes"); else printf("no");
@@ -207,6 +224,9 @@ void main(int argc, char** argv) {
     }
 
 	secmem_info(1, interface);
+
+	// Save SECMEM KEYS
+	// save_secmem_flash(interface);
 
 	printf("\n\n");
 
