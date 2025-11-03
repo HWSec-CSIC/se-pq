@@ -157,19 +157,6 @@ The Secure Memory is partitioned to store keys for different cryptographic algor
 
 The following table and diagram illustrate the memory organization:
 
-
-
-<table>
-<tr>
-<td valign="top" style="padding-left: 20px;">
-
-<img src="img/memory_layout.png" width="400">
-
-</td>
-<td valign="top" style="padding-left: 50px;">
-
-<p style="margin-bottom: 120px;"></p>
-
 | Algorithm | Key Size (Bytes) | Max Keys | Address Offset | Total Size (Bytes) |
 | :--- | :--- | :--- | :--- | :--- |
 | AES | 32 | 48 | `0x000` | 1536 |
@@ -179,10 +166,7 @@ The following table and diagram illustrate the memory organization:
 | ML-KEM | 32 | 8 | `0xE00` | 256 |
 | ML-DSA | 32 | 8 | `0xF00` | 256 |
 
-</td>
-
-</tr>
-</table>
+<img src="img/memory_layout.png" width="600">
 
 
 #### API Functions
