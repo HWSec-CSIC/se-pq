@@ -50,7 +50,7 @@ The content of the SE-QUBIP library is depicted in the next container tree:
     ├── SE_QUBIP_v3.3.zip   # The IP Module of the Secure Element
     └── README.md  
 
-For now (***v3.3***) the list of supported algorithms are:
+For now (***v3.3.2***) the list of supported algorithms are:
 
 | Sym. Enc. I   | Sym. Enc. II   | Hash          | EC            | RNG           | PQC  I               | PQC  II               | PQC  III           |
 | --------      | --------       | ---------     | -------       | -------       | -------              | -------               | --------           |
@@ -70,7 +70,7 @@ For now (***v3.3***) the list of supported algorithms are:
 
 #### SE-QUBIP Interface
 
-The SE_QUBIP (v3.3) IP module offers a detailed configuration interface within the Vivado IP Integrator. The configuration is divided into several key sections:
+The SE_QUBIP (v3.3.2) IP module offers a detailed configuration interface within the Vivado IP Integrator. The configuration is divided into several key sections:
 
 *   **Clock Configuration**: It is **mandatory** to set the `Clock Frequency` for the IP core. This parameter is critical for the correct operation of the internal logic and timing.
 
@@ -87,7 +87,7 @@ The following figure illustrates this comprehensive configuration interface in V
 
 #### ZCU104 Block Diagram
 
-For **ZCU104 platform** include the Zynq UltraScale+ MPSoC IP in the block diagram  and **set the clock frequency to 350 MHz**, together with the constraint file **zcu104.xdc** which can be found at **/se-qubip/rtl/xdc/** folder.
+For **ZCU104 platform** include the Zynq UltraScale+ MPSoC IP in the block diagram  and **set the clock frequency to 400 MHz**, together with the constraint file **zcu104.xdc** which can be found at **/se-qubip/rtl/xdc/** folder.
 
 <img src="img/ZCU104_block_diagram.png" width="1000">
 

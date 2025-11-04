@@ -465,7 +465,7 @@ module picosoc (
 			wdt_counter	<= WDT_DEFAULT_TIMER;
 			wdt_en 		<= 0;
 		end
-		else if (wdt_start_sel) begin
+		/* else if (wdt_start_sel) begin
 			irq_wdt		<= 0;
 			wdt_counter <= peripheral_wdata;
 			wdt_en 		<= 1;
@@ -483,7 +483,7 @@ module picosoc (
 				irq_wdt <= 1;
 				wdt_en	<= 0;
 			end
-		end
+		end */
 		else begin
 			irq_wdt 	<= 0;
 			wdt_counter <= WDT_DEFAULT_TIMER;

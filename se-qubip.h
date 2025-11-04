@@ -259,7 +259,7 @@
         #define FREQ_TYPICAL       320.0
         #define FREQ_SHA2          320.0
         #define FREQ_SHA3          320.0
-        #define FREQ_EDDSA         280.0 
+        #define FREQ_EDDSA         320.0 
         #define FREQ_X25519        320.0
         #define FREQ_MLKEM         320.0
         #define FREQ_AES           320.0

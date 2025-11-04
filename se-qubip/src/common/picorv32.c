@@ -184,6 +184,7 @@ void picorv32_control(INTF interface, uint64_t* control)
     uint64_t data_in    = 0;
     
     read_INTF(interface, control, PICORV32_CONTROL, AXI_BYTES);
+    *control = 0xFFFFFFFF & *control;
 
     // printf("control = %lld\n", *control);
     // fflush(stdout);
