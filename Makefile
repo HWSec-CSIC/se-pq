@@ -1,7 +1,7 @@
 # COMPILER
 CC=/usr/bin/cc -O4
 
-# INTERFACE (AXI or I2C or I2C_STM32)
+# INTERFACE (AXI or I2C or I2C_SCP03)
 INTERFACE = AXI
 
 # BOARD (PYNQZ2 or ZCU104)
@@ -16,6 +16,11 @@ ifeq ($(INTERFACE), AXI)
 	LDFLAGS_DEMO_BUILD = -lpthread -lm -lpynq -lcma -L../se-qubip/build/ -lsequbip 
 	CFLAGS_DEMO =
 else ifeq ($(INTERFACE), I2C)
+	LDFLAGS_DEMO = -lpthread -lm 
+	LDFLAGS_DEMO_BUILD = -lpthread -lm -L../se-qubip/build/ -lsequbip 
+	CFLAGS_DEMO =
+else
+else ifeq ($(INTERFACE), I2C_SCP03)
 	LDFLAGS_DEMO = -lpthread -lm 
 	LDFLAGS_DEMO_BUILD = -lpthread -lm -L../se-qubip/build/ -lsequbip 
 	CFLAGS_DEMO =
@@ -60,6 +65,10 @@ LIB_SECMEM_HW_HEADERS = $(SRCDIR)secmem/secmem_hw.h
 #SPI
 LIB_SPI_HW_SOURCES = $(SRCDIR)spi/spi_hw.c 
 LIB_SPI_HW_HEADERS = $(SRCDIR)spi/spi_hw.h   
+# SCP03
+LIB_SCP03_HW_SOURCES = $(SRCDIR)scp03/scp03.c $(SRCDIR)scp03/kdf/scp03_kdf.c $(SRCDIR)scp03/aes/aes_base.c $(SRCDIR)scp03/aes/aes_cbc.c $(SRCDIR)scp03/aes/aes_cmac.c
+LIB_SCP03_HW_HEADERS = $(SRCDIR)scp03/scp03.h $(SRCDIR)scp03/kdf/scp03_kdf.h $(SRCDIR)scp03/aes/aes_base.h 
+
 # COMMON
 ifeq ($(INTERFACE), AXI)
 	LIB_COMMON_SOURCES = $(SRCDIR)common/intf.c $(SRCDIR)common/mmio.c $(SRCDIR)common/extra_func.c $(SRCDIR)common/picorv32.c
@@ -67,6 +76,10 @@ ifeq ($(INTERFACE), AXI)
 else ifeq ($(INTERFACE), I2C)
 	LIB_COMMON_SOURCES = $(SRCDIR)common/intf.c $(SRCDIR)common/i2c.c $(SRCDIR)common/extra_func.c $(SRCDIR)common/picorv32.c
 	LIB_COMMON_HEADERS = $(SRCDIR)common/intf.h $(SRCDIR)common/i2c.h $(SRCDIR)common/extra_func.h $(SRCDIR)common/picorv32.h $(SRCDIR)common/conf.h
+else ifeq ($(INTERFACE), I2C_SCP03)
+	LIB_COMMON_SOURCES = $(SRCDIR)common/intf.c $(SRCDIR)common/i2c.c $(SRCDIR)common/extra_func.c $(SRCDIR)common/picorv32.c $(LIB_SCP03_SOURCES)
+	LIB_COMMON_HEADERS = $(SRCDIR)common/intf.h $(SRCDIR)common/i2c.h $(SRCDIR)common/extra_func.h $(SRCDIR)common/picorv32.h $(LIB_SCP03_HEADERS) $(SRCDIR)common/conf.h
+else
 else
 	@echo "ERROR: SELECT INTERFACE TYPE!"
 endif	
@@ -74,7 +87,7 @@ endif
 LIB_HEADER = se-qubip.h
 
 # LIBRARY SOURCES & HEADERS
-LIB_SOURCES = $(LIB_COMMON_SOURCES) $(LIB_SHA3_HW_SOURCES) $(LIB_SHA2_HW_SOURCES) $(LIB_EDDSA_HW_SOURCES) $(LIB_X25519_HW_SOURCES) $(LIB_TRNG_HW_SOURCES) $(LIB_AES_HW_SOURCES) $(LIB_MLKEM_HW_SOURCES) $(LIB_MLDSA_HW_SOURCES) $(LIB_SLHDSA_HW_SOURCES) $(LIB_SECMEM_HW_SOURCES) $(LIB_SPI_HW_SOURCES)
+LIB_SOURCES = $(LIB_COMMON_SOURCES) $(LIB_SHA3_HW_SOURCES) $(LIB_SHA2_HW_SOURCES) $(LIB_EDDSA_HW_SOURCES) $(LIB_X25519_HW_SOURCES) $(LIB_TRNG_HW_SOURCES) $(LIB_AES_HW_SOURCES) $(LIB_MLKEM_HW_SOURCES) $(LIB_MLDSA_HW_SOURCES) $(LIB_SLHDSA_HW_SOURCES) $(LIB_SECMEM_HW_SOURCES) $(LIB_SPI_HW_SOURCES) 
 LIB_HEADERS = $(LIB_COMMON_HEADERS) $(LIB_SHA3_HW_HEADERS) $(LIB_SHA2_HW_HEADERS) $(LIB_EDDSA_HW_HEADERS) $(LIB_X25519_HW_HEADERS) $(LIB_TRNG_HW_HEADERS) $(LIB_AES_HW_HEADERS) $(LIB_MLKEM_HW_HEADERS) $(LIB_MLDSA_HW_HEADERS) $(LIB_SLHDSA_HW_HEADERS) $(LIB_SECMEM_HW_HEADERS) $(LIB_SPI_HW_HEADERS) $(LIB_HEADER)
 
 SOURCES = $(LIB_SOURCES)

@@ -30,8 +30,13 @@
 		parameter [0:0] 	IMP_SLHDSA				= 1,
         parameter integer   TRNG_SIZE               = 32768,
         // I2C Parameters
-        parameter integer   IMP_I2C                 = 0,
+        parameter [0:0]   	IMP_I2C                 = 0,
         parameter [6:0]     DEVICE_ADDRESS          = 7'h1A,
+		// SCP-03 Parameters
+		parameter [0:0]   	IMP_SCP03               = 0,
+        parameter [1:0]     SCP03_AES_LEN          	= 2'b01,
+        parameter [255:0]   SCP03_KEY_ENC          	= 256'h000102030405060708090A0B0C0D0E0F_1011121314151617_18191A1B1C1D1E1F,
+        parameter [255:0]   SCP03_KEY_MAC          	= 256'h202122232425262728292A2B2C2D2E2F_3031323334353637_38393A3B3C3D3E3F,
         // Clock Frequency
         parameter [9:0]     IMP_CLK_FREQ            = 100,
 		// User parameters ends
@@ -107,6 +112,10 @@
 		.TRNG_SIZE(TRNG_SIZE),
 		.IMP_I2C(IMP_I2C),
         .DEVICE_ADDRESS(DEVICE_ADDRESS),
+		.IMP_SCP03(IMP_SCP03),
+		.SCP03_AES_LEN(SCP03_AES_LEN),
+		.SCP03_KEY_ENC(SCP03_KEY_ENC),
+		.SCP03_KEY_MAC(SCP03_KEY_MAC),
         .IMP_CLK_FREQ(IMP_CLK_FREQ),
 		.C_S_AXI_DATA_WIDTH(C_S00_AXI_DATA_WIDTH),
 		.C_S_AXI_ADDR_WIDTH(C_S00_AXI_ADDR_WIDTH)

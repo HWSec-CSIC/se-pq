@@ -223,10 +223,13 @@
 #define recover_data_flash                  recover_data_flash
 
 
-//-- INTERFACE
+//-- INTERFACE               
 #ifdef I2C
     #define INTF_ADDRESS            0x1A            //-- I2C_DEVICE_ADDRESS
     #define INTF_LENGTH		        0x40
+#elif I2C_SCP03
+    #define INTF_ADDRESS            0x1A            //-- I2C_DEVICE_ADDRESS
+    #define INTF_LENGTH		        0x40       
 #elif AXI
     // ------- MS2XL_BASEADDR ------- //
     #define INTF_LENGTH		        0x40
@@ -241,9 +244,9 @@
 
     // ------- BITSTREAM_FILE ------- //
     #ifdef PYNQZ2
-        #define BITSTREAM_AXI       "../se-qubip/bit/PYNQZ2_SE_QUBIP_3.3.bit"
+        #define BITSTREAM_AXI       "../se-qubip/bit/PYNQZ2_SE_QUBIP_3.4.bit"
     #elif ZCU104
-        #define BITSTREAM_AXI       "../se-qubip/bit/ZCU104_SE_QUBIP_3.3.bit"
+        #define BITSTREAM_AXI       "../se-qubip/bit/ZCU104_SE_QUBIP_3.4.bit"
     #endif
 
     /* ------- FREQUENCIES DEFINITION ------- */

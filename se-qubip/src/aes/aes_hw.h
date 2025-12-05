@@ -74,8 +74,8 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef AES_H
-#define AES_H
+#ifndef AES_HW_H
+#define AES_HW_H
 
 #include <stdint.h>
 #include <stdio.h>

@@ -130,9 +130,11 @@ void main(int argc, char** argv) {
 		sw_reset = 1ULL << 31;
 	#elif I2C
 		sw_reset = 1ULL << 63;
+	#elif I2C_SCP03
+		sw_reset = 1ULL << 63;
 	#endif
 	write_INTF(interface, &sw_reset, PICORV32_PROGRAM, AXI_BYTES);
-	sw_reset = 0;
+	sw_reset = 0ULL;
 	write_INTF(interface, &sw_reset, PICORV32_PROGRAM, AXI_BYTES);
 
 	// Restore SECMEM keys
@@ -218,12 +220,13 @@ void main(int argc, char** argv) {
 		demo_slhdsa_hw(interface, ph, "sha-2-256-s", verb);
 	}
 	
+	
+	secmem_info(1, interface);
+
 	while ((control != CMD_SE_CODE) && (control != CMD_END))
     {
         picorv32_control(interface, &control);
     }
-
-	secmem_info(1, interface);
 
 	// Save SECMEM KEYS
 	// save_secmem_flash(interface);

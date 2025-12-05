@@ -80,11 +80,20 @@
 //-- Open and Close Interface
 //------------------------------------------------------------------
 
+#ifdef I2C_SCP03
+    //-- Create Context for SCP03
+    scp03_session_t scp03_session;
+#endif
+
 void open_INTF(INTF* interface, size_t address, size_t length)
 {
 #ifdef I2C
     open_I2C(interface);
     set_address_I2C(*interface, address);
+#elif I2C_SCP03
+    open_I2C(interface);
+    set_address_I2C(*interface, address);
+    scp03_init(*interface, &scp03_session);
 #else
     createMMIOWindow(interface, address, length);
 #endif
@@ -93,6 +102,8 @@ void open_INTF(INTF* interface, size_t address, size_t length)
 void close_INTF(INTF interface)
 {
 #ifdef I2C
+    close_I2C(interface);
+#elif I2C_SCP03
     close_I2C(interface);
 #else
     closeMMIOWindow(&interface);
@@ -107,6 +118,9 @@ void read_INTF(INTF interface, void* data, size_t offset, size_t size_data)
 {
 #ifdef I2C
     read_I2C_ull(interface, data, offset, size_data);
+#elif I2C_SCP03
+    scp03_read(interface, &scp03_session, offset >> 3, data);
+    // printf("\ndata_rd = %016lx", *((uint64_t *) data));
 #else
     readMMIO(&interface, data, offset, size_data);
 #endif
@@ -116,6 +130,9 @@ void write_INTF(INTF interface, void* data, size_t offset, size_t size_data)
 {
 #ifdef I2C
     write_I2C_ull(interface, data, offset, size_data);
+#elif I2C_SCP03
+    scp03_write(interface, &scp03_session, offset >> 3, data);
+    // printf("\ndata_wr = %016lx", *((uint64_t *) data));
 #else
     writeMMIO(&interface, data, offset, size_data);
 #endif

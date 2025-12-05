@@ -77,6 +77,9 @@
 //-- Include Interfaces
 #ifdef I2C
     #include "i2c.h"
+#elif I2C_SCP03
+    #include "i2c.h"
+    #include "../scp03/scp03.h"
 #else
     #include "mmio.h"
 #endif
@@ -84,6 +87,9 @@
 //-- Interface Definition
 #ifdef I2C
     typedef I2C_FD INTF;
+#elif I2C_SCP03
+    typedef I2C_FD INTF;
+    extern scp03_session_t scp03_session;
 #else  
     typedef MMIO_WINDOW INTF;
 #endif

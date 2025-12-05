@@ -30,8 +30,13 @@
 		parameter [0:0] 	IMP_SLHDSA				= 1,
 		parameter integer   TRNG_SIZE               = 32768,
 		// I2C Parameters
-        parameter integer   IMP_I2C                 = 1,                         
+        parameter [0:0]   	IMP_I2C                 = 1,                         
         parameter [6:0]     DEVICE_ADDRESS          = 7'h1A,
+		// SCP-03 Parameters
+		parameter [0:0]   	IMP_SCP03               = 1,
+        parameter [1:0]     SCP03_AES_LEN	        = 2'b1,
+        parameter [255:0]   SCP03_KEY_ENC	        = 256'h000102030405060708090A0B0C0D0E0F_1011121314151617_18191A1B1C1D1E1F,
+        parameter [255:0]   SCP03_KEY_MAC	        = 256'h202122232425262728292A2B2C2D2E2F_3031323334353637_38393A3B3C3D3E3F,
         // Clock Frequency
         parameter [9:0]    IMP_CLK_FREQ             = 100,
 
@@ -351,49 +356,95 @@
 	end
 	endgenerate
 	// Add user logic here
-    generate if (IMP_I2C) begin
-        I2C_QUBIP #(
-                  .DEVICE_ADDRESS(DEVICE_ADDRESS),
-                  .BARREL_SHIFTER(BARREL_SHIFTER), 		
-	    		  .ENABLE_MUL(ENABLE_MUL), 			
-	    		  .ENABLE_DIV(ENABLE_DIV), 			
-	    		  .ENABLE_FAST_MUL(ENABLE_FAST_MUL), 	
-	    		  .ENABLE_COMPRESSED(ENABLE_COMPRESSED),	
-	    		  .ENABLE_IRQ(ENABLE_IRQ), 			
-	    		  .TWO_CYCLE_COMPARE(TWO_CYCLE_COMPARE),
-	    		  .TWO_CYCLE_ALU(TWO_CYCLE_ALU),    
-                  .MEM_WORDS(MEM_WORDS),
-	    		  .PROGADDR_RESET(PROGADDR_RESET),
-	    		  .PROGADDR_IRQ(PROGADDR_IRQ),
-	    		  .PERIPHERALS_BASE_ADDR(PERIPHERALS_BASE_ADDR),
-	    		  .SLH_KECCAK_BASE_ADDR(SLH_KECCAK_BASE_ADDR),
-	    		  .SLH_SHA256_BASE_ADDR(SLH_SHA256_BASE_ADDR),
-	    		  .SLH_SHA512_BASE_ADDR(SLH_SHA512_BASE_ADDR),
-	    		  .IMP_SHA2(IMP_SHA2),  
-	    		  .IMP_SHA3(IMP_SHA3),  
-	    		  .IMP_EDDSA(IMP_EDDSA), 
-	    		  .IMP_X25519(IMP_X25519),
-	    		  .IMP_TRNG(IMP_TRNG),
-	    		  .IMP_AES(IMP_AES),   
-	    		  .IMP_MLKEM(IMP_MLKEM),
-	    		  .IMP_MLDSA(IMP_MLDSA),
-	    		  .IMP_SLHDSA(IMP_SLHDSA),
-	    		  .TRNG_SIZE(TRNG_SIZE),
-	    		  .IMP_CLK_FREQ(IMP_CLK_FREQ)
-	    		  )
-        		  I2C_QUBIP
-	    		  (
-                   .clk(S_AXI_ACLK),
-                   .rst(rst),
-                   .SCL(SCL),
-                   .SDA(SDA),
-                   .output_control(output_control),
-                   .spi_sclk(spi_sclk),   
-                   .spi_csn(spi_csn),    
-                   .spi_dq0_o(spi_dq0_o),  
-                   .spi_dq1_i(spi_dq1_i)
-                   );
+    generate if (IMP_I2C && !IMP_SCP03) begin
+        i2c_no_scp03 #(
+                  	   .DEVICE_ADDRESS(DEVICE_ADDRESS),
+                  	   .BARREL_SHIFTER(BARREL_SHIFTER), 		
+	    		  	   .ENABLE_MUL(ENABLE_MUL), 			
+	    		  	   .ENABLE_DIV(ENABLE_DIV), 			
+	    		  	   .ENABLE_FAST_MUL(ENABLE_FAST_MUL), 	
+	    		  	   .ENABLE_COMPRESSED(ENABLE_COMPRESSED),	
+	    		  	   .ENABLE_IRQ(ENABLE_IRQ), 			
+	    		  	   .TWO_CYCLE_COMPARE(TWO_CYCLE_COMPARE),
+	    		  	   .TWO_CYCLE_ALU(TWO_CYCLE_ALU),    
+                  	   .MEM_WORDS(MEM_WORDS),
+	    		  	   .PROGADDR_RESET(PROGADDR_RESET),
+	    		  	   .PROGADDR_IRQ(PROGADDR_IRQ),
+	    		  	   .PERIPHERALS_BASE_ADDR(PERIPHERALS_BASE_ADDR),
+	    		  	   .SLH_KECCAK_BASE_ADDR(SLH_KECCAK_BASE_ADDR),
+	    		  	   .SLH_SHA256_BASE_ADDR(SLH_SHA256_BASE_ADDR),
+	    		  	   .SLH_SHA512_BASE_ADDR(SLH_SHA512_BASE_ADDR),
+	    		  	   .IMP_SHA2(IMP_SHA2),  
+	    		  	   .IMP_SHA3(IMP_SHA3),  
+	    		  	   .IMP_EDDSA(IMP_EDDSA), 
+	    		  	   .IMP_X25519(IMP_X25519),
+	    		  	   .IMP_TRNG(IMP_TRNG),
+	    		  	   .IMP_AES(IMP_AES),   
+	    		  	   .IMP_MLKEM(IMP_MLKEM),
+	    		  	   .IMP_MLDSA(IMP_MLDSA),
+	    		  	   .IMP_SLHDSA(IMP_SLHDSA),
+	    		  	   .TRNG_SIZE(TRNG_SIZE),
+	    		  	   .IMP_CLK_FREQ(IMP_CLK_FREQ)
+	    		  	   )
+        		  	   I2C_NO_SCP03
+	    		  	   (
+                  	    .clk(S_AXI_ACLK),
+                  	    .rst(rst),
+                  	    .SCL(SCL),
+                  	    .SDA(SDA),
+                  	    .output_control(output_control),
+                  	    .spi_sclk(spi_sclk),   
+                  	    .spi_csn(spi_csn),    
+                  	    .spi_dq0_o(spi_dq0_o),  
+                  	    .spi_dq1_i(spi_dq1_i)
+                  	    );
     end
+	else if (IMP_I2C && IMP_SCP03) begin
+		i2c_scp03 #(
+                  	   .DEVICE_ADDRESS(DEVICE_ADDRESS),
+                  	   .BARREL_SHIFTER(BARREL_SHIFTER), 		
+	    		  	   .ENABLE_MUL(ENABLE_MUL), 			
+	    		  	   .ENABLE_DIV(ENABLE_DIV), 			
+	    		  	   .ENABLE_FAST_MUL(ENABLE_FAST_MUL), 	
+	    		  	   .ENABLE_COMPRESSED(ENABLE_COMPRESSED),	
+	    		  	   .ENABLE_IRQ(ENABLE_IRQ), 			
+	    		  	   .TWO_CYCLE_COMPARE(TWO_CYCLE_COMPARE),
+	    		  	   .TWO_CYCLE_ALU(TWO_CYCLE_ALU),    
+                  	   .MEM_WORDS(MEM_WORDS),
+	    		  	   .PROGADDR_RESET(PROGADDR_RESET),
+	    		  	   .PROGADDR_IRQ(PROGADDR_IRQ),
+	    		  	   .PERIPHERALS_BASE_ADDR(PERIPHERALS_BASE_ADDR),
+	    		  	   .SLH_KECCAK_BASE_ADDR(SLH_KECCAK_BASE_ADDR),
+	    		  	   .SLH_SHA256_BASE_ADDR(SLH_SHA256_BASE_ADDR),
+	    		  	   .SLH_SHA512_BASE_ADDR(SLH_SHA512_BASE_ADDR),
+	    		  	   .IMP_SHA2(IMP_SHA2),  
+	    		  	   .IMP_SHA3(IMP_SHA3),  
+	    		  	   .IMP_EDDSA(IMP_EDDSA), 
+	    		  	   .IMP_X25519(IMP_X25519),
+	    		  	   .IMP_TRNG(IMP_TRNG),
+	    		  	   .IMP_AES(IMP_AES),   
+	    		  	   .IMP_MLKEM(IMP_MLKEM),
+	    		  	   .IMP_MLDSA(IMP_MLDSA),
+	    		  	   .IMP_SLHDSA(IMP_SLHDSA),
+	    		  	   .TRNG_SIZE(TRNG_SIZE),
+	    		  	   .IMP_CLK_FREQ(IMP_CLK_FREQ),
+					   .SCP03_AES_LEN(SCP03_AES_LEN),
+					   .SCP03_KEY_ENC(SCP03_KEY_ENC),
+					   .SCP03_KEY_MAC(SCP03_KEY_MAC)
+	    		  	   )
+        		  	   I2C_SCP03
+	    		  	   (
+                  	    .clk(S_AXI_ACLK),
+                  	    .rst(rst),
+                  	    .SCL(SCL),
+                  	    .SDA(SDA),
+                  	    .output_control(output_control),
+                  	    .spi_sclk(spi_sclk),   
+                  	    .spi_csn(spi_csn),    
+                  	    .spi_dq0_o(spi_dq0_o),  
+                  	    .spi_dq1_i(spi_dq1_i)
+                  	    );
+	end
     else begin
         //-- PICOSOC
         picosoc #(

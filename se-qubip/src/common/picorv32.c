@@ -258,6 +258,16 @@ void READ_PICORV_PROGRAM(INTF interface)
             read_INTF(interface, &AXI_RAM_RDATA, PICORV32_PROGRAM + 8, AXI_BYTES);
             printf("\n%05d: 0x%08x", i / 4 + 1, (uint32_t) AXI_RAM_RDATA);
             // getchar();
+        #elif I2C_SCP03
+            AXI_RAM = AXI_RAM_WEN_ADDR << 32;
+
+            write_INTF(interface, &AXI_RAM, PICORV32_PROGRAM, AXI_BYTES);
+            // printf("\nAXI_RAM = 0x%016llx", AXI_RAM);
+            // getchar();
+            
+            read_INTF(interface, &AXI_RAM_RDATA, PICORV32_PROGRAM + 8, AXI_BYTES);
+            printf("\n%05d: 0x%08x", i / 4 + 1, (uint32_t) AXI_RAM_RDATA);
+            // getchar();
         #endif
         AXI_RAM_WEN_ADDR += 4;
     }
@@ -310,12 +320,19 @@ void WRITE_PICORV_PROGRAM(INTF interface)
             printf("%d\r", i);
             fflush(stdout); 
             AXI_RAM = (((uint64_t) AXI_RAM_WEN_ADDR) << 32);
+        #elif I2C_SCP03
+            printf("%d\r", i);
+            fflush(stdout); 
+            AXI_RAM = (((uint64_t) AXI_RAM_WEN_ADDR) << 32);
         #endif
         write_INTF(interface, &AXI_RAM, PICORV32_PROGRAM, AXI_BYTES);
         AXI_RAM_WEN_ADDR += 4;
     }
 
     #ifdef I2C
+        printf("            \r");
+        fflush(stdout); 
+    #elif I2C_SCP03
         printf("            \r");
         fflush(stdout); 
     #endif
@@ -342,6 +359,10 @@ void WRITE_PICORV_PROGRAM(INTF interface)
             AXI_RAM = ((uint64_t) AXI_RAM_WEN_ADDR << 32) + AXI_RAM_WDATA;
             printf("%d\r", idx);
             fflush(stdout);
+        #elif I2C_SCP03
+            AXI_RAM = ((uint64_t) AXI_RAM_WEN_ADDR << 32) + AXI_RAM_WDATA;
+            printf("%d\r", idx);
+            fflush(stdout);
         #endif
         write_INTF(interface, &AXI_RAM, PICORV32_PROGRAM, AXI_BYTES);
         
@@ -353,6 +374,9 @@ void WRITE_PICORV_PROGRAM(INTF interface)
     }
 
     #ifdef I2C
+        printf("            \r");
+        fflush(stdout); 
+    #elif I2C_SCP03
         printf("            \r");
         fflush(stdout); 
     #endif

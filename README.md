@@ -42,15 +42,16 @@ The content of the SE-QUBIP library is depicted in the next container tree:
             └── mlkem       # MLKEM files 
         └── xdc             # folder that contains the constraints
     ├── demo                # folder that contains the demo
+    ├── docs                # folder that contains documentation
     ├── img                 # folder that contains images
     ├── results             # folder that contains the results
     ├── se-qubip.h          # header of the library
     ├── Makefile            # To compile the library
     ├── LICENSE             # License File
-    ├── SE_QUBIP_v3.3.zip   # The IP Module of the Secure Element
+    ├── SE_QUBIP_v3.4.0.zip # The IP Module of the Secure Element
     └── README.md  
 
-For now (***v3.3.2***) the list of supported algorithms are:
+For now (***v3.4.0***) the list of supported algorithms are:
 
 | Sym. Enc. I   | Sym. Enc. II   | Hash          | EC            | RNG           | PQC  I               | PQC  II               | PQC  III           |
 | --------      | --------       | ---------     | -------       | -------       | -------              | -------               | --------           |
@@ -70,11 +71,11 @@ For now (***v3.3.2***) the list of supported algorithms are:
 
 #### SE-QUBIP Interface
 
-The SE_QUBIP (v3.3.2) IP module offers a detailed configuration interface within the Vivado IP Integrator. The configuration is divided into several key sections:
+The SE_QUBIP (v3.4.0) IP module offers a detailed configuration interface within the Vivado IP Integrator. The configuration is divided into several key sections:
 
 *   **Clock Configuration**: It is **mandatory** to set the `Clock Frequency` for the IP core. This parameter is critical for the correct operation of the internal logic and timing.
 
-*   **Interface Configuration**: The IP block provides both I2C (`S00_I2C`) and AXI (`S00_AXI`) interfaces for communication. The I2C interface can be enabled or disabled, and its slave address can be configured.
+*   **Interface Configuration**: The IP block provides both I2C (`S00_I2C`) and AXI (`S00_AXI`) interfaces for communication. The I2C interface can be enabled or disabled, and its slave address can be configured. The SCP-03 Protocol may be enabled, allowing to configure and set the static keys.
 
 *   **Device and Memory Configuration**: Users can select the target `Device` (e.g., GENESYS II), which displays the `Total Memory (BRAM)` available and the amount consumed by the current IP configuration. The `On-Chip Memory Size` for the PicoRV32 core can also be adjusted under the `SoC Memory Map`.
 
@@ -120,6 +121,10 @@ The following diagram shows the I/O connections between the **ZCU104 board** and
 
 <img src="img/ZCU104_Pinout.png" width="1000">
 
+Of course. This is the final and most important step for usability.
+
+Here is the updated "I2C (MCU flavour)" section for your `README.md`. It integrates the SCP-03 information directly into the existing structure, keeping it brief and focused on configuration and usage as requested.
+
 ### I2C (MCU flavour)
 
 The **I2C Slave Interface** enables communication between a master device (such as a **Raspberry Pi 4B**) and the SE-QUBIP platform, allowing for read and write operations with the cryptographic IP cores. It supports several key features including glitch filtering and dynamic configuration.
@@ -127,10 +132,17 @@ The **I2C Slave Interface** enables communication between a master device (such 
 #### Key Features
 - **Device Address**: The I2C address is set to `0x1A` by default.
 - **Supported Cryptographic Cores**: SHA-3, SHA-2, AES, EDDSA, X25519, TRNG, MLKEM.
-- **Glitch Filtering**: Configurable filtering for cleaner signal transmission, with dynamic adjustments possible via registers:
-  - **Register `0xFD`**: Zero-threshold filter value.
-  - **Register `0xFE`**: One-threshold filter value.
-  - **Register `0xFF`**: Filter width value.
+- **Secure Channel Option**: Provides an optional **Secure Channel Protocol 03 (SCP-03)** layer to encrypt and authenticate all I2C traffic, protecting against eavesdropping and injection attacks.
+- **Glitch Filtering**: Configurable filtering for cleaner signal transmission, with dynamic adjustments possible via registers `0xFD`, `0xFE`, and `0xFF`.
+
+#### Secure Channel Protocol 03 (SCP-03) Mode
+When enabled, the I2C interface operates as a secure proxy. All data transmitted is protected by AES-based cryptography according to the GlobalPlatform standard.
+
+**Enabling Secure Mode:**
+To compile the hardware with the SCP-03 layer enabled, set the following variable in the root `Makefile`:
+```makefile
+INTERFACE = I2C_SCP03
+```
 
 #### I2C Communication and Configuration
 - **SCL & SDA Lines**: The I2C communication takes place over the **SCL** (clock) and **SDA** (data) lines, which are synchronized and filtered to detect start/stop conditions and maintain stable data exchange.
