@@ -24,7 +24,7 @@ extern "C" {
 #endif
 
 // SCP-03 Configuration
-#define SCP03_KEY_BITS          128
+#define SCP03_KEY_BITS          256
 #define SCP03_STATIC_KEY_ENC    { \
                                 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, \
                                 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, \
@@ -50,8 +50,8 @@ typedef struct
     unsigned char s_enc[32];
     unsigned char s_mac[32];
     unsigned char s_rmac[32];
-    unsigned char host_chal[8];
-    unsigned char card_chal[8];
+    unsigned char host_chal[16];
+    unsigned char card_chal[16];
     
     // Security State (Chaining & Counters)
     unsigned char mac_chain[16];    

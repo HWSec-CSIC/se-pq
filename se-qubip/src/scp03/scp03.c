@@ -130,9 +130,9 @@ static void i2c_wait_data(I2C_FD interface)
  * Generates the EXTERNAL AUTHENTICATE packet to be sent to the FPGA.
  * 
  * @param session         Session context (Must have static keys set)
- * @param host_challenge  8-byte random challenge
- * @param card_response   29-byte response received from INIT_UPDATE (Card Chal + Crypt)
- * @param ext_auth_out    Output: 21-byte APDU for External Authenticate (Header+Crypt+MAC)
+ * @param host_challenge  16-byte random challenge
+ * @param card_response   Response received from INIT_UPDATE (containing CardChal + CardCrypt)
+ * @param ext_auth_out    Output: 37-byte APDU for External Authenticate (5B Header + 16B Crypt + 16B MAC)
  * @return 0 on success, -1 on cryptogram mismatch
  */
 static int scp03_connect(scp03_session_t* session, 
@@ -141,10 +141,10 @@ static int scp03_connect(scp03_session_t* session,
                   unsigned char* ext_auth_out)
 {
     // 1. Store Host Challenge
-    memcpy(session->host_chal, host_challenge, 8);
+    memcpy(session->host_chal, host_challenge, 16);
 
-    // 2. Parse Card Response (offset 13=Chal, 21=Crypt)
-    memcpy(session->card_chal, card_response + 13, 8);
+    // 2. Parse Card Response
+    memcpy(session->card_chal, card_response, 16);
 
     // 3. Derive Session Keys
     scp03_derive_session_keys(session->key_bits, 
@@ -153,13 +153,13 @@ static int scp03_connect(scp03_session_t* session,
                               session->s_enc, session->s_mac, session->s_rmac);
 
     // 4. Verify Card Cryptogram
-    unsigned char calc_card_crypt[8];
-    unsigned char calc_host_crypt[8];
+    unsigned char calc_card_crypt[16];
+    unsigned char calc_host_crypt[16];
     scp03_calc_cryptograms(session->key_bits, session->s_mac, 
                            session->host_chal, session->card_chal,
                            calc_card_crypt, calc_host_crypt);
                            
-    if (memcmp(calc_card_crypt, card_response + 21, 8) != 0) 
+    if (memcmp(calc_card_crypt, card_response + 16, 16) != 0) 
     {
         printf("\n\nERROR SCP03 CARD CRYPTOGRAM NOT EQUAL!\n");
         exit(0);
@@ -178,11 +178,11 @@ static int scp03_connect(scp03_session_t* session,
     // Block 1: Chain (00...)
     memcpy(&mac_input[ptr], session->mac_chain, 16); ptr += 16;
     
-    // Block 2: Header (84 82 33 00 10) + HostCrypt + Padding (80 00 00)
+    // Block 2: Header (84 82 33 00 20) + HostCrypt + Padding (80 00 00)
     // Note: Hardcoded header to match FPGA expectation for Ext Auth
-    unsigned char header[5] = {0x84, 0x82, 0x33, 0x00, 0x10};
+    unsigned char header[5] = {0x84, 0x82, 0x33, 0x00, 0x20};
     memcpy(&mac_input[ptr], header, 5); ptr += 5;
-    memcpy(&mac_input[ptr], calc_host_crypt, 8); ptr += 8;
+    memcpy(&mac_input[ptr], calc_host_crypt, 16); ptr += 16;
     
     // Pad to 16 bytes
     mac_input[ptr++] = 0x80;
@@ -201,8 +201,8 @@ static int scp03_connect(scp03_session_t* session,
     
     // Output Packet: [Header] [HostCrypt] [MAC]
     memcpy(ext_auth_out, header, 5);
-    memcpy(ext_auth_out + 5, calc_host_crypt, 8);
-    memcpy(ext_auth_out + 13, full_mac, 8);
+    memcpy(ext_auth_out + 5, calc_host_crypt, 16);
+    memcpy(ext_auth_out + 21, full_mac, 16);
     
     return 0; // Success
 }
@@ -212,13 +212,13 @@ static int scp03_connect(scp03_session_t* session,
 // ---------------------------------------------------------
 /**
  * @brief Prepare a Secure Write Command (CMD_UNWRAP)
- * Encrypts payload and signs the command.
+ * Encrypts payload and signs the command with a 128-bit MAC..
  * 
  * @param session         Session context
- * @param header          5-byte APDU Header (e.g. 80 E2 00 00 09)
+ * @param header          5-byte APDU Header
  * @param payload         Plaintext Data (Addr + Data)
- * @param payload_len     Length of payload (e.g. 9 bytes)
- * @param apdu_out        Output: Wrapped APDU (Header + Cipher + MAC)
+ * @param payload_len     Length of payload
+ * @param apdu_out        Output: Wrapped APDU (Header + Cipher + 16B MAC)
  * @return Total length of apdu_out
  */
 static int scp03_send_data(scp03_session_t* session,
@@ -264,7 +264,7 @@ static int scp03_send_data(scp03_session_t* session,
     unsigned char mod_header[5];
     memcpy(mod_header, header, 5);
     mod_header[0] = 0x84; 
-    mod_header[4] = cipher_len + 8; 
+    mod_header[4] = cipher_len + 16; 
     
     memcpy(&mac_input[ptr], mod_header, 5); ptr += 5;
     
@@ -284,7 +284,7 @@ static int scp03_send_data(scp03_session_t* session,
     // C. Assemble Output
     memcpy(apdu_out, mod_header, 5);
     memcpy(apdu_out + 5, ciphertext, cipher_len);
-    memcpy(apdu_out + 5 + cipher_len, full_mac, 8);
+    memcpy(apdu_out + 5 + cipher_len, full_mac, 16);
     
     return 5 + cipher_len + 8;
 }
@@ -297,8 +297,8 @@ static int scp03_send_data(scp03_session_t* session,
  * Verifies R-MAC and Decrypts payload.
  * 
  * @param session         Session context
- * @param response_apdu   Input: Encrypted Response (Cipher + MAC)
- * @param response_len    Length of response (should be 24 bytes for your design)
+ * @param response_apdu   Input: Encrypted Response (Cipher + 16B MAC)
+ * @param response_len    Length of response (Minimum 32 bytes: 16 Data + 16 MAC)
  * @param plaintext_out   Output: Decrypted Data
  * @return Length of plaintext, or -1 on MAC failure
  */
@@ -307,7 +307,7 @@ static int scp03_recv_data(scp03_session_t* session,
                     int response_len,
                     unsigned char* plaintext_out)
 {
-    if (response_len < 24) return -1; 
+    if (response_len < 32) return -1; 
 
     unsigned char* ciphertext = response_apdu;
     unsigned char* r_mac = response_apdu + 16; 
@@ -355,7 +355,7 @@ static int scp03_recv_data(scp03_session_t* session,
     else if (session->key_bits == 256)  AES_256_CMAC(session->s_rmac, full_mac, &mac_len, mac_input, ptr);
 
     // Compare
-    if (memcmp(full_mac, r_mac, 8) != 0) 
+    if (memcmp(full_mac, r_mac, 16) != 0) 
     {
         printf("\n\nERROR SCP03 DECRYPTION MAC NOT EQUAL!\n");
         exit(0);
@@ -409,41 +409,53 @@ bool scp03_init(I2C_FD interface, scp03_session_t* session)
     memcpy(session->static_enc, k_enc, 32);
     memcpy(session->static_mac, k_mac, 32);
     
-    uint64_t h_chal_u64 = scp03_random();
-    u64_to_bytes(h_chal_u64, session->host_chal);
+    uint64_t h_chal_u64_h = scp03_random();
+    uint64_t h_chal_u64_l = scp03_random();
+    u64_to_bytes(h_chal_u64_h, session->host_chal);
+    u64_to_bytes(h_chal_u64_l, session->host_chal + 8);
 
     i2c_wait_idle(interface);
 
     // --- PHASE A: INITIALIZE UPDATE ---
-    uint8_t buffer[32]; // Temp buffer for transfers
-
     // Send Host Challenge
-    u64_to_bytes(*(uint64_t*)session->host_chal, buffer);
     write_I2C(interface, session->host_chal, REG_DATA_IN, 8);
+    i2c_send_cmd(interface, CMD_LOAD_BUF);
+
+    write_I2C(interface, session->host_chal + 8, REG_DATA_IN, 8);
+    i2c_send_cmd(interface, CMD_LOAD_BUF);
+    
     i2c_send_cmd(interface, CMD_INIT_UPDATE);
 
-     // Wait for KDF completion (Data Available)
+    // Wait for KDF completion (Data Available)
     i2c_wait_data(interface);
     
     // Read Card Response
-    unsigned char card_resp_sim[29] = {0};
-    read_I2C(interface, &card_resp_sim[13], REG_DATA_OUT, 8); // Chal
-    read_I2C(interface, &card_resp_sim[21], REG_DATA_OUT, 8); // Crypt
+    unsigned char card_resp_sim[32] = {0};
+    read_I2C(interface, &card_resp_sim[0], REG_DATA_OUT, 8);    // Chal
+    read_I2C(interface, &card_resp_sim[8], REG_DATA_OUT, 8);    // Chal
+    read_I2C(interface, &card_resp_sim[16], REG_DATA_OUT, 8);   // Crypt
+    read_I2C(interface, &card_resp_sim[24], REG_DATA_OUT, 8);   // Crypt
     
     // printf("    [Driver] Card Chal read.\n");
     
     // --- PHASE B: EXTERNAL AUTHENTICATE ---
-    unsigned char ext_auth_apdu[21];
+    unsigned char ext_auth_apdu[37];    // 5 Header + 16 Crypt + 16 MAC
     scp03_connect(session, session->host_chal, card_resp_sim, ext_auth_apdu);
 
     i2c_wait_idle(interface);
     
-    // Packet: [HostCrypt (8)] [MAC (8)] -> 16 bytes total
+    // Packet to Send: [HostCrypt (16B)] [MAC (16B)] -> 32 bytes
     // Skip Header (5 bytes)
     write_I2C(interface, ext_auth_apdu + 5, REG_DATA_IN, 8); // Host Crypt
     i2c_send_cmd(interface, CMD_LOAD_BUF);
+
+    write_I2C(interface, ext_auth_apdu + 13, REG_DATA_IN, 8); // Host Crypt
+    i2c_send_cmd(interface, CMD_LOAD_BUF);
     
-    write_I2C(interface, ext_auth_apdu + 13, REG_DATA_IN, 8); // MAC
+    write_I2C(interface, ext_auth_apdu + 21, REG_DATA_IN, 8); // MAC
+    i2c_send_cmd(interface, CMD_LOAD_BUF);
+
+    write_I2C(interface, ext_auth_apdu + 29, REG_DATA_IN, 8); // MAC
     i2c_send_cmd(interface, CMD_LOAD_BUF);
     
     // Trigger Authentication
@@ -495,10 +507,10 @@ bool scp03_write(I2C_FD interface, scp03_session_t* session, uint8_t addr, uint6
     unsigned char secure_apdu[256];
     int len = scp03_send_data(session, header, payload, 9, secure_apdu);
     
-    // Send 24 bytes (3 Blocks of 8 bytes) skipping 5 byte header
+    // Send 32 bytes (4 Blocks of 8 bytes) skipping 5 byte header
     unsigned char* ptr = secure_apdu + 5;
     
-    for(int b=0; b<3; b++) 
+    for(int b=0; b<4; b++) 
     {
         write_I2C(interface, ptr + (b*8), REG_DATA_IN, 8);
         i2c_send_cmd(interface, CMD_LOAD_BUF);
@@ -554,16 +566,16 @@ bool scp03_read(I2C_FD interface, scp03_session_t* session, uint8_t addr, uint64
     // 2. Wait for Data
     i2c_wait_data(interface);
     
-    // 3. Read 24 bytes (3 blocks: CipherH, CipherL, MAC)
-    unsigned char resp_apdu[24];
-    for(int b=0; b<3; b++) 
+    // 3. Read 32 bytes (4 blocks: CipherH, CipherL, MACH, MACL)
+    unsigned char resp_apdu[32];
+    for(int b=0; b<4; b++) 
     {
         read_I2C(interface, &resp_apdu[b*8], REG_DATA_OUT, 8);
     }
     
     // 4. Unwrap
     unsigned char plain[16];
-    int len = scp03_recv_data(session, resp_apdu, 24, plain);
+    int len = scp03_recv_data(session, resp_apdu, 32, plain);
     
     if (len < 0) return false;
     

@@ -27,8 +27,8 @@ module scp03_kdf(
                  input wire [1:0]       aes_len,            // 1: 128-bit, 2: 192-bit, 3: 256-bit
                  input wire [255:0]     static_key_enc,     // Static K-ENC
                  input wire [255:0]     static_key_mac,     // Static K-MAC
-                 input wire [63:0]      host_challenge,
-                 input wire [63:0]      card_challenge,
+                 input wire [127:0]     host_challenge,
+                 input wire [127:0]     card_challenge,
                  
                  // Interface to scp03_aes Module
                  output reg             crypto_start,
@@ -37,7 +37,7 @@ module scp03_kdf(
                  output wire            crypto_mode,        // Always 1 (CMAC)
                  output wire            crypto_sel_op,      // Always 0 (Generate)
                  output wire            crypto_last_blk,    // Always 0 (Full blocks, XOR K1)
-                 output wire [31:0]     crypto_data_len,    // Always 2 blocks (32 bytes)
+                 output wire [31:0]     crypto_data_len,    // Always 3 blocks (48 bytes)
                  output reg [255:0]     crypto_key, 
                  output reg [127:0]     crypto_iv,          // Always 0 for KDF CMAC start
                  output reg [127:0]     crypto_data_in,
@@ -50,8 +50,8 @@ module scp03_kdf(
                  output reg [255:0]     s_enc,
                  output reg [255:0]     s_mac,
                  output reg [255:0]     s_rmac,
-                 output reg [63:0]      card_cryptogram,
-                 output reg [63:0]      host_cryptogram,
+                 output reg [127:0]     card_cryptogram,
+                 output reg [127:0]     host_cryptogram,
                  output reg             done
                  );
 
@@ -76,8 +76,8 @@ module scp03_kdf(
 
     assign crypto_mode      = 1; // Always CMAC
     assign crypto_sel_op    = 0; // Always Generate
-    assign crypto_last_blk  = 0; // Always Full Block (32 bytes input)
-    assign crypto_data_len  = 2; // Always 2 blocks
+    assign crypto_last_blk  = 0; // Always Full Block (48 bytes input)
+    assign crypto_data_len  = 3; // Always 3 blocks (Label + HostChal + CardChal)
 
     //----------------------------------------------------------------
     // FSM States
@@ -111,12 +111,12 @@ module scp03_kdf(
 
     // Determine L logic modified to support 64-bit output for cryptograms
     // We use a separate signal or logic inside the state machine to override L
-    reg override_L_64; 
+    reg override_L_128; 
     
     // Determine L based on aes_len
     always @(*) begin
-        if (override_L_64) begin
-            length_L = 16'h0040; // 64 bits for Cryptograms
+        if (override_L_128) begin
+            length_L = 16'h0080; // 128 bits for Cryptograms
         end 
         else begin
             case (aes_len)
@@ -138,12 +138,8 @@ module scp03_kdf(
                             counter_i           // Byte 15:     Counter i
                             };
 
-    // Block 2 Construction (16 Bytes)
-    // Context: Host Challenge || Card Challenge
-    wire [127:0] block_2 = {host_challenge, card_challenge};
-
     // Data Feeding Counter
-    reg block_idx; // 0 = sending block_1, 1 = sending block_2
+    reg [1:0] block_idx; // 0=Block1, 1=HostChal, 2=CardChal
 
     //----------------------------------------------------------------
     // Main Logic
@@ -160,7 +156,7 @@ module scp03_kdf(
             
             current_constant        <= 0;
             counter_i               <= 0;
-            override_L_64           <= 0;
+            override_L_128          <= 0;
             block_idx               <= 0;
 
             s_enc                   <= 0; 
@@ -177,7 +173,7 @@ module scp03_kdf(
             case (state)
                 S_IDLE: begin
                     done                <= 0;
-                    override_L_64       <= 0;   // Default to Key Length
+                    override_L_128      <= 0;   // Default to Key Length
                     crypto_key_update   <= 0;
                     if (start) state    <= S_LOAD_ENC_1;
                 end
@@ -285,7 +281,7 @@ module scp03_kdf(
 
                     current_constant        <= CONST_CARD_CRYPT;
                     counter_i               <= 8'h01;
-                    override_L_64           <= 1;     // Force L=64 bits
+                    override_L_128          <= 1;     // Force L=64 bits
 
                     crypto_start            <= 1;
                     block_idx               <= 0;
@@ -305,7 +301,7 @@ module scp03_kdf(
 
                     current_constant        <= CONST_HOST_CRYPT;
                     counter_i               <= 8'h01;
-                    override_L_64           <= 1;     // Force L=64 bits
+                    override_L_128          <= 1;     // Force L=64 bits
 
                     crypto_start            <= 1;
                     block_idx               <= 0;
@@ -322,15 +318,19 @@ module scp03_kdf(
                     crypto_key_update <= 0; // Clear pulse
 
                     // Feed Data Logic
-                    if (crypto_ready) begin
+                    if (crypto_ready & !crypto_valid) begin
                         crypto_valid <= 1;
                         if (block_idx == 0) begin
-                            crypto_data_in  <= block_1;
+                            crypto_data_in  <= block_1; 
                             block_idx       <= 1;
                         end 
-                        else begin
-                            crypto_data_in <= block_2;
-                            // Stay here (valid high) until engine processes it
+                        else if (block_idx == 1) begin
+                            crypto_data_in  <= host_challenge; // Block 2: Host Challenge (128-bit)
+                            block_idx       <= 2;
+                        end
+                        else if (block_idx == 2) begin
+                            crypto_data_in  <= card_challenge; // Block 3: Card Challenge (128-bit)
+                            block_idx       <= 3; // Done feeding
                         end
                     end 
                     else begin
@@ -383,10 +383,10 @@ module scp03_kdf(
 
                         // --- CRYPTOGRAMS Capture
                         else if (next_state_after_wait == S_LOAD_HOST_CRYPT) begin
-                            card_cryptogram <= crypto_result[127:64]; // Take MSB 64 bits
+                            card_cryptogram <= crypto_result; // Full 128 bits
                         end
-                        else if (next_state_after_wait == S_DONE && override_L_64) begin
-                            host_cryptogram <= crypto_result[127:64]; // Take MSB 64 bits
+                        else if (next_state_after_wait == S_DONE && override_L_128) begin
+                            host_cryptogram <= crypto_result; // Full 128 bits
                         end
 
                         state <= next_state_after_wait;
@@ -395,7 +395,7 @@ module scp03_kdf(
 
                 S_DONE: begin
                     done            <= 1;
-                    override_L_64   <= 0; // Reset
+                    override_L_128  <= 0; // Reset
                     if (!start) state <= S_IDLE;
                 end
                 

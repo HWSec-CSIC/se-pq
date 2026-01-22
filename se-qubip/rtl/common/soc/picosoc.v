@@ -54,7 +54,11 @@ module picosoc (
     			output wire         spi_sclk,
     			output wire         spi_csn,
     			output wire         spi_dq0_o,   			//-- MOSI
-    			input  wire         spi_dq1_i    			//-- MISO
+    			input  wire         spi_dq1_i,    			//-- MISO
+				// -- SCP03 TRNG Requirement
+				input wire 			scp03_trng_read,
+				output wire [31:0]	scp03_trng_out,
+				output wire 		scp03_trng_valid
 				);
 
 	//==========================================================================
@@ -1294,6 +1298,10 @@ module picosoc (
 		else if (!trng_read_sel)
 			trng_read_done <= 0;
 	end
+
+	//-- SCP03 TRNG Requirement
+	assign scp03_trng_out	= trng_out; 
+	assign scp03_trng_valid	= trng_valid;
 	      
 	//==========================================================================
     //-- SLH-DSA HASH MODULES

@@ -17,14 +17,14 @@
 ////////////////////////////////////////////////////////////////////////////////////
 
 module scp03 #(
-                parameter [1:0] AES_LEN     = 2'b1,
+                parameter [1:0] AES_LEN     = 2'd3,
                 parameter [255:0] KEY_ENC   = 256'h000102030405060708090A0B0C0D0E0F_1011121314151617_18191A1B1C1D1E1F,
                 parameter [255:0] KEY_MAC   = 256'h202122232425262728292A2B2C2D2E2F_3031323334353637_38393A3B3C3D3E3F
                 )
                 (
                  input wire         clk,
                  input wire         rst,
-                 input wire [63:0]  trng_in,
+                 input wire [127:0] trng_in,
                  output reg         trng_valid,
 
                  // --- I2C Interface (Host) ---
@@ -70,14 +70,14 @@ module scp03 #(
 
     // FSM States
     localparam S_IDLE               = 5'd0;
-    localparam S_KDF_START          = 5'd1;
-    localparam S_KDF_WAIT           = 5'd2;
-    localparam S_DONE_READ          = 5'd3;
+    localparam S_KDF_WAIT           = 5'd1;
+    localparam S_DONE_READ          = 5'd2;
     
     // Handshake
-    localparam S_AUTH_CHECK_CRYPT   = 5'd4; 
-    localparam S_AUTH_FEED_CHAIN    = 5'd5; // Feed 16 bytes 0x00
-    localparam S_AUTH_FEED_DATA     = 5'd6; // Feed Header + HostCrypt + Pad
+    localparam S_AUTH_CHECK_CRYPT   = 5'd3; 
+    localparam S_AUTH_FEED_CHAIN    = 5'd4; // Feed 16 bytes 0x00
+    localparam S_AUTH_FEED_DATA_1   = 5'd5; // Header + Crypt Part 1
+    localparam S_AUTH_FEED_DATA_2   = 5'd6; // Crypt Part 2 + Padding
     localparam S_AUTH_WAIT_RES      = 5'd7; // Check MAC
     
     // Unwrap (Secure Write) 
@@ -102,11 +102,40 @@ module scp03 #(
     //----------------------------------------------------------------
     // 2. Internal Memory & Registers
     //----------------------------------------------------------------
-    // Buffer: 3 x 64-bit (24 bytes)
-    // [0]: Ciphertext High
-    // [1]: Ciphertext Low
-    // [2]: C-MAC
-    reg [63:0]  buffer [0:2];
+    // Buffer Usage Map (4 x 64-bit)
+    //
+    // CMD_INIT_UPDATE (Handshake Start)
+    // Input (Host Writes):
+    //   buffer[0]: Host Challenge [127:64]
+    //   buffer[1]: Host Challenge [63:0]
+    // Output (Host Reads):
+    //   buffer[0]: Card Challenge [127:64]
+    //   buffer[1]: Card Challenge [63:0]
+    //   buffer[2]: Card Cryptogram [127:64]
+    //   buffer[3]: Card Cryptogram [63:0]
+    //
+    // CMD_EXT_AUTH (Handshake Finish)
+    // Input (Host Writes):
+    //   buffer[0]: Host Cryptogram [127:64]
+    //   buffer[1]: Host Cryptogram [63:0]
+    //   buffer[2]: C-MAC [127:64]
+    //   buffer[3]: C-MAC [63:0]
+    //
+    // CMD_UNWRAP (Secure Write)
+    // Input (Host Writes):
+    //   buffer[0]: Encrypted Payload [127:64]
+    //   buffer[1]: Encrypted Payload [63:0]
+    //   buffer[2]: C-MAC [127:64]
+    //   buffer[3]: C-MAC [63:0]
+    //
+    // CMD_WRAP (Secure Read)
+    // Output (Host Reads):
+    //   buffer[0]: Encrypted Response [127:64]
+    //   buffer[1]: Encrypted Response [63:0]
+    //   buffer[2]: R-MAC [127:64]
+    //   buffer[3]: R-MAC [63:0]
+
+    reg [63:0]  buffer [0:3];
     reg [2:0]   buf_wr_ptr;
     reg [2:0]   buf_rd_ptr;
     reg [63:0]  se_data_plain;
@@ -117,8 +146,8 @@ module scp03 #(
     reg [127:0]  aes_iv_reg;       // Calculated IV for CBC
     reg          is_auth;
 
-    reg  [63:0]  host_challenge;
-    reg  [63:0]  card_challenge; 
+    reg [127:0]  host_challenge;
+    reg [127:0]  card_challenge; 
 
     //----------------------------------------------------------------
     // 3. KDF Instance & Interconnects
@@ -138,7 +167,7 @@ module scp03 #(
 
     // KDF Resutls
     wire [255:0]    s_enc, s_mac, s_rmac;
-    wire [63:0]     card_cryptogram, host_cryptogram;
+    wire [127:0]    card_cryptogram, host_cryptogram;
       
     scp03_kdf scp03_kdf (
                          .clk                   (clk), 
@@ -196,7 +225,7 @@ module scp03 #(
     wire            aes_dout_valid;
     
     // Mux Logic: If State is KDF related, let KDF control. Else FSM.
-    wire use_kdf = (state == S_KDF_START || state == S_KDF_WAIT);
+    wire use_kdf = (state == S_KDF_WAIT);
 
     scp03_aes scp03_aes (
                          .clk               (clk), 
@@ -298,8 +327,9 @@ module scp03 #(
 
                             // --- 2. Handshake Start ---
                             // Always allowed (Resets session)
+                            // Expects Host to have loaded 128-bit Host Challenge (buffer[0], buffer[1])
                             CMD_INIT_UPDATE: begin
-                                host_challenge  <= i2c_data_in; // Save Host Challenge
+                                host_challenge  <= {buffer[0], buffer[1]}; // Save Host Challenge
                                 card_challenge  <= trng_in;
                                 trng_valid      <= 1;
                                 
@@ -318,10 +348,10 @@ module scp03 #(
                             // Always allowed (Completes handshake)
                             CMD_EXT_AUTH: begin
                                 buf_wr_ptr <= 0; 
-                                // Host sends HostCryptogram (64b) + MAC (64b).
-                                // buffer[0] = HostCrypt, buffer[1] = MAC.
+                                // Host sends HostCryptogram (128b) + MAC (128b).
+                                // buffer[0,1] = HostCrypt, buffer[2,3] = MAC.
                                 // 1. Verify Cryptogram locally
-                                if (buffer[0] == host_cryptogram) begin
+                                if ({buffer[0], buffer[1]} == host_cryptogram) begin
                                     // Correct! Now Verify C-MAC.
                                     state <= S_AUTH_CHECK_CRYPT;
                                 end 
@@ -373,16 +403,18 @@ module scp03 #(
                     kdf_start   <= 1;
                     if (kdf_done) begin
                         // Prepare readout: Card Challenge + Card Cryptogram
-                        buffer[0]   <= card_challenge;
-                        buffer[1]   <= card_cryptogram;
-                        buf_wr_ptr  <= 2; 
+                        buffer[0]   <= card_challenge[127:64];
+                        buffer[1]   <= card_challenge[63:0];
+                        buffer[2]   <= card_cryptogram[127:64];
+                        buffer[3]   <= card_cryptogram[63:0];
+                        buf_wr_ptr  <= 4; 
                         state       <= S_DONE_READ;
                     end
                 end
 
                 //----------------------------------------------------
-                // EXT AUTH: Verify MAC 
-                // Goal: Calculate CMAC(Chain_00 || Header || HostCrypt)
+                // EXT AUTH: Verify MAC 128-bit
+                // Data to Sign: Chain(16) || Header(5)+Crypt(11) || Crypt(5)+Pad(11)
                 //----------------------------------------------------
                 S_AUTH_CHECK_CRYPT: begin
                     // Setup AES for CMAC
@@ -392,7 +424,7 @@ module scp03 #(
                     f_mode          <= 1; // CMAC
                     f_sel_op        <= 0; // Generate
                     f_iv            <= 0; // IV is 0 for the engine input
-                    f_len           <= 2; // 2 Blocks: 1. Chain(00), 2. Header+Crypt
+                    f_len           <= 3; // Blocks: Chain(00) + Header/CryptHigh + CryptLow/Pad
                     
                     f_start         <= 1; 
                     state           <= S_AUTH_FEED_CHAIN;
@@ -407,20 +439,34 @@ module scp03 #(
                         f_din_valid <= 1;
                         if (f_din_valid) begin
                             f_din_valid <= 0;
-                            state       <= S_AUTH_FEED_DATA;
+                            state       <= S_AUTH_FEED_DATA_1;
                         end
                     end
                 end
                 
-                // 2. Feed Header + HostCryptogram
-                // Header: 84 82 33 00 10 (5 bytes)
-                // Crypt : 8 bytes
-                // Padding: 80 00 00 (3 bytes) -> Total 16 bytes.
-                S_AUTH_FEED_DATA: begin
+                // Block 2: Header + Top 11 bytes of Cryptogram
+                // Header: 84 82 33 00 20 (assuming Lc=0x20)
+                // Cryptogram High: buffer[0] (8 bytes)
+                // Cryptogram Low Top: buffer[1][63:40] (3 bytes)
+                // Total Data: 5 + 8 + 3 = 16 Bytes
+                S_AUTH_FEED_DATA_1: begin
                     if (aes_ready) begin
-                        // Reconstruct APDU Header + Crypt + Pad
-                        // P1=0x33 (Mac+Enc), P2=0x00, Lc=0x10
-                        f_din       <= {40'h8482330010, buffer[0], 24'h800000};
+                        f_din       <= {40'h8482330020, buffer[0], buffer[1][63:40]};
+                        f_last      <= 0;
+                        f_din_valid <= 1;
+                        if (f_din_valid) begin
+                            f_din_valid <= 0;
+                            state       <= S_AUTH_FEED_DATA_2;
+                        end
+                    end
+                end
+
+                // Block 3: Remaining 5 bytes of Cryptogram + Padding
+                // Cryptogram Low Rem: buffer[1][39:0] (5 bytes)
+                // Padding: 80 + 00s (11 bytes)
+                S_AUTH_FEED_DATA_2: begin
+                    if (aes_ready) begin
+                        f_din       <= {buffer[1][39:0], 8'h80, 80'd0};
                         f_last      <= 0; // Full block (using K1)
                         f_din_valid <= 1;
                         if (f_din_valid) begin
@@ -432,15 +478,15 @@ module scp03 #(
 
                 S_AUTH_WAIT_RES: begin
                     if (aes_dout_valid) begin
-                         // Compare computed MAC (MSB 64) vs Received MAC (buffer[1])
-                         if (aes_dout[127:64] == buffer[1]) begin
-                            is_auth        <= 1;
-                            mac_chain_val  <= aes_dout; // Store Full 16B CMAC as Chain
-                            state          <= S_IDLE;
-                         end 
-                         else begin
-                            state <= S_ERROR;
-                         end
+                        // Verify full 128-bit MAC against buffer[2], buffer[3]
+                        if (aes_dout == {buffer[2], buffer[3]}) begin
+                           is_auth        <= 1;
+                           mac_chain_val  <= aes_dout; // Store Full 16B CMAC as Chain
+                           state          <= S_IDLE;
+                        end 
+                        else begin
+                           state <= S_ERROR;
+                        end
                     end
                 end
 
@@ -490,12 +536,12 @@ module scp03 #(
                 end
 
                 // 3. Feed Header + CipherHigh
-                // Header: 84 E2 00 00 18 (5 Bytes)
+                // Header: 84 E2 00 00 20 (5 Bytes)
                 // CipherHigh: buffer[0] (8 bytes)
                 // CipherMid : buffer[1][63:40] (3 bytes)
                 S_UNW_VERIFY_MAC_2: begin
                     if (aes_ready) begin
-                        f_din       <= {40'h84E2000018, buffer[0], buffer[1][63:40]}; // Block 2
+                        f_din       <= {40'h84E2000020, buffer[0], buffer[1][63:40]}; // Block 2
                         f_last      <= 0;
                         f_din_valid <= 1;
                         if (f_din_valid) begin
@@ -521,9 +567,8 @@ module scp03 #(
                     end
                     
                     if (aes_dout_valid) begin
-                        // Check MAC vs buffer[2] (Received MAC)
-                        // Note: aes_dout is 128-bit. CMAC is MSB 64-bit (8 bytes)
-                        if (aes_dout[127:64] == buffer[2]) begin
+                        // Verify 128-bit MAC against buffer[2], buffer[3]
+                        if (aes_dout == {buffer[2], buffer[3]}) begin
                             mac_chain_val <= aes_dout; // Update Chain
                             
                             // Setup Decryption
@@ -695,7 +740,8 @@ module scp03 #(
                         // R-MAC calculated.
                         // Store Top 64 bits in buffer[2].
                         buffer[2]   <= aes_dout[127:64];
-                        buf_wr_ptr  <= 3;
+                        buffer[3]   <= aes_dout[63:0];
+                        buf_wr_ptr  <= 4;
 
                         f_last      <= 0;
                         
@@ -718,7 +764,7 @@ module scp03 #(
                         if (buf_rd_ptr == (buf_wr_ptr - 1)) begin
                             buf_wr_ptr  <= 0;
                             buf_rd_ptr  <= 0;
-                            state       <= S_IDLE; // Read 3 words (0,1,2)
+                            state       <= S_IDLE; // Read 4 words (0,1,2,3)
                         end
                     end
                 end

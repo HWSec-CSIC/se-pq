@@ -122,7 +122,7 @@ module picoram #(
     wire [DW-1:0] bank_data_out_A [NUM_BANKS-1:0];
     wire [DW-1:0] bank_data_out_B [NUM_BANKS-1:0];
 
-    /* generate for(i = 0; i < NUM_BANKS; i = i + 1) begin: BANK_GEN
+    /*generate for(i = 0; i < NUM_BANKS; i = i + 1) begin: BANK_GEN
         assign bank_select_A[i] = (addr_A[AW-1:AW_BRAM] == i);
         assign bank_select_B[i] = (addr_B[AW-1:AW_BRAM] == i);
 
@@ -150,9 +150,9 @@ module picoram #(
 		    	     );
         end
     end
-    endgenerate */
-
-    `include "fw/bin/picoram_fw.v"
+    endgenerate*/
+    
+    `include "picoram_fw.vh"
 
     //-- Register and Multiplex the RAM output
     reg [$clog2(NUM_BANKS):0] k;

@@ -30,9 +30,9 @@ extern "C" {
  * @param key_bits        128, 192, or 256
  * @param static_enc_key  Pointer to Static K-ENC key
  * @param static_mac_key  Pointer to Static K-MAC key
- * @param host_challenge  Pointer to 8-byte Host Challenge
- * @param card_challenge  Pointer to 8-byte Card Challenge
- * @param session_enc     Output buffer for Session S-ENC (Must be key_bits/8 bytes)
+ * @param host_challenge  Pointer to 16-byte Host Challenge
+ * @param card_challenge  Pointer to 16-byte Card Challenge
+ * @param session_enc     Output buffer for Session S-ENC (Must be key_bits/16 bytes)
  * @param session_mac     Output buffer for Session S-MAC
  * @param session_rmac    Output buffer for Session S-RMAC
  */
@@ -50,10 +50,10 @@ void scp03_derive_session_keys(int key_bits,
 /**
  * @brief Generates Authentication Cryptograms using the Session MAC Key
  * @param s_mac          Pointer to the derived S-MAC session key
- * @param host_challenge Pointer to 8-byte Host Challenge
- * @param card_challenge Pointer to 8-byte Card Challenge
- * @param card_crypt     Output: 8-byte Card Cryptogram
- * @param host_crypt     Output: 8-byte Host Cryptogram
+ * @param host_challenge Pointer to 16-byte Host Challenge
+ * @param card_challenge Pointer to 16-byte Card Challenge
+ * @param card_crypt     Output: 16-byte Card Cryptogram
+ * @param host_crypt     Output: 16-byte Host Cryptogram
  */
 void scp03_calc_cryptograms(int key_bits,
                             unsigned char* s_mac,

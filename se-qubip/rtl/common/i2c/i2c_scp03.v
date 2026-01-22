@@ -61,7 +61,7 @@ module i2c_scp03 #(
 		           parameter integer    TRNG_SIZE               = 32768,
 		           parameter [9:0]      IMP_CLK_FREQ            = 100,
                    //-- SCP-03 Parameters
-                   parameter [1:0]      SCP03_AES_LEN           = 2'b1,
+                   parameter [1:0]      SCP03_AES_LEN           = 2'd3,
                    parameter [255:0]    SCP03_KEY_ENC           = 256'h000102030405060708090A0B0C0D0E0F_1011121314151617_18191A1B1C1D1E1F,
                    parameter [255:0]    SCP03_KEY_MAC           = 256'h202122232425262728292A2B2C2D2E2F_3031323334353637_38393A3B3C3D3E3F
 			       ) 
@@ -116,7 +116,7 @@ module i2c_scp03 #(
     //------------------------------------------------------------------
     
     // TRNG Input
-    reg [63:0]  scp03_trng_data = 64'hCAFECAFECAFECAFE; 
+    reg [127:0] scp03_trng_data = 128'hCAFECAFECAFECAFECAFECAFECAFECAFE; 
     wire        scp03_trng_data_valid;
 
     // SCP-03 Interfaces
@@ -200,37 +200,57 @@ module i2c_scp03 #(
 	reg     [63:0]  AXI_RAM_WR;
 	wire    [63:0]  AXI_RAM_RD;
 
-    reg             scp03_trng_read;
-    wire    [31:0]  scp03_trng_out;
-    wire            scp03_trng_valid;
-    reg             scp03_trng_done_0;
-    reg             scp03_trng_done_1;
-    reg             scp03_trng_done_2;
+    // TRNG Interface to PicoSoC
+    reg             scp03_trng_read;    // Request pulse to PicoSoC
+    wire    [31:0]  scp03_trng_out;     // Random Data from PicoSoC
+    wire            scp03_trng_valid;   // Data valid from PicoSoC
 
+    // TRNG Filling State Machine
+    reg [2:0] trng_fill_cnt;        // Counts 32-bit words (0..4)
+    reg       trng_filling;         // Status flag
+    reg       trng_handshake_state; // Delays/Ack state
+
+    // 128-bit TRNG Fetch Logic
+    // Handshake: Wait Valid=1 -> Assert Read=1 -> Wait 1 Cycle -> Latch -> Read=0
     always @(posedge clk) begin
         if (rst || scp03_trng_data_valid) begin
-            scp03_trng_data         <= 64'hCAFECAFECAFECAFE;
-            scp03_trng_read         <= 0;
-            scp03_trng_done_0       <= 0;
-            scp03_trng_done_1       <= 0;
-            scp03_trng_done_2       <= 0;
+            scp03_trng_data      <= 128'hCAFECAFECAFECAFECAFECAFECAFECAFE;
+            scp03_trng_read      <= 0;
+            trng_fill_cnt        <= 0;
+            trng_filling         <= 1; // Start filling
+            trng_handshake_state <= 0;
         end
-        else if (scp03_trng_valid && !scp03_trng_read && !scp03_trng_done_2) begin
-            scp03_trng_read         <= 1;
-        end
-        else if (scp03_trng_read && !scp03_trng_done_0) begin
-            scp03_trng_done_0       <= 1;
-        end
-        else if (scp03_trng_done_0 && !scp03_trng_done_1) begin
-            scp03_trng_data[31:0]   <= scp03_trng_out;
-            scp03_trng_read         <= 0;
-            scp03_trng_done_0       <= 0;
-            scp03_trng_done_1       <= 1;
-        end
-        else if (scp03_trng_done_0 && !scp03_trng_done_2) begin
-            scp03_trng_data[63:32]  <= scp03_trng_out;
-            scp03_trng_read         <= 0;
-            scp03_trng_done_2       <= 1;
+        else if (trng_filling) begin
+            if (trng_fill_cnt < 4) begin
+                
+                // 1. Wait for Valid from PicoSoC (and ensure we aren't already reading)
+                if (scp03_trng_valid && !scp03_trng_read && !trng_handshake_state) begin
+                    scp03_trng_read <= 1;
+                end
+                
+                // 2. Wait 1 cycle (mimics done_0 logic)
+                else if (scp03_trng_read && !trng_handshake_state) begin
+                    trng_handshake_state <= 1;
+                end
+                
+                // 3. Latch Data and Finish Read (mimics done_0 && !done_1 logic)
+                else if (trng_handshake_state) begin
+                    case (trng_fill_cnt)
+                        3'd0: scp03_trng_data[31:0]   <= scp03_trng_out;
+                        3'd1: scp03_trng_data[63:32]  <= scp03_trng_out;
+                        3'd2: scp03_trng_data[95:64]  <= scp03_trng_out;
+                        3'd3: scp03_trng_data[127:96] <= scp03_trng_out;
+                    endcase
+                    
+                    scp03_trng_read      <= 0;
+                    trng_handshake_state <= 0;
+                    trng_fill_cnt        <= trng_fill_cnt + 1;
+                end
+            end
+            else begin
+                // Done filling 4 words
+                trng_filling <= 0;
+            end
         end
     end
 
